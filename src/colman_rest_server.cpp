@@ -3793,7 +3793,11 @@ namespace colman
           }
           auto obj = parse_body(req);
           auto name =
-              obj[QStringLiteral("name")].toString();
+              obj[QStringLiteral("name")].toString().trimmed();
+          if(name.isEmpty()) {
+            return json_error(
+                QStringLiteral("Bad request"), SC::BadRequest);
+          }
           queries_.add_class_name(name);
           return SC::Created;
         });

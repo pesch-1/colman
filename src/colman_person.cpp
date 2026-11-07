@@ -76,12 +76,13 @@ void colman::Person::set_title(QString const& title)
 
 
 /**
-   Sets the school class.
+   Sets the school class.  Leading and trailing whitespace is removed so
+   that the name matches the class list, which stores trimmed names.
    @param school_class school class designation, e.g. "5a"; may be empty.
 */
 void colman::Person::set_school_class(QString const& school_class)
 {
-  school_class_ = school_class;
+  school_class_ = school_class.trimmed();
 }
 
 

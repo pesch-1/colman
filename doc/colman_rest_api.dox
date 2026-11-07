@@ -1047,7 +1047,9 @@ Returns a JSON array of class name strings.
 
 @subsection rest_classes_post POST /api/classes
 
-Creates a new class.  Request body: `{"name":"..."}`.
+Creates a new class.  Request body: `{"name":"..."}`.  Leading and
+trailing whitespace is removed from the name; an empty name yields
+`400 Bad Request`.
 
 @subsection rest_classes_put PUT /api/classes/{name}
 
