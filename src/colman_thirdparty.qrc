@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="icons/thirdparty/Color/SVG/powered-by-bgg-rgb.svg">../flutter/assets/thirdparty/powered-by-bgg-rgb.svg</file>
+  </qresource>
+</RCC>

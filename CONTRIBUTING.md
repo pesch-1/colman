@@ -17,7 +17,8 @@ translations and pull/merge requests are welcome.
 
 ## Building and testing
 
-See [INSTALL.md](INSTALL.md) for dependencies.  In short:
+C++ sources live in `src/`, unit tests in `tests/`, the Flutter client in
+`flutter/`.  See [INSTALL.md](INSTALL.md) for dependencies.  In short:
 
 ```bash
 cmake -B bld && cmake --build bld -j4
@@ -67,8 +68,8 @@ Every push and pull request runs the GitHub Actions workflow
 
 ## Coding style (C++)
 
-The authoritative reference is `colman_coding_style.hpp` /
-`colman_coding_style.cpp`; `.clang-format` encodes the formatting rules.
+The authoritative reference is `src/colman_coding_style.hpp` /
+`src/colman_coding_style.cpp`; `.clang-format` encodes the formatting rules.
 Please run `clang-format` on changed files.
 
 - 2 spaces indentation, no tabs, 80 columns.

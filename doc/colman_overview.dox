@@ -48,6 +48,21 @@ Generated files that must **not** be edited manually: `moc_*.cpp`,
 `flutter/lib/l10n/app_localizations*.dart`. There are no Qt Designer
 `.ui` files; the whole UI is written in C++.
 
+@section sec_layout Source layout
+
+| Directory | Contents |
+|---|---|
+| `src/` | All C++ sources and headers, Qt resource files (`.qrc`) |
+| `tests/` | Unit tests (`*_test.cpp`) and `colman_test_helpers.hpp` |
+| `localization/` | Translation sources (`colman_de.ts`) |
+| `doc/` | Developer documentation and tutorials |
+| `tools/` | Helper scripts (tutorial screenshots, UI pixel check) |
+| `cmake/` | CMake helper scripts |
+| `flutter/` | Flutter client; its icons are shared with the desktop app |
+
+`src/` is on the include path, so includes use plain
+file names (`#include "colman_item.hpp"`).
+
 @section sec_cmake CMake targets
 
 **Libraries**
@@ -104,7 +119,7 @@ Generated files that must **not** be edited manually: `moc_*.cpp`,
 
 @section sec_resources Qt resources
 
-| Resource file | Contents |
+| Resource file (in `src/`) | Contents |
 |---|---|
 | `colman_owls.qrc` | Owl icon set (start page, central page, dialogs) |
 | `colman_thirdparty.qrc` | Third-party logos ("Powered by BGG") |

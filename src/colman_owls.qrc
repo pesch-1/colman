@@ -1,0 +1,44 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="icons/owls/add_book.jpeg">../flutter/assets/icons/add_book.jpeg</file>
+    <file alias="icons/owls/admin.jpeg">../flutter/assets/icons/admin.jpeg</file>
+    <file alias="icons/owls/change_password.jpeg">../flutter/assets/icons/change_password.jpeg</file>
+    <file alias="icons/owls/colman_logo.jpeg">../flutter/assets/icons/colman_logo.jpeg</file>
+    <file alias="icons/owls/connection2.jpeg">../flutter/assets/icons/connection2.jpeg</file>
+    <file alias="icons/owls/edit_id.jpeg">../flutter/assets/icons/edit_id.jpeg</file>
+    <file alias="icons/owls/evolution.jpeg">../flutter/assets/icons/evolution.jpeg</file>
+    <file alias="icons/owls/edit_item_card.jpeg">../flutter/assets/icons/edit_item_card.jpeg</file>
+    <file alias="icons/owls/edit_label_layouts.jpeg">../flutter/assets/icons/edit_label_layouts.jpeg</file>
+    <file alias="icons/owls/edit_passwords.jpeg">../flutter/assets/icons/edit_passwords.jpeg</file>
+    <file alias="icons/owls/edit_persons.jpeg">../flutter/assets/icons/edit_persons.jpeg</file>
+    <file alias="icons/owls/edit_signature_layout.jpeg">../flutter/assets/icons/edit_signature_layout.jpeg</file>
+    <file alias="icons/owls/edit_types.jpeg">../flutter/assets/icons/edit_types.jpeg</file>
+    <file alias="icons/owls/exit2.jpeg">../flutter/assets/icons/exit2.jpeg</file>
+    <file alias="icons/owls/film_barcode.jpeg">../flutter/assets/icons/film_barcode.jpeg</file>
+    <file alias="icons/owls/scan_barcode.jpeg">../flutter/assets/icons/scan_barcode.jpeg</file>
+    <file alias="icons/owls/hint.jpeg">../flutter/assets/icons/hint.jpeg</file>
+    <file alias="icons/owls/lending.jpeg">../flutter/assets/icons/lending.jpeg</file>
+    <file alias="icons/owls/lending_group.jpeg">../flutter/assets/icons/lending_group.jpeg</file>
+    <file alias="icons/owls/list_history.jpeg">../flutter/assets/icons/list_history.jpeg</file>
+    <file alias="icons/owls/login.jpeg">../flutter/assets/icons/login.jpeg</file>
+    <file alias="icons/owls/logout.jpeg">../flutter/assets/icons/logout.jpeg</file>
+    <file alias="icons/owls/new_collection.jpeg">../flutter/assets/icons/new_collection.jpeg</file>
+    <file alias="icons/owls/open_collection.jpeg">../flutter/assets/icons/open_collection.jpeg</file>
+    <file alias="icons/owls/permissions.jpeg">../flutter/assets/icons/permissions.jpeg</file>
+    <file alias="icons/owls/preferences.jpeg">../flutter/assets/icons/preferences.jpeg</file>
+    <file alias="icons/owls/preferences_collection.jpeg">../flutter/assets/icons/preferences_collection.jpeg</file>
+    <file alias="icons/owls/print_barcode.jpeg">../flutter/assets/icons/print_barcode.jpeg</file>
+    <file alias="icons/owls/print_id.jpeg">../flutter/assets/icons/print_id.jpeg</file>
+    <file alias="icons/owls/print_label.jpeg">../flutter/assets/icons/print_label.jpeg</file>
+    <file alias="icons/owls/print_signatures.jpeg">../flutter/assets/icons/print_signatures.jpeg</file>
+    <file alias="icons/owls/printer_calibration.jpeg">../flutter/assets/icons/printer_calibration.jpeg</file>
+    <file alias="icons/owls/printer.jpeg">../flutter/assets/icons/printer.jpeg</file>
+    <file alias="icons/owls/question.jpeg">../flutter/assets/icons/question.jpeg</file>
+    <file alias="icons/owls/remove_book.jpeg">../flutter/assets/icons/remove_book.jpeg</file>
+    <file alias="icons/owls/returns.jpeg">../flutter/assets/icons/returns.jpeg</file>
+    <file alias="icons/owls/search.jpeg">../flutter/assets/icons/search.jpeg</file>
+    <file alias="icons/owls/reserve2.jpeg">../flutter/assets/icons/reserve2.jpeg</file>
+    <file alias="icons/owls/waiting.jpeg">../flutter/assets/icons/waiting.jpeg</file>
+    <file alias="icons/owls/warning.jpeg">../flutter/assets/icons/warning.jpeg</file>
+  </qresource>
+</RCC>

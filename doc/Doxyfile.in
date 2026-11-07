@@ -48,7 +48,8 @@ WARN_LOGFILE           = @CMAKE_CURRENT_BINARY_DIR@/doc/doxygen_warnings.log
 # Input
 #---------------------------------------------------------------------------
 
-INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@ \
+INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/tests \
                          @CMAKE_CURRENT_SOURCE_DIR@/doc
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.hpp \

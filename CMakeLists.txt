@@ -77,76 +77,79 @@ FetchContent_MakeAvailable(jwt-cpp)
 
 enable_testing()
 
+# Headers live in src/; tests in tests/ include them by plain file name.
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 # Non-UI sources shared between application and tests.
 set(COLMAN_CORE_SOURCES
-  colman_acquisition.cpp
-  colman_acquisition.hpp
-  colman_actions.cpp
-  colman_actions.hpp
-  colman_assert.cpp
-  colman_assert.hpp
-  colman_assert_context.cpp
-  colman_assert_context.hpp
-  colman_collection.cpp
-  colman_collection.hpp
-  colman_error.cpp
-  colman_error.hpp
-  colman_trace.cpp
-  colman_trace.hpp
-  colman_id_card_layout.hpp
-  colman_bgg_queries.cpp
-  colman_bgg_queries.hpp
-  colman_opengtindb.cpp
-  colman_opengtindb.hpp
-  colman_ean_queries.cpp
-  colman_ean_queries.hpp
-  colman_isbn_queries.cpp
-  colman_isbn_queries.hpp
-  colman_name_queries.cpp
-  colman_name_queries.hpp
-  colman_sru_server.cpp
-  colman_sru_server.hpp
-  colman_item.cpp
-  colman_item.hpp
-  colman_json.cpp
-  colman_json.hpp
-  colman_lending.cpp
-  colman_lending.hpp
-  colman_liquidation.cpp
-  colman_liquidation.hpp
-  colman_passwords.cpp
-  colman_passwords.hpp
-  colman_person.cpp
-  colman_person.hpp
-  colman_return.cpp
-  colman_return.hpp
-  colman_db_util.cpp
-  colman_db_util.hpp
-  colman_sql_queries.cpp
-  colman_sql_queries.hpp
-  colman_sql_queries_impl.hpp
-  colman_sql_queries_history.cpp
-  colman_sql_queries_history.hpp
-  colman_sql_queries_items.cpp
-  colman_sql_queries_items.hpp
-  colman_sql_queries_movements.cpp
-  colman_sql_queries_movements.hpp
-  colman_sql_queries_persons.cpp
-  colman_sql_queries_persons.hpp
-  colman_sql_queries_types.cpp
-  colman_sql_queries_types.hpp
-  colman_type.cpp
-  colman_type.hpp
-  colman_media_kind.hpp
-  colman_marc21.cpp
-  colman_marc21.hpp
-  colman_permission_deps.cpp
-  colman_permission_deps.hpp
+  src/colman_acquisition.cpp
+  src/colman_acquisition.hpp
+  src/colman_actions.cpp
+  src/colman_actions.hpp
+  src/colman_assert.cpp
+  src/colman_assert.hpp
+  src/colman_assert_context.cpp
+  src/colman_assert_context.hpp
+  src/colman_collection.cpp
+  src/colman_collection.hpp
+  src/colman_error.cpp
+  src/colman_error.hpp
+  src/colman_trace.cpp
+  src/colman_trace.hpp
+  src/colman_id_card_layout.hpp
+  src/colman_bgg_queries.cpp
+  src/colman_bgg_queries.hpp
+  src/colman_opengtindb.cpp
+  src/colman_opengtindb.hpp
+  src/colman_ean_queries.cpp
+  src/colman_ean_queries.hpp
+  src/colman_isbn_queries.cpp
+  src/colman_isbn_queries.hpp
+  src/colman_name_queries.cpp
+  src/colman_name_queries.hpp
+  src/colman_sru_server.cpp
+  src/colman_sru_server.hpp
+  src/colman_item.cpp
+  src/colman_item.hpp
+  src/colman_json.cpp
+  src/colman_json.hpp
+  src/colman_lending.cpp
+  src/colman_lending.hpp
+  src/colman_liquidation.cpp
+  src/colman_liquidation.hpp
+  src/colman_passwords.cpp
+  src/colman_passwords.hpp
+  src/colman_person.cpp
+  src/colman_person.hpp
+  src/colman_return.cpp
+  src/colman_return.hpp
+  src/colman_db_util.cpp
+  src/colman_db_util.hpp
+  src/colman_sql_queries.cpp
+  src/colman_sql_queries.hpp
+  src/colman_sql_queries_impl.hpp
+  src/colman_sql_queries_history.cpp
+  src/colman_sql_queries_history.hpp
+  src/colman_sql_queries_items.cpp
+  src/colman_sql_queries_items.hpp
+  src/colman_sql_queries_movements.cpp
+  src/colman_sql_queries_movements.hpp
+  src/colman_sql_queries_persons.cpp
+  src/colman_sql_queries_persons.hpp
+  src/colman_sql_queries_types.cpp
+  src/colman_sql_queries_types.hpp
+  src/colman_type.cpp
+  src/colman_type.hpp
+  src/colman_media_kind.hpp
+  src/colman_marc21.cpp
+  src/colman_marc21.hpp
+  src/colman_permission_deps.cpp
+  src/colman_permission_deps.hpp
 )
 
 add_library(colman_core STATIC ${COLMAN_CORE_SOURCES})
 
-target_include_directories(colman_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(colman_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_compile_definitions(colman_core PUBLIC QT_NO_KEYWORDS
   COLMAN_VERSION="${PROJECT_VERSION}")
 target_link_libraries(colman_core
@@ -161,142 +164,142 @@ target_link_libraries(colman_core
 )
 
 # Owl icon set — shared by all GUI applications.
-qt6_add_resources(COLMAN_OWL_RESOURCES colman_owls.qrc)
+qt6_add_resources(COLMAN_OWL_RESOURCES src/colman_owls.qrc)
 
 # Third-party logos (e.g. "Powered by BGG") — included in the main app.
-qt6_add_resources(COLMAN_THIRDPARTY_RESOURCES colman_thirdparty.qrc)
+qt6_add_resources(COLMAN_THIRDPARTY_RESOURCES src/colman_thirdparty.qrc)
 
 set(COLMAN_APP_SOURCES
-  colman_camera_scan_page.cpp
-  colman_camera_scan_page.hpp
-  colman_central_page.cpp
-  colman_central_page.hpp
-  colman_tile_button.cpp
-  colman_tile_button.hpp
-  colman_anonymous_variable.hpp
-  colman_msgbox.cpp
-  colman_msgbox.hpp
-  colman_app_data.cpp
-  colman_app_data.hpp
-  colman_main_window_ui.cpp
-  colman_main_window_ui.hpp
-  colman_main_window_ui_management.cpp
-  colman_main_window_ui_lending.cpp
-  colman_main_window_ui_group_lending.cpp
-  colman_main_window_ui_return.cpp
-  colman_main_window_ui_acquisition.cpp
-  colman_main_window_ui_liquidation.cpp
-  colman_ui_build.cpp
-  colman_ui_build.hpp
-  colman_ui_snapshot.cpp
-  colman_ui_snapshot.hpp
-  colman_clear_selection_filter.cpp
-  colman_clear_selection_filter.hpp
-  colman_code128_item.cpp
-  colman_code128_item.hpp
-  colman_card_rendering.cpp
-  colman_card_rendering.hpp
-  colman_card_batch_print.cpp
-  colman_card_batch_print.hpp
-  colman_create_collection_page.cpp
-  colman_create_collection_page.hpp
-  colman_encryption_password_widget.cpp
-  colman_encryption_password_widget.hpp
-  colman_acquisition_page.cpp
-  colman_acquisition_page.hpp
-  colman_lending_page.cpp
-  colman_lending_page.hpp
-  colman_group_lending_page.cpp
-  colman_group_lending_page.hpp
-  colman_liquidation_page.cpp
-  colman_liquidation_page.hpp
-  colman_return_page.cpp
-  colman_return_page.hpp
-  colman_here.hpp
-  colman_history_page.cpp
-  colman_history_page.hpp
-  colman_extend_lending_dialog.cpp
-  colman_extend_lending_dialog.hpp
-  colman_item_barcode_page.cpp
-  colman_item_barcode_page.hpp
-  colman_item_table.cpp
-  colman_item_table.hpp
-  colman_item_type_page.cpp
-  colman_item_type_page.hpp
-  colman_amazon_browser.cpp
-  colman_amazon_browser.hpp
-  colman_item_widget.cpp
-  colman_item_widget.hpp
-  colman_item_widget_ui.cpp
-  colman_item_widget_ui.hpp
-  colman_list_value_widget.cpp
-  colman_list_value_widget.hpp
-  colman_on_exit.hpp
-  colman_page_layout.cpp
-  colman_page_layout.hpp
-  colman_partial_date_edit.cpp
-  colman_partial_date_edit.hpp
-  colman_printer_calibration.cpp
-  colman_printer_calibration.hpp
-  colman_printer_calibration_widget.cpp
-  colman_printer_calibration_widget.hpp
-  colman_label_layout_widget.cpp
-  colman_label_layout_widget.hpp
-  colman_label_printer.cpp
-  colman_label_printer.hpp
-  colman_label_selection_widget.cpp
-  colman_label_selection_widget.hpp
-  colman_card_element_item.cpp
-  colman_card_element_item.hpp
-  colman_card_editor_base.cpp
-  colman_card_editor_base.hpp
-  colman_id_editor.cpp
-  colman_id_editor.hpp
-  colman_item_card_editor.cpp
-  colman_item_card_editor.hpp
-  colman_signature_label_editor.cpp
-  colman_signature_label_editor.hpp
-  colman_signature_label_layout.hpp
-  colman_signature_print_page.cpp
-  colman_signature_print_page.hpp
-  colman_person_barcode_page.cpp
-  colman_person_barcode_page.hpp
-  colman_person_list_widget.cpp
-  colman_person_list_widget.hpp
-  colman_person_check_list_widget.cpp
-  colman_person_check_list_widget.hpp
-  colman_person_page.cpp
-  colman_person_page.hpp
-  colman_person_view_page.cpp
-  colman_person_view_page.hpp
-  colman_person_widget.cpp
-  colman_person_widget.hpp
-  colman_preferences_page.cpp
-  colman_preferences_page.hpp
-  colman_preview_file_dialog.cpp
-  colman_preview_file_dialog.hpp
-  colman_screenshot.cpp
-  colman_screenshot.hpp
-  colman_search_page.cpp
-  colman_search_page.hpp
-  colman_class_management_page.cpp
-  colman_class_management_page.hpp
-  colman_class_names.hpp
-  colman_settings_page.cpp
-  colman_settings_page.hpp
-  colman_pixmap_label.hpp
-  colman_scaling_label.hpp
-  colman_signal_helpers.hpp
-  colman_sort_model.hpp
-  colman_table_models.cpp
-  colman_table_models.hpp
-  colman_start_page.cpp
-  colman_start_page.hpp
-  colman_tableview_helpers.cpp
-  colman_tableview_helpers.hpp
-  colman_try_catch.hpp
-  colman_permissions_widget.cpp
-  colman_permissions_widget.hpp
+  src/colman_camera_scan_page.cpp
+  src/colman_camera_scan_page.hpp
+  src/colman_central_page.cpp
+  src/colman_central_page.hpp
+  src/colman_tile_button.cpp
+  src/colman_tile_button.hpp
+  src/colman_anonymous_variable.hpp
+  src/colman_msgbox.cpp
+  src/colman_msgbox.hpp
+  src/colman_app_data.cpp
+  src/colman_app_data.hpp
+  src/colman_main_window_ui.cpp
+  src/colman_main_window_ui.hpp
+  src/colman_main_window_ui_management.cpp
+  src/colman_main_window_ui_lending.cpp
+  src/colman_main_window_ui_group_lending.cpp
+  src/colman_main_window_ui_return.cpp
+  src/colman_main_window_ui_acquisition.cpp
+  src/colman_main_window_ui_liquidation.cpp
+  src/colman_ui_build.cpp
+  src/colman_ui_build.hpp
+  src/colman_ui_snapshot.cpp
+  src/colman_ui_snapshot.hpp
+  src/colman_clear_selection_filter.cpp
+  src/colman_clear_selection_filter.hpp
+  src/colman_code128_item.cpp
+  src/colman_code128_item.hpp
+  src/colman_card_rendering.cpp
+  src/colman_card_rendering.hpp
+  src/colman_card_batch_print.cpp
+  src/colman_card_batch_print.hpp
+  src/colman_create_collection_page.cpp
+  src/colman_create_collection_page.hpp
+  src/colman_encryption_password_widget.cpp
+  src/colman_encryption_password_widget.hpp
+  src/colman_acquisition_page.cpp
+  src/colman_acquisition_page.hpp
+  src/colman_lending_page.cpp
+  src/colman_lending_page.hpp
+  src/colman_group_lending_page.cpp
+  src/colman_group_lending_page.hpp
+  src/colman_liquidation_page.cpp
+  src/colman_liquidation_page.hpp
+  src/colman_return_page.cpp
+  src/colman_return_page.hpp
+  src/colman_here.hpp
+  src/colman_history_page.cpp
+  src/colman_history_page.hpp
+  src/colman_extend_lending_dialog.cpp
+  src/colman_extend_lending_dialog.hpp
+  src/colman_item_barcode_page.cpp
+  src/colman_item_barcode_page.hpp
+  src/colman_item_table.cpp
+  src/colman_item_table.hpp
+  src/colman_item_type_page.cpp
+  src/colman_item_type_page.hpp
+  src/colman_amazon_browser.cpp
+  src/colman_amazon_browser.hpp
+  src/colman_item_widget.cpp
+  src/colman_item_widget.hpp
+  src/colman_item_widget_ui.cpp
+  src/colman_item_widget_ui.hpp
+  src/colman_list_value_widget.cpp
+  src/colman_list_value_widget.hpp
+  src/colman_on_exit.hpp
+  src/colman_page_layout.cpp
+  src/colman_page_layout.hpp
+  src/colman_partial_date_edit.cpp
+  src/colman_partial_date_edit.hpp
+  src/colman_printer_calibration.cpp
+  src/colman_printer_calibration.hpp
+  src/colman_printer_calibration_widget.cpp
+  src/colman_printer_calibration_widget.hpp
+  src/colman_label_layout_widget.cpp
+  src/colman_label_layout_widget.hpp
+  src/colman_label_printer.cpp
+  src/colman_label_printer.hpp
+  src/colman_label_selection_widget.cpp
+  src/colman_label_selection_widget.hpp
+  src/colman_card_element_item.cpp
+  src/colman_card_element_item.hpp
+  src/colman_card_editor_base.cpp
+  src/colman_card_editor_base.hpp
+  src/colman_id_editor.cpp
+  src/colman_id_editor.hpp
+  src/colman_item_card_editor.cpp
+  src/colman_item_card_editor.hpp
+  src/colman_signature_label_editor.cpp
+  src/colman_signature_label_editor.hpp
+  src/colman_signature_label_layout.hpp
+  src/colman_signature_print_page.cpp
+  src/colman_signature_print_page.hpp
+  src/colman_person_barcode_page.cpp
+  src/colman_person_barcode_page.hpp
+  src/colman_person_list_widget.cpp
+  src/colman_person_list_widget.hpp
+  src/colman_person_check_list_widget.cpp
+  src/colman_person_check_list_widget.hpp
+  src/colman_person_page.cpp
+  src/colman_person_page.hpp
+  src/colman_person_view_page.cpp
+  src/colman_person_view_page.hpp
+  src/colman_person_widget.cpp
+  src/colman_person_widget.hpp
+  src/colman_preferences_page.cpp
+  src/colman_preferences_page.hpp
+  src/colman_preview_file_dialog.cpp
+  src/colman_preview_file_dialog.hpp
+  src/colman_screenshot.cpp
+  src/colman_screenshot.hpp
+  src/colman_search_page.cpp
+  src/colman_search_page.hpp
+  src/colman_class_management_page.cpp
+  src/colman_class_management_page.hpp
+  src/colman_class_names.hpp
+  src/colman_settings_page.cpp
+  src/colman_settings_page.hpp
+  src/colman_pixmap_label.hpp
+  src/colman_scaling_label.hpp
+  src/colman_signal_helpers.hpp
+  src/colman_sort_model.hpp
+  src/colman_table_models.cpp
+  src/colman_table_models.hpp
+  src/colman_start_page.cpp
+  src/colman_start_page.hpp
+  src/colman_tableview_helpers.cpp
+  src/colman_tableview_helpers.hpp
+  src/colman_try_catch.hpp
+  src/colman_permissions_widget.cpp
+  src/colman_permissions_widget.hpp
 )
 
 set(COLMAN_APP_LIBS
@@ -316,13 +319,13 @@ set(COLMAN_APP_LIBS
 
 # REST server support library (jwt-cpp + OpenSSL, no Qt UI).
 add_library(colman_rest STATIC
-  colman_auth_middleware.cpp
-  colman_auth_middleware.hpp
-  colman_jwt_validator.cpp
-  colman_jwt_validator.hpp
-  colman_rest_api_version.hpp
-  colman_rest_queries.cpp
-  colman_rest_queries.hpp
+  src/colman_auth_middleware.cpp
+  src/colman_auth_middleware.hpp
+  src/colman_jwt_validator.cpp
+  src/colman_jwt_validator.hpp
+  src/colman_rest_api_version.hpp
+  src/colman_rest_queries.cpp
+  src/colman_rest_queries.hpp
 )
 target_link_libraries(colman_rest
   colman_core
@@ -335,11 +338,11 @@ target_link_libraries(colman_rest
 
 # REST server executable.
 add_executable(colman_rest_server
-  colman_mdns_announcer.cpp
-  colman_mdns_announcer.hpp
-  colman_rest_server.cpp
-  colman_rest_server.hpp
-  colman_rest_server_main.cpp
+  src/colman_mdns_announcer.cpp
+  src/colman_mdns_announcer.hpp
+  src/colman_rest_server.cpp
+  src/colman_rest_server.hpp
+  src/colman_rest_server_main.cpp
 )
 target_link_libraries(colman_rest_server
   colman_rest
@@ -356,9 +359,9 @@ if(COLMAN_BUILD_GUI)
     ${COLMAN_APP_SOURCES}
     ${COLMAN_OWL_RESOURCES}
     ${COLMAN_THIRDPARTY_RESOURCES}
-    colman_mdns_browser.cpp
-    colman_mdns_browser.hpp
-    colman_rest_client_main.cpp
+    src/colman_mdns_browser.cpp
+    src/colman_mdns_browser.hpp
+    src/colman_rest_client_main.cpp
   )
   target_link_libraries(colman_rest_client
     ${COLMAN_APP_LIBS}
@@ -368,7 +371,7 @@ endif()
 
 # Auth middleware unit tests.
 add_executable(colman_auth_middleware_test
-  colman_auth_middleware_test.cpp
+  tests/colman_auth_middleware_test.cpp
 )
 target_link_libraries(colman_auth_middleware_test
   colman_rest
@@ -386,7 +389,7 @@ set_tests_properties(colman_auth_middleware_test PROPERTIES
 
 # JWT validator unit tests.
 add_executable(colman_jwt_validator_test
-  colman_jwt_validator_test.cpp
+  tests/colman_jwt_validator_test.cpp
 )
 target_link_libraries(colman_jwt_validator_test
   colman_rest
@@ -404,7 +407,7 @@ set_tests_properties(colman_jwt_validator_test PROPERTIES
 # Main application.
 # JSON serialization unit tests.
 add_executable(colman_json_test
-  colman_json_test.cpp
+  tests/colman_json_test.cpp
 )
 target_link_libraries(colman_json_test
   colman_core
@@ -418,9 +421,9 @@ set_tests_properties(colman_json_test PROPERTIES
 
 # mDNS announcer unit tests (legacy unicast responses, RFC 6762 §6.7).
 add_executable(colman_mdns_announcer_test
-  colman_mdns_announcer.cpp
-  colman_mdns_announcer.hpp
-  colman_mdns_announcer_test.cpp
+  src/colman_mdns_announcer.cpp
+  src/colman_mdns_announcer.hpp
+  tests/colman_mdns_announcer_test.cpp
 )
 target_link_libraries(colman_mdns_announcer_test
   colman_core
@@ -435,9 +438,9 @@ set_tests_properties(colman_mdns_announcer_test PROPERTIES
 
 # REST integration tests.
 add_executable(colman_rest_queries_test
-  colman_rest_queries_test.cpp
-  colman_rest_server.cpp
-  colman_rest_server.hpp
+  tests/colman_rest_queries_test.cpp
+  src/colman_rest_server.cpp
+  src/colman_rest_server.hpp
 )
 target_link_libraries(colman_rest_queries_test
   colman_rest
@@ -457,9 +460,9 @@ set_tests_properties(colman_rest_queries_test PROPERTIES
 
 # REST authorization tests.
 add_executable(colman_rest_authorization_test
-  colman_rest_authorization_test.cpp
-  colman_rest_server.cpp
-  colman_rest_server.hpp
+  tests/colman_rest_authorization_test.cpp
+  src/colman_rest_server.cpp
+  src/colman_rest_server.hpp
 )
 target_link_libraries(colman_rest_authorization_test
   colman_rest
@@ -479,9 +482,9 @@ set_tests_properties(colman_rest_authorization_test PROPERTIES
 
 # REST concurrency stress tests.
 add_executable(colman_rest_stress_test
-  colman_rest_stress_test.cpp
-  colman_rest_server.cpp
-  colman_rest_server.hpp
+  tests/colman_rest_stress_test.cpp
+  src/colman_rest_server.cpp
+  src/colman_rest_server.hpp
 )
 target_link_libraries(colman_rest_stress_test
   colman_rest
@@ -505,9 +508,9 @@ if(COLMAN_BUILD_GUI)
     ${COLMAN_APP_SOURCES}
     ${COLMAN_OWL_RESOURCES}
     ${COLMAN_THIRDPARTY_RESOURCES}
-    colman_main.cpp
-    colman_tutorial_screenshots.cpp
-    colman_tutorial_screenshots.hpp
+    src/colman_main.cpp
+    src/colman_tutorial_screenshots.cpp
+    src/colman_tutorial_screenshots.hpp
   )
   target_link_libraries(colman ${COLMAN_APP_LIBS})
   # Tutorial screenshots: renders doc/tutorial/<lang>/screenshots/*.jpg by
@@ -525,7 +528,7 @@ if(COLMAN_BUILD_GUI)
 endif()
 
 # Actions unit tests (colman_core).
-add_executable(colman_actions_test colman_actions_test.cpp)
+add_executable(colman_actions_test tests/colman_actions_test.cpp)
 target_link_libraries(colman_actions_test
   colman_core
   Qt6::Network
@@ -540,7 +543,7 @@ set_tests_properties(colman_actions_test PROPERTIES
 
 # Database utility unit tests (only colman_core, no UI needed).
 add_executable(colman_db_util_test
-  colman_db_util_test.cpp
+  tests/colman_db_util_test.cpp
 )
 target_link_libraries(colman_db_util_test
   colman_core
@@ -555,7 +558,7 @@ set_tests_properties(colman_db_util_test PROPERTIES
 
 # Permission profiles and delegated authorization helpers.
 add_executable(colman_permission_deps_test
-  colman_permission_deps_test.cpp
+  tests/colman_permission_deps_test.cpp
 )
 target_link_libraries(colman_permission_deps_test
   colman_core
@@ -571,9 +574,9 @@ set_tests_properties(colman_permission_deps_test PROPERTIES
 
 # Queries unit tests (SQLQueries + table models, needs Qt Widgets for QTableView).
 add_executable(colman_queries_test
-  colman_queries_test.cpp
-  colman_table_models.cpp
-  colman_table_models.hpp
+  tests/colman_queries_test.cpp
+  src/colman_table_models.cpp
+  src/colman_table_models.hpp
 )
 target_link_libraries(colman_queries_test
   colman_core
@@ -587,7 +590,7 @@ set_tests_properties(colman_queries_test PROPERTIES
 )
 
 add_executable(colman_reservations_test
-  colman_reservations_test.cpp
+  tests/colman_reservations_test.cpp
 )
 target_link_libraries(colman_reservations_test
   colman_core
@@ -602,8 +605,8 @@ set_tests_properties(colman_reservations_test PROPERTIES
 
 # ISBN unit tests (isbn_queries + colman_core, no full UI needed).
 add_executable(colman_isbn_test
-  colman_isbn_queries.cpp
-  colman_isbn_test.cpp
+  src/colman_isbn_queries.cpp
+  tests/colman_isbn_test.cpp
 )
 target_link_libraries(colman_isbn_test
   colman_core
@@ -620,8 +623,8 @@ set_tests_properties(colman_isbn_test PROPERTIES
 )
 
 add_executable(colman_bgg_test
-  colman_opengtindb.cpp
-  colman_bgg_test.cpp
+  src/colman_opengtindb.cpp
+  tests/colman_bgg_test.cpp
 )
 target_link_libraries(colman_bgg_test
   colman_core
@@ -636,7 +639,7 @@ set_tests_properties(colman_bgg_test PROPERTIES
 
 # Title (name) search unit tests (name_queries + colman_core).
 add_executable(colman_name_test
-  colman_name_test.cpp
+  tests/colman_name_test.cpp
 )
 target_link_libraries(colman_name_test
   colman_core
@@ -652,8 +655,8 @@ set_tests_properties(colman_name_test PROPERTIES
 )
 
 add_executable(colman_query_isbn
-  colman_isbn_queries.cpp
-  colman_query_isbn.cpp
+  src/colman_isbn_queries.cpp
+  src/colman_query_isbn.cpp
 )
 target_link_libraries(colman_query_isbn
   colman_core
@@ -663,7 +666,7 @@ target_link_libraries(colman_query_isbn
   Qt6::Concurrent
 )
 
-add_executable(colman_transfer colman_transfer.cpp)
+add_executable(colman_transfer src/colman_transfer.cpp)
 target_link_libraries(colman_transfer
   colman_core
   Qt6::Core
@@ -672,7 +675,7 @@ target_link_libraries(colman_transfer
 )
 target_compile_definitions(colman_transfer PRIVATE QT_NO_KEYWORDS)
 
-add_executable(colman_gen_testdb colman_gen_testdb.cpp)
+add_executable(colman_gen_testdb src/colman_gen_testdb.cpp)
 target_link_libraries(colman_gen_testdb
   colman_core
   Qt6::Core
@@ -697,13 +700,13 @@ if(LUPDATE_PROGRAM)
       -I "${_lupdate_qt_inc}"
       ${COLMAN_CORE_SOURCES}
       ${COLMAN_APP_SOURCES}
-      colman_main.cpp
-      colman_label_layout_app.cpp
-      colman_label_selection_app.cpp
-      colman_calibrate_printer.cpp
-      colman_rest_client_main.cpp
-      colman_rest_queries.cpp
-      colman_rest_queries.hpp
+      src/colman_main.cpp
+      src/colman_label_layout_app.cpp
+      src/colman_label_selection_app.cpp
+      src/colman_calibrate_printer.cpp
+      src/colman_rest_client_main.cpp
+      src/colman_rest_queries.cpp
+      src/colman_rest_queries.hpp
       -ts ${COLMAN_MAIN_TS_FILES}
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     VERBATIM
@@ -718,8 +721,8 @@ endif()
 # Absolute paths are used because the script is invoked from the build tree.
 set(_lupdate_main_sources)
 foreach(_f ${COLMAN_CORE_SOURCES} ${COLMAN_APP_SOURCES}
-         colman_main.cpp colman_rest_client_main.cpp
-         colman_rest_queries.cpp colman_rest_queries.hpp)
+         src/colman_main.cpp src/colman_rest_client_main.cpp
+         src/colman_rest_queries.cpp src/colman_rest_queries.hpp)
   if(IS_ABSOLUTE "${_f}")
     list(APPEND _lupdate_main_sources "${_f}")
   else()
@@ -743,7 +746,8 @@ set(_check_lupdate_cmd
 )
 
 # Application translations.
-configure_file(colman_app_translations.qrc colman_app_translations.qrc COPYONLY)
+configure_file(src/colman_app_translations.qrc colman_app_translations.qrc
+  COPYONLY)
 qt6_add_resources(COLMAN_APP_TRANSLATION_RESOURCES
   "${CMAKE_CURRENT_BINARY_DIR}/colman_app_translations.qrc"
 )
@@ -766,15 +770,15 @@ endif()
 
 # Interactive label layout manager.
 add_executable(colman_label_layout_app
-  colman_msgbox.cpp
-  colman_msgbox.hpp
-  colman_label_layout_widget.cpp
-  colman_label_layout_widget.hpp
-  colman_label_printer.cpp
-  colman_label_printer.hpp
-  colman_printer_calibration.cpp
-  colman_printer_calibration.hpp
-  colman_label_layout_app.cpp
+  src/colman_msgbox.cpp
+  src/colman_msgbox.hpp
+  src/colman_label_layout_widget.cpp
+  src/colman_label_layout_widget.hpp
+  src/colman_label_printer.cpp
+  src/colman_label_printer.hpp
+  src/colman_printer_calibration.cpp
+  src/colman_printer_calibration.hpp
+  src/colman_label_layout_app.cpp
   ${COLMAN_APP_TRANSLATION_RESOURCES}
 )
 target_link_libraries(colman_label_layout_app
@@ -790,17 +794,17 @@ target_compile_definitions(colman_label_layout_app PRIVATE QT_NO_KEYWORDS)
 
 # Interactive label selection test.
 add_executable(colman_label_selection_app
-  colman_msgbox.cpp
-  colman_msgbox.hpp
-  colman_label_layout_widget.cpp
-  colman_label_layout_widget.hpp
-  colman_label_printer.cpp
-  colman_label_printer.hpp
-  colman_printer_calibration.cpp
-  colman_printer_calibration.hpp
-  colman_label_selection_widget.cpp
-  colman_label_selection_widget.hpp
-  colman_label_selection_app.cpp
+  src/colman_msgbox.cpp
+  src/colman_msgbox.hpp
+  src/colman_label_layout_widget.cpp
+  src/colman_label_layout_widget.hpp
+  src/colman_label_printer.cpp
+  src/colman_label_printer.hpp
+  src/colman_printer_calibration.cpp
+  src/colman_printer_calibration.hpp
+  src/colman_label_selection_widget.cpp
+  src/colman_label_selection_widget.hpp
+  src/colman_label_selection_app.cpp
   ${COLMAN_OWL_RESOURCES}
   ${COLMAN_APP_TRANSLATION_RESOURCES}
 )
@@ -817,13 +821,13 @@ target_compile_definitions(colman_label_selection_app PRIVATE QT_NO_KEYWORDS)
 
 # Interactive label printer test.
 add_executable(colman_test_label_printer
-  colman_label_printer.cpp
-  colman_label_printer.hpp
-  colman_printer_calibration.cpp
-  colman_printer_calibration.hpp
-  colman_code128_item.cpp
-  colman_code128_item.hpp
-  colman_test_label_printer.cpp
+  src/colman_label_printer.cpp
+  src/colman_label_printer.hpp
+  src/colman_printer_calibration.cpp
+  src/colman_printer_calibration.hpp
+  src/colman_code128_item.cpp
+  src/colman_code128_item.hpp
+  src/colman_test_label_printer.cpp
 )
 target_link_libraries(colman_test_label_printer
   colman_core
@@ -836,13 +840,13 @@ target_compile_definitions(colman_test_label_printer PRIVATE QT_NO_KEYWORDS)
 
 # Interactive printer calibration test.
 add_executable(colman_calibrate_printer
-  colman_page_layout.cpp
-  colman_page_layout.hpp
-  colman_printer_calibration.cpp
-  colman_printer_calibration.hpp
-  colman_printer_calibration_widget.cpp
-  colman_printer_calibration_widget.hpp
-  colman_calibrate_printer.cpp
+  src/colman_page_layout.cpp
+  src/colman_page_layout.hpp
+  src/colman_printer_calibration.cpp
+  src/colman_printer_calibration.hpp
+  src/colman_printer_calibration_widget.cpp
+  src/colman_printer_calibration_widget.hpp
+  src/colman_calibrate_printer.cpp
   ${COLMAN_OWL_RESOURCES}
   ${COLMAN_APP_TRANSLATION_RESOURCES}
 )
@@ -858,7 +862,7 @@ target_compile_definitions(colman_calibrate_printer PRIVATE QT_NO_KEYWORDS)
 
 # Password hashing unit tests (colman_core, no SQL or UI needed).
 add_executable(colman_passwords_test
-  colman_passwords_test.cpp
+  tests/colman_passwords_test.cpp
 )
 target_link_libraries(colman_passwords_test
   colman_core
@@ -875,8 +879,8 @@ set_tests_properties(colman_passwords_test PROPERTIES
 
 # Cutter/signature unit tests (pure C++, no SQL or UI needed).
 add_executable(colman_cutter_test
-  colman_cutter.cpp
-  colman_cutter_test.cpp
+  src/colman_cutter.cpp
+  tests/colman_cutter_test.cpp
 )
 target_link_libraries(colman_cutter_test
   Qt6::Core
@@ -892,7 +896,7 @@ set_tests_properties(colman_cutter_test PROPERTIES
 )
 
 add_executable(colman_class_management_test
-  colman_class_management_test.cpp
+  tests/colman_class_management_test.cpp
 )
 target_link_libraries(colman_class_management_test
   Qt6::Core
@@ -1311,69 +1315,69 @@ set(COLMAN_DIST_FILES
   doc/sru_servers.md
   # Core library sources
   ${COLMAN_CORE_SOURCES}
-  colman_iqueries.hpp
+  src/colman_iqueries.hpp
   # REST library sources
-  colman_auth_middleware.cpp
-  colman_auth_middleware.hpp
-  colman_jwt_validator.cpp
-  colman_jwt_validator.hpp
-  colman_rest_api_version.hpp
-  colman_rest_queries.cpp
-  colman_rest_queries.hpp
+  src/colman_auth_middleware.cpp
+  src/colman_auth_middleware.hpp
+  src/colman_jwt_validator.cpp
+  src/colman_jwt_validator.hpp
+  src/colman_rest_api_version.hpp
+  src/colman_rest_queries.cpp
+  src/colman_rest_queries.hpp
   # REST server executable sources
-  colman_mdns_announcer.cpp
-  colman_mdns_announcer.hpp
-  colman_rest_server.cpp
-  colman_rest_server.hpp
-  colman_rest_server_main.cpp
+  src/colman_mdns_announcer.cpp
+  src/colman_mdns_announcer.hpp
+  src/colman_rest_server.cpp
+  src/colman_rest_server.hpp
+  src/colman_rest_server_main.cpp
   # REST client executable sources
-  colman_mdns_browser.cpp
-  colman_mdns_browser.hpp
-  colman_rest_client_main.cpp
+  src/colman_mdns_browser.cpp
+  src/colman_mdns_browser.hpp
+  src/colman_rest_client_main.cpp
   # Application sources
   ${COLMAN_APP_SOURCES}
-  colman_main.cpp
-  colman_tutorial_screenshots.cpp
-  colman_tutorial_screenshots.hpp
+  src/colman_main.cpp
+  src/colman_tutorial_screenshots.cpp
+  src/colman_tutorial_screenshots.hpp
   tools/tutorial_screenshots.sh
   # Standalone helper applications
-  colman_calibrate_printer.cpp
-  colman_gen_testdb.cpp
-  colman_label_layout_app.cpp
-  colman_label_selection_app.cpp
-  colman_query_isbn.cpp
-  colman_transfer.cpp
+  src/colman_calibrate_printer.cpp
+  src/colman_gen_testdb.cpp
+  src/colman_label_layout_app.cpp
+  src/colman_label_selection_app.cpp
+  src/colman_query_isbn.cpp
+  src/colman_transfer.cpp
   # Coding style reference
-  colman_coding_style.cpp
-  colman_coding_style.hpp
+  src/colman_coding_style.cpp
+  src/colman_coding_style.hpp
   # Utility library
-  colman_cutter.cpp
-  colman_cutter.hpp
+  src/colman_cutter.cpp
+  src/colman_cutter.hpp
   # Tests
-  colman_actions_test.cpp
-  colman_class_management_test.cpp
-  colman_cutter_test.cpp
-  colman_bgg_test.cpp
-  colman_isbn_test.cpp
-  colman_name_test.cpp
-  colman_passwords_test.cpp
-  colman_queries_test.cpp
-  colman_reservations_test.cpp
-  colman_json_test.cpp
-  colman_mdns_announcer_test.cpp
-  colman_auth_middleware_test.cpp
-  colman_jwt_validator_test.cpp
-  colman_rest_authorization_test.cpp
-  colman_rest_queries_test.cpp
-  colman_rest_stress_test.cpp
-  colman_db_util_test.cpp
-  colman_permission_deps_test.cpp
-  colman_test_helpers.hpp
-  colman_test_label_printer.cpp
+  tests/colman_actions_test.cpp
+  tests/colman_class_management_test.cpp
+  tests/colman_cutter_test.cpp
+  tests/colman_bgg_test.cpp
+  tests/colman_isbn_test.cpp
+  tests/colman_name_test.cpp
+  tests/colman_passwords_test.cpp
+  tests/colman_queries_test.cpp
+  tests/colman_reservations_test.cpp
+  tests/colman_json_test.cpp
+  tests/colman_mdns_announcer_test.cpp
+  tests/colman_auth_middleware_test.cpp
+  tests/colman_jwt_validator_test.cpp
+  tests/colman_rest_authorization_test.cpp
+  tests/colman_rest_queries_test.cpp
+  tests/colman_rest_stress_test.cpp
+  tests/colman_db_util_test.cpp
+  tests/colman_permission_deps_test.cpp
+  tests/colman_test_helpers.hpp
+  src/colman_test_label_printer.cpp
   # Resources
-  colman_app_translations.qrc
-  colman_owls.qrc
-  colman_thirdparty.qrc
+  src/colman_app_translations.qrc
+  src/colman_owls.qrc
+  src/colman_thirdparty.qrc
   # Images: owl icons (app and Flutter client), tutorial screenshots,
   # UI baseline for tools/ui_check.sh
   ${COLMAN_DIST_IMAGES}

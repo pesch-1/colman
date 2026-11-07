@@ -211,7 +211,7 @@ the issuer URL and JWKS URI — these are the values for `--issuer` and
 For local development without an OIDC provider, use the local user
 authentication described above — no JWT configuration is needed at all.
 
-The automated integration tests in `colman_rest_queries_test.cpp` use a
+The automated integration tests in `tests/colman_rest_queries_test.cpp` use a
 hardcoded RSA-2048 key pair and load the JWKS directly via
 `JwtValidator::load_jwks()` — no external service is needed for CI.
 
@@ -402,8 +402,8 @@ needed.
 ## Code style
 
 All C++ source files follow the rules documented in
-[`colman_coding_style.hpp`](colman_coding_style.hpp) /
-[`colman_coding_style.cpp`](colman_coding_style.cpp).
+[`src/colman_coding_style.hpp`](src/colman_coding_style.hpp) /
+[`src/colman_coding_style.cpp`](src/colman_coding_style.cpp).
 Key points:
 
 - 2-space indent, 80-character line limit, C++14 or later
