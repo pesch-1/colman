@@ -125,6 +125,10 @@ jobs:
         run: |
           git clone -q "https://github.com/$QSQLITE3MC_REPO" qsqlite3mc
           git -C qsqlite3mc checkout -q "$QSQLITE3MC_COMMIT"
+          # Before Qt 6.9 the private targets are part of the Core and Sql
+          # packages instead of separate CorePrivate/SqlPrivate packages.
+          sed -i 's/COMPONENTS CorePrivate SqlPrivate/COMPONENTS Core Sql/' \
+            qsqlite3mc/QSQLite3MultipleCiphers/CMakeLists.txt
           cmake -S qsqlite3mc/QSQLite3MultipleCiphers -B qsqlite3mc/bld \
             -DCMAKE_BUILD_TYPE=Release
           cmake --build qsqlite3mc/bld -j"$(nproc)"
