@@ -1,5 +1,9 @@
 **English** | [Deutsch](README.de.md)
 
+<p align="center">
+  <img src="flutter/assets/icons/colman_logo.jpeg" alt="colman logo: an owl reading a book" width="200">
+</p>
+
 # colman — Library and Collection Manager
 
 Colman is a desktop application for managing a school library.

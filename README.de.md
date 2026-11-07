@@ -1,5 +1,9 @@
 [English](README.md) | **Deutsch**
 
+<p align="center">
+  <img src="flutter/assets/icons/colman_logo.jpeg" alt="colman-Logo: eine lesende Eule" width="200">
+</p>
+
 # colman — Verwaltung für Büchereien und Sammlungen
 
 colman ist eine Desktop-Anwendung zur Verwaltung einer Schulbücherei.
