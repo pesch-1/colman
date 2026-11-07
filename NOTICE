@@ -68,6 +68,19 @@ Libraries linked at build time (not included in this repository)
   libargon2          CC0-1.0 / Apache-2.0        https://github.com/P-H-C/phc-winner-argon2
   OpenSSL            Apache-2.0                  https://www.openssl.org/
 
+Optional Qt SQL driver for encrypted collections
+------------------------------------------------
+  Component: QSQLite3MultipleCiphers (Qt SQL plugin SQLITE_MULTIPLE_CIPHERS)
+  Origin:    https://github.com/FalsinSoft/QSQLite3MultipleCiphers
+  Included:  in the self-contained Linux bundle built by
+             .github/workflows/release.yml (not in this repository)
+  License:   the Qt SQLite driver sources it is based on:
+             LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+             (Copyright The Qt Company Ltd.);
+             the bundled SQLite3MultipleCiphers library: MIT
+             (Copyright Ulrich Telle, https://github.com/utelle/SQLite3MultipleCiphers);
+             the plugin repository itself states no license.
+
 The Flutter client additionally depends on the Dart/Flutter packages listed
 in flutter/pubspec.yaml (and pinned in flutter/pubspec.lock).  Their
 licenses can be inspected on https://pub.dev.

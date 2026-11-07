@@ -203,7 +203,12 @@ cmake -B bld && cmake --build bld -j4 --target deploy
 ```
 
 This produces `bld/colman-2.0.0-linux-x86_64.tar.gz`.  The desktop entry
-and icon for the bundle are taken from `packaging/linux/`.
+and icon for the bundle are taken from `packaging/linux/`.  Support for
+encrypted collections is bundled only if the
+[QSQLite3MultipleCiphers](https://github.com/FalsinSoft/QSQLite3MultipleCiphers)
+Qt SQL plugin is installed in Qt's `sqldrivers` plugin directory (see
+[doc/raspberry_pi.md](doc/raspberry_pi.md), step 2); the release workflow
+builds it automatically.
 
 ### Run on the target machine
 

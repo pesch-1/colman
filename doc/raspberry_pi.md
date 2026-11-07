@@ -83,20 +83,18 @@ Skip this step on 64-bit (arm64) installations.
 
 ## Step 2 – Build and install the encrypted SQLite driver
 
-Colman uses [QSQLite3MultipleCiphers](https://github.com/unobtusiveowl/QSQLite3MultipleCiphers)
+Colman uses [QSQLite3MultipleCiphers](https://github.com/FalsinSoft/QSQLite3MultipleCiphers)
 as a Qt SQL plugin for encrypted `.col` database files.
 The plugin is not available as a Raspbian package and must be built from source.
 
 ```bash
-git clone <qsqlite3mc-repo-url> QSQLite3MultipleCiphers
+git clone https://github.com/FalsinSoft/QSQLite3MultipleCiphers
 cd QSQLite3MultipleCiphers/QSQLite3MultipleCiphers
 cmake -B build && cmake --build build -j4
 sudo cp build/sqldrivers/libQSQLite3MultipleCiphers.so \
   /usr/lib/arm-linux-gnueabihf/qt6/plugins/sqldrivers/
 cd ../..
 ```
-
-Replace `<qsqlite3mc-repo-url>` with the actual repository URL.
 
 ---
 
