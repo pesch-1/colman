@@ -1,0 +1,8 @@
+Checks: '-*,misc-include-cleaner'
+CheckOptions:
+  - key: misc-include-cleaner.IgnoreHeaders
+    value: 'colman_.*Qt|[A-Za-z0-9_/]*'
+ExtraArgs:
+  - -isystem/usr/include/c++/13
+  - -isystem/usr/include/x86_64-linux-gnu/c++/13
+  - -isystem/usr/include/c++/13/backward

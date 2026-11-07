@@ -1,0 +1,19 @@
+% SPDX-License-Identifier: GPL-3.0-or-later
+% Copyright (C) Christoph Pesch 2026
+% Extra LaTeX stylesheet for the colman tutorial (LATEX_EXTRA_STYLESHEET).
+% Loaded after doxygen.sty, so the definitions below override Doxygen's.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{colman_tutorial}
+
+% Doxygen wraps every hyperlink text in an \mbox unless it is wider than
+% the whole line. Link texts such as section titles therefore cannot be
+% broken and stick out into the margin (overfull \hbox). pdfTeX/hyperref
+% can break links across lines, so drop the \mbox.
+\renewcommand{\doxylink}[2]{%
+  \hyperlink{#1}{#2}%
+}
+\renewcommand{\doxysectlink}[3]{%
+  \hyperlink{#1}{#2}%
+}
+
+\endinput

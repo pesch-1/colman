@@ -1,0 +1,92 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+Standard: c++14
+
+# Indentation: 2 spaces, no tabs
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+
+# Brace style:
+#   - Functions, classes, namespaces: opening brace on new line (Allman)
+#   - Control statements: brace on same line for single-line conditions,
+#     new line for multi-line conditions
+#   - else: on new line after closing brace
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: MultiLine
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: true
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+
+# No space between keyword and opening paren: if(x), while(x), for(...)
+SpaceBeforeParens: Never
+
+# East const: int const, not const int
+QualifierAlignment: Right
+
+# Pointer/reference adjacent to type: int& x, int* p
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# Namespace body is indented
+NamespaceIndentation: All
+
+# public:/private: at class indentation level (not member level)
+AccessModifierOffset: -2
+
+# Indent preprocessor directives after '#': matches "#  include" guard style
+IndentPPDirectives: AfterHash
+
+# Do not break return type from function name
+AlwaysBreakAfterReturnType: None
+PenaltyReturnTypeOnItsOwnLine: 10000
+
+# Do not indent wrapped function names (e.g. colman::\nAssert::~Assert())
+IndentWrappedFunctionNames: false
+
+# Do not break member declarations at '=' even when trailing ///< comments push
+# the line over the column limit (breaking would move the comment to the
+# continuation line, breaking Doxygen member association).
+PenaltyBreakAssignment: 10000000
+
+# Do not sort includes (project uses custom guard pattern)
+SortIncludes: Never
+IncludeBlocks: Preserve
+
+# Allow single-line inline functions defined inside a class body
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortBlocksOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# No alignment of consecutive assignments/declarations (keep code compact)
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
+
+# Leave trailing comments (///< Doxygen) as written; do not column-align them
+AlignTrailingComments:
+  Kind: Leave
+
+# Automatically insert braces after if/for/while/else (clang-format >= 15)
+# Enforces the coding style rule that all control-flow blocks must use braces.
+InsertBraces: true
+
+# Allow up to 2 consecutive blank lines (style uses double blank lines between
+# function definitions)
+MaxEmptyLinesToKeep: 2
+
+# try to prevent clang-format from breaking doxygen comments:
+ColumnLimit: 0
+ReflowComments: false

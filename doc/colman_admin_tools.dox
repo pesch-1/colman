@@ -1,0 +1,159 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) Christoph Pesch 2026
+/**
+  @page page_admin_tools Admin Tools
+
+  @tableofcontents
+
+  Colman ships a command-line utility, `colman_transfer`, for bulk
+  import and export of persons (users) and items (media) without using
+  the GUI.  It is intended for administrators who need to migrate data,
+  do an initial bulk-load, or take a human-readable backup.
+
+  @section admin_tools_transfer colman_transfer
+
+  @subsection admin_tools_transfer_synopsis Synopsis
+
+  @code
+  colman_transfer [options] <database.col> <data-file>
+  @endcode
+
+  @subsection admin_tools_transfer_options Options
+
+  | Option | Short | Description |
+  |---|---|---|
+  | `--users`    | `-u` | Operate on persons/users |
+  | `--items`    | `-i` | Operate on items/media |
+  | `--export`   | `-e` | Export data to file |
+  | `--import`   | `-m` | Import data from file |
+  | `--clear`    | `-c` | Delete all existing records of the selected type before import |
+  | `--password` | `-p` | Database encryption password (prompted if omitted and the database is encrypted) |
+  | `--help`     | `-h` | Show help |
+  | `--version`  | `-v` | Show version |
+
+  Exactly one of `--users`/`--items` and exactly one of
+  `--export`/`--import` must be given.  `--clear` is only valid with
+  `--import`.
+
+  @subsection admin_tools_transfer_examples Examples
+
+  @code
+  # Export all persons
+  colman_transfer --users --export  school.col users.csv
+
+  # Import persons (add new ones; update existing ones matched by id)
+  colman_transfer --users --import  school.col users.csv
+
+  # Replace all persons with the contents of the CSV
+  colman_transfer --users --import --clear school.col users.csv
+
+  # Export all items
+  colman_transfer --items --export  school.col items.json
+
+  # Import items
+  colman_transfer --items --import  school.col items.json
+
+  # Replace all items
+  colman_transfer --items --import --clear school.col items.json
+  @endcode
+
+  @section admin_tools_formats File formats
+
+  @subsection admin_tools_formats_persons Persons — CSV
+
+  The file uses RFC 4180 CSV encoding with UTF-8.  The first row is a
+  header.  Column order is fixed:
+
+  | Column | DB field |
+  |---|---|
+  | `id`           | `persons.id` |
+  | `lastname`     | `persons.lastname` |
+  | `firstname`    | `persons.firstname` |
+  | `title`        | `persons.title` |
+  | `school_class` | `persons.school_class` |
+  | `emails`       | `persons.emails` |
+  | `telephone`    | `persons.telephonenumbers` |
+  | `street`       | `persons.street` |
+  | `zip`          | `persons.zip` |
+  | `city`         | `persons.city` |
+  | `country`      | `persons.country` |
+  | `remarks`      | `persons.remarks` |
+
+  Fields that contain commas, double-quotes, or newlines are
+  double-quote-quoted.  Internal double-quotes are escaped as `""`.
+
+  The person barcode is computed from the database id and is therefore
+  not stored in the CSV.  Authentication fields (`username`,
+  `external_id`, `password_hash`) are also excluded.
+
+  @subsection admin_tools_formats_items Items — JSON
+
+  The file is a JSON array.  Each element is an object with the
+  following keys:
+
+  | Key | Type | Description |
+  |---|---|---|
+  | `id`                      | integer | Database id (used for update matching) |
+  | `type_name`               | string  | Item type name (e.g. `"Bücher"`) |
+  | `count`                   | integer | Total stock count |
+  | `available`               | integer | Currently available copies |
+  | `name`                    | string  | Item name/title |
+  | `barcode`                 | string  | Barcode string (may be empty) |
+  | `place`                   | string  | Storage location |
+  | `description`             | string  | Long description |
+  | `values`                  | object  | Type-specific single-valued attributes |
+  | `list_values`             | object  | Type-specific repeatable attributes |
+  | `is_school_item`          | boolean | True for school-set items |
+  | `subject`                 | string  | School subject |
+  | `academic_year`           | array   | Year ranges as `[[start, end], ...]` |
+  | `type`                    | string  | Item subtype (e.g. `"Lehrerband"`) |
+  | `signature_top`           | string  | Top spine label |
+  | `signature_bottom`        | string  | Bottom spine label |
+  | `keywords`                | array   | Search keywords |
+  | `allow_reservations`      | integer or null | -1 = inherit from type |
+  | `reservation_period_days` | integer or null | -1 = inherit from type |
+
+  @section admin_tools_import Import behaviour
+
+  @subsection admin_tools_import_matching Record matching
+
+  **Persons:** If the CSV `id` field contains a positive integer and a
+  person with that id exists in the target database, the existing record
+  is updated.  Otherwise a new person is inserted with a database-assigned
+  id.
+
+  **Items:** If the JSON object has a positive `id` and an item with that
+  id exists in the target database, the existing record is updated
+  (stock counts are preserved on update).  Otherwise a new item is
+  inserted.  For new items the `count` and `available` values from the
+  JSON are applied immediately after insertion.
+
+  Type names are resolved by name first; the numeric `type_id` in the
+  JSON is only used as a fallback.  This makes the JSON portable between
+  databases that define the same types.
+
+  @subsection admin_tools_import_clear Clear before import
+
+  When `--clear` is given, all existing records of the selected type are
+  deleted **before** the import begins.  The following tables are
+  affected:
+
+  **`--users --clear`:** `returns`, `reservations`, `lendings`,
+  `credentials`, `permissions`, `persons` (the built-in Administrator
+  with id 0 is preserved).
+
+  **`--items --clear`:** `returns`, `reservations`, `lendings`,
+  `acquisitions`, `liquidations`, `schoolitems`, `item_list_values`,
+  all type-specific attribute tables, `items_fts` (best-effort),
+  `items`.
+
+  The deletion is wrapped in a single SQL transaction; a failure rolls
+  back all changes.
+
+  @section admin_tools_encryption Encrypted databases
+
+  If `--password` is not given on the command line, the tool first tries
+  to open the database without a password.  If that fails it prompts
+  interactively with echo disabled.  Pass `--password` on the command
+  line for non-interactive use in scripts.
+*/

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- USB devices that should offer to open colman when attached.
+     vendor-id / product-id are decimal: 22872 = 0x5958, 1158 = 0x0486
+     (Vevor Y486 and identical OEM thermal label printers). -->
+<resources>
+    <usb-device vendor-id="22872" product-id="1158"/>
+</resources>

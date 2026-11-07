@@ -1,0 +1,347 @@
+{
+  "collection": {
+    "name": "Pupils' Library",
+    "organization": "Springfield Primary School",
+    "responsible": "Jane Doe",
+    "file_name": "pupils_library.col",
+    "admin_password": "Admin-2026",
+    "encryption_password": "Secret-2026"
+  },
+  "classes": [
+    "1A",
+    "1B",
+    "2A",
+    "2B",
+    "3A",
+    "3B",
+    "4A",
+    "4B"
+  ],
+  "ui_person": {
+    "lastname": "Summers",
+    "firstname": "Lily",
+    "school_class": "3A",
+    "emails": "lily.summers@springfield-primary.example",
+    "username": "lsummers",
+    "password": "Lily-2026"
+  },
+  "persons": [
+    {
+      "lastname": "Baker",
+      "firstname": "Jack",
+      "school_class": "3A",
+      "username": "jbaker"
+    },
+    {
+      "lastname": "Patel",
+      "firstname": "Aisha",
+      "school_class": "3A",
+      "username": "apatel"
+    },
+    {
+      "lastname": "Walker",
+      "firstname": "Paul",
+      "school_class": "3B",
+      "username": "pwalker"
+    },
+    {
+      "lastname": "Novak",
+      "firstname": "Mia",
+      "school_class": "3B",
+      "username": "mnovak"
+    },
+    {
+      "lastname": "Smith",
+      "firstname": "Ben",
+      "school_class": "4A",
+      "username": "bsmith"
+    },
+    {
+      "lastname": "Hughes",
+      "firstname": "Emma",
+      "school_class": "4A",
+      "username": "ehughes"
+    },
+    {
+      "lastname": "Rossi",
+      "firstname": "Luca",
+      "school_class": "4B",
+      "username": "lrossi"
+    },
+    {
+      "lastname": "Fisher",
+      "firstname": "Hannah",
+      "school_class": "2A",
+      "username": "hfisher"
+    },
+    {
+      "lastname": "Klein",
+      "firstname": "Noah",
+      "school_class": "2B",
+      "username": "nklein"
+    },
+    {
+      "lastname": "Wood",
+      "firstname": "Sophie",
+      "school_class": "1A",
+      "username": "swood"
+    },
+    {
+      "lastname": "Doe",
+      "firstname": "Jane",
+      "title": "Mrs",
+      "username": "jdoe",
+      "password": "Jane-2026",
+      "permissions": [
+        "collect_lendings",
+        "collect_returns",
+        "view_persons",
+        "view_items",
+        "view_history"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "media_kind": "book",
+      "name": "Alice's Adventures in Wonderland",
+      "count": 3,
+      "values": {
+        "publisher": "Macmillan",
+        "publication_date": "1865"
+      },
+      "list_values": {
+        "authors": [
+          "Lewis Carroll"
+        ]
+      }
+    },
+    {
+      "media_kind": "book",
+      "name": "The Secret Garden",
+      "count": 2,
+      "values": {
+        "publisher": "Heinemann",
+        "publication_date": "1911"
+      },
+      "list_values": {
+        "authors": [
+          "Frances Hodgson Burnett"
+        ]
+      }
+    },
+    {
+      "media_kind": "book",
+      "name": "The Wind in the Willows",
+      "count": 4,
+      "values": {
+        "publisher": "Methuen",
+        "publication_date": "1908"
+      },
+      "list_values": {
+        "authors": [
+          "Kenneth Grahame"
+        ]
+      }
+    },
+    {
+      "media_kind": "book",
+      "name": "Treasure Island",
+      "count": 3,
+      "values": {
+        "publisher": "Cassell",
+        "publication_date": "1883"
+      },
+      "list_values": {
+        "authors": [
+          "Robert Louis Stevenson"
+        ]
+      }
+    },
+    {
+      "media_kind": "book",
+      "name": "Peter Pan",
+      "count": 2,
+      "values": {
+        "publisher": "Hodder & Stoughton",
+        "publication_date": "1911"
+      },
+      "list_values": {
+        "authors": [
+          "J. M. Barrie"
+        ]
+      }
+    },
+    {
+      "media_kind": "book",
+      "name": "The Jungle Book",
+      "count": 2,
+      "values": {
+        "publisher": "Macmillan",
+        "publication_date": "1894"
+      },
+      "list_values": {
+        "authors": [
+          "Rudyard Kipling"
+        ]
+      }
+    },
+    {
+      "media_kind": "book",
+      "name": "Black Beauty",
+      "count": 1,
+      "values": {
+        "publisher": "Jarrold & Sons",
+        "publication_date": "1877"
+      },
+      "list_values": {
+        "authors": [
+          "Anna Sewell"
+        ]
+      }
+    },
+    {
+      "media_kind": "book",
+      "name": "Heidi",
+      "count": 2,
+      "values": {
+        "publisher": "Perthes",
+        "publication_date": "1881"
+      },
+      "list_values": {
+        "authors": [
+          "Johanna Spyri"
+        ]
+      }
+    },
+    {
+      "media_kind": "book",
+      "name": "Mathematics 3 – Workbook",
+      "count": 25,
+      "is_school_item": true,
+      "subject": "Mathematics",
+      "academic_year": [
+        [
+          3,
+          3
+        ]
+      ],
+      "values": {
+        "publisher": "School Press",
+        "publication_date": "2024"
+      }
+    },
+    {
+      "media_kind": "book",
+      "name": "Reader 4",
+      "count": 25,
+      "is_school_item": true,
+      "subject": "English",
+      "academic_year": [
+        [
+          4,
+          4
+        ]
+      ],
+      "values": {
+        "publisher": "School Press",
+        "publication_date": "2023"
+      }
+    },
+    {
+      "media_kind": "dvd",
+      "name": "Planet Earth – Highlights",
+      "count": 1
+    },
+    {
+      "media_kind": "boardgame",
+      "name": "Snakes and Ladders",
+      "count": 2
+    }
+  ],
+  "grade_max": 4,
+  "layouts": {
+    "id_card": "Library card",
+    "item_card": "Book card",
+    "signature": "Spine label"
+  },
+  "id_card_class": "3A",
+  "search": "The",
+  "ui_lending": {
+    "person": "lsummers",
+    "item": "The Secret Garden"
+  },
+  "ui_group_lending": {
+    "item": "Mathematics 3 – Workbook",
+    "class": "3A"
+  },
+  "ui_return": {
+    "person": "ehughes",
+    "item": "Reader 4"
+  },
+  "ui_liquidation": "Snakes and Ladders",
+  "ui_item": {
+    "search": "The Wind",
+    "name": "The Hobbit",
+    "authors": "J. R. R. Tolkien",
+    "publisher": "George Allen & Unwin",
+    "publication_date": "1937",
+    "count": 2
+  },
+  "lendings": [
+    {
+      "person": "jbaker",
+      "item": "Alice's Adventures in Wonderland",
+      "days_ago": 20,
+      "due_in_days": -6
+    },
+    {
+      "person": "apatel",
+      "item": "The Wind in the Willows",
+      "days_ago": 10,
+      "due_in_days": 4
+    },
+    {
+      "person": "pwalker",
+      "item": "Treasure Island",
+      "days_ago": 5,
+      "due_in_days": 9
+    },
+    {
+      "person": "mnovak",
+      "item": "Peter Pan",
+      "days_ago": 15,
+      "due_in_days": -1
+    },
+    {
+      "person": "bsmith",
+      "item": "Black Beauty",
+      "days_ago": 3,
+      "due_in_days": 11
+    },
+    {
+      "person": "ehughes",
+      "item": "Reader 4",
+      "days_ago": 60,
+      "due_in_days": 200
+    },
+    {
+      "person": "lrossi",
+      "item": "Reader 4",
+      "days_ago": 60,
+      "due_in_days": 200
+    },
+    {
+      "person": "ehughes",
+      "item": "Reader 4",
+      "days_ago": 30,
+      "due_in_days": 200
+    },
+    {
+      "person": "hfisher",
+      "item": "Heidi",
+      "days_ago": 8,
+      "due_in_days": 6
+    }
+  ]
+}

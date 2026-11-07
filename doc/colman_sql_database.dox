@@ -1,0 +1,695 @@
+/**
+
+@page page_database Database schema
+
+The colman database is a SQLite file with the extension `.col`
+(optionally encrypted).  All tables are created when a new collection
+is created, by `SQLQueries::create_tables()`
+(`colman_sql_queries.cpp`).  Type-specific attribute tables are
+created dynamically when a media type is created via
+`SQLQueries::add_new_type()`.
+
+When an existing file is opened, `SQLQueries::load_database()` brings
+it up to date: tables and indexes that are missing are created
+(`CREATE … IF NOT EXISTS`), the column `types.media_kind` is added to
+older databases and filled for the predefined types
+(`ensure_media_kind_column()`), and missing display names of the
+predefined types are added (`ensure_predefined_translations()`).
+
+@note SQLite only enforces foreign keys when `PRAGMA foreign_keys = ON`
+is set.  colman therefore maintains referential integrity
+programmatically in the SQL layer (`colman_sql_queries*.cpp`).  The
+"FK" entries in the tables below describe the logical relations.
+
+---
+
+@section sec_db_overview Table overview
+
+| Table | Purpose |
+|---|---|
+| `collection` | Collection-wide metadata (name, logo, barcode prefix, …) |
+| `types` | Media type definitions |
+| `items` | Items (books, teaching materials, CDs, …) |
+| `schoolitems` | School book extension of `items` |
+| `item_list_values` | Values of repeatable attribute fields |
+| `items_fts` | FTS5 full-text index for the item search |
+| `thumbnails` | Thumbnails (URL or local path) |
+| `acquisitions` | Acquisitions (stock increase) |
+| `liquidations` | Liquidations (stock decrease) |
+| `persons` | Persons (borrowers and users) |
+| `lendings` | Lending transactions |
+| `returns` | Return transactions |
+| `reservations` | Active reservations |
+| `credentials` | Usernames, Argon2 password hashes and OIDC identities |
+| `permissions` | Permissions per person (boolean flags) |
+| `classes` | Class list of the class management |
+| `translations` | Localized names of types and type fields |
+| `data_types` | Data type metadata of type attributes |
+| `common_field_positions` | Display position of the common fields per type |
+| `signature_top_categories`, `signature_bottom_categories` | Categories for the signature (spine) labels |
+| `colman_table_versions` | Change counters per table (maintained by triggers) |
+| `<tablename>` | Type-specific attribute tables (dynamic) |
+
+---
+
+@section sec_db_collection Table: collection
+
+Key/value store for collection-wide settings.  Each setting occupies
+exactly one row.
+
+@subsection sub_db_collection_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `key` | `VARCHAR` | **PK** | Unique identifier of the setting |
+| `value` | `BLOB` | | Value of the setting (type depends on `key`) |
+
+@subsection sub_db_collection_keys Known keys
+
+| key | Value type | Meaning |
+|---|---|---|
+| `name` | Text | Name of the collection |
+| `organization` | Text | Name of the organization |
+| `responsible` | Text | Responsible person |
+| `barcode_prefix` | Text | Barcode prefix (5 digits, derived from name and organization) |
+| `data_version` | Text | Schema version (currently `"1.0"`) |
+| `max_person_id` | Integer | Highest person ID assigned so far |
+| `logo` | BLOB | Raw data of the collection logo (SVG, PNG or another image format; the format is auto-detected on loading) |
+| `use_lending_period` | Integer | 1 = default lending period active, 0 = none |
+| `lending_period_years` | Integer | Years of the default lending period |
+| `lending_period_months` | Integer | Months of the default lending period |
+| `lending_period_days` | Integer | Days of the default lending period |
+| `allow_reservations` | Integer | 1 = reservations allowed, 0 = disabled (default: 1) |
+| `reservation_period_days` | Integer | Validity of a reservation in days (default: 14) |
+| `default_item_type` | Integer | Default media type ID for new items |
+| `default_is_school_item` | Integer | 1 = new items are school items by default |
+| `grade_range_min` / `grade_range_max` | Integer | Range of grade levels for school items (default: 1–13) |
+| `server_name` | Text | Name announced by the REST server for LAN discovery (mDNS) |
+
+@note **Deprecated (legacy data):** the layout keys `id_card_*`,
+`item_card_*`, `sig_lbl_*` as well as `id_label_layout_name` /
+`item_card_label_layout_name` are **no longer written** since layouts
+became client-local. Card and label layouts are stored locally per
+client (desktop: `QSettings`, Flutter: `IdCardLayoutStore`). In
+existing `.col` files the values remain as dead leftovers and are only
+taken over once into the local presets on opening
+(`migrate_card_layouts`). New databases no longer contain these keys.
+
+Access: `create_collection()`, `change_collection()`,
+`read_collection()`.
+
+---
+
+@section sec_db_types Table: types
+
+Directory of all media types.
+
+@subsection sub_db_types_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `id` | `INTEGER` | **PK** | Unique type ID |
+| `name` | `VARCHAR` | | Internal type name (e.g. `"book"`); display names are in `translations` |
+| `tablename` | `VARCHAR` | | Name of the associated attribute table |
+| `media_kind` | `INTEGER` | | Locale-independent kind of medium for internet lookups (`colman::MediaKind`: 0 = unknown, 1 = book, 2 = CD, 3 = DVD, 4 = Blu-ray, 5 = board game) |
+
+New collections contain the predefined types `book`, `periodical`,
+`cd`, `dvd`, `bluray` and `board_game`.
+
+@note Creating a type also creates an attribute table `<tablename>`
+and entries in `translations` and `data_types` (see `add_new_type()`).
+
+---
+
+@section sec_db_items Table: items
+
+Core data of each item.  Stock and availability are maintained as
+denormalized counters and updated on every mutation (acquisition,
+liquidation, lending, return).
+
+@subsection sub_db_items_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `id` | `INTEGER` | **PK** | Unique item ID |
+| `name` | `VARCHAR` | | Title of the item |
+| `type` | `INTEGER` | FK -> `types.id`, index | Media type |
+| `count` | `INTEGER` | | Total stock (acquisitions minus liquidations) |
+| `available` | `INTEGER` | | Currently available (not lent) |
+| `place` | `VARCHAR` | | Location |
+| `description` | `VARCHAR` | | Description |
+| `thumbnail` | `INTEGER` | FK -> `thumbnails.id` | Thumbnail (0 = none) |
+| `data_collector` | `INTEGER` | FK -> `persons.id` | User who entered the record (0 = administrator, NULL = unknown) |
+| `signature_top` | `VARCHAR` | | Upper signature label (spine label, e.g. classification) |
+| `signature_bottom` | `VARCHAR` | | Lower signature label (e.g. author abbreviation) |
+| `keywords` | `VARCHAR` | | Keywords (also indexed in `items_fts`) |
+| `version` | `INTEGER` | | Optimistic locking version (starts at 1; REST ETags) |
+| `allow_reservations` | `INTEGER` | | NULL = inherit from the collection, 0 = reservations forbidden, 1 = allowed |
+| `reservation_period_days` | `INTEGER` | | NULL = inherit from the collection, otherwise validity in days |
+
+@note `count` and `available` are never computed directly via SQL
+aggregates, but maintained incrementally in the mutating functions of
+the SQL layer.  `available = count - (copies currently lent)`.
+
+Access: `add_new_item()`, `get_item()`, `change_item()`,
+`remove_item()`.
+
+---
+
+@section sec_db_schoolitems Table: schoolitems
+
+Optional school book extension of an item.  If a row exists for an
+`item_id`, the item is a school item.
+
+@subsection sub_db_schoolitems_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `item_id` | `INTEGER` | **PK**, FK -> `items.id` | Associated item |
+| `subject` | `VARCHAR` | | School subject |
+| `academic_year` | `VARCHAR` | | Grade levels as an encoded string (see below) |
+| `type` | `VARCHAR` | | Subtype (e.g. teacher's edition, workbook) |
+
+@note The format of `academic_year` is a comma-separated list of
+ranges: `"5-6,8"` means grades 5 to 6 and grade 8 (encoded/decoded by
+`colman::academic_years_to_string()` /
+`colman::string_to_academic_years()`).
+
+---
+
+@section sec_db_item_list_values Table: item_list_values
+
+Stores the values of attribute fields that are marked as repeatable
+(`is_repeatable = true` in `data_types.infos`).  Each row contains
+exactly one value at a given position.
+
+@subsection sub_db_item_list_values_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `item_id` | `INTEGER` | **PK** (part), FK -> `items.id` | Associated item |
+| `column_name` | `VARCHAR` | **PK** (part) | Name of the attribute (equals the column name in the type-specific table) |
+| `position` | `INTEGER` | **PK** (part) | 0-based order of the value |
+| `value` | `VARCHAR` | | The actual value |
+
+The composite primary key is `(item_id, column_name, position)`.  An
+index `idx_ilv_item` on `item_id` speeds up loading all attribute
+values of an item.
+
+**Invariants:**
+- For a given `(item_id, column_name)` the `position` values are
+  assigned without gaps starting at 0.
+- The order corresponds to the input order of the user.
+- When an item is changed (`change_item`), all rows for `item_id` are
+  deleted and inserted again.
+
+---
+
+@section sec_db_items_fts Table: items_fts
+
+FTS5 virtual table (`tokenize='unicode61 remove_diacritics 1'`) with
+the columns `name`, `description`, `keywords`, `authors`, `isbn10`,
+`isbn13` and `subject`; its `rowid` is the item ID.  The SQL layer
+updates the entry of an item whenever the item is created, changed or
+removed.  `query_items_for_search()` uses it for the full-text search
+if the table exists (SQLite builds without FTS5 fall back to `LIKE`
+filters).
+
+---
+
+@section sec_db_thumbnails Table: thumbnails
+
+Stores thumbnails as a URL reference or a local file path.  The image
+itself is stored in the file system, not in the database.
+
+@subsection sub_db_thumbnails_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `id` | `INTEGER` | **PK** | Unique thumbnail ID |
+| `url` | `VARCHAR` | | Source URL (empty if local) |
+| `local_file` | `VARCHAR` | | Path to the local image file |
+
+Access: `store_thumbnail()`, `get_thumbnail()`, `use_local_thumbnail()`,
+`have_local_thumbnail()`.
+
+---
+
+@section sec_db_acquisitions Table: acquisitions
+
+Each entry increases the stock of an item by `count` copies.
+
+@subsection sub_db_acquisitions_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `id` | `INTEGER` | **PK** | Unique acquisition ID |
+| `item` | `INTEGER` | FK -> `items.id`, index | Affected item |
+| `count` | `INTEGER` | | Number of copies acquired |
+| `datetime` | `DATETIME` | | Date and time in the format 'YYYY-MM-DD HH:MM:SS' |
+| `data_collector` | `INTEGER` | FK -> `persons.id` | User who entered the record (0 = administrator) |
+| `version` | `INTEGER` | | Optimistic locking version |
+
+Access: `add_new_acquisition()`, `get_acquisition()`,
+`change_acquisition()`, `remove_acquisition()`.
+
+---
+
+@section sec_db_liquidations Table: liquidations
+
+Each entry decreases the stock of an item by `count` copies.
+
+@subsection sub_db_liquidations_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `id` | `INTEGER` | **PK** | Unique liquidation ID |
+| `item` | `INTEGER` | FK -> `items.id`, index | Affected item |
+| `count` | `INTEGER` | | Number of copies removed |
+| `datetime` | `DATETIME` | | Date and time in the format 'YYYY-MM-DD HH:MM:SS' |
+| `data_collector` | `INTEGER` | FK -> `persons.id` | User who entered the record (0 = administrator) |
+| `version` | `INTEGER` | | Optimistic locking version |
+
+Access: `add_new_liquidation()`, `get_liquidation()`,
+`change_liquidation()`, `remove_liquidation()`.
+
+---
+
+@section sec_db_persons Table: persons
+
+Data of the persons — borrowers (pupils, teachers, …) as well as users
+who log in.
+
+@subsection sub_db_persons_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `id` | `INTEGER` | **PK** | Unique person ID |
+| `lastname` | `VARCHAR` | | Last name |
+| `firstname` | `VARCHAR` | | First name |
+| `title` | `VARCHAR` | | Title (e.g. `"Dr."`) |
+| `school_class` | `VARCHAR` | | Class (e.g. `"3a"`; empty = no class) |
+| `emails` | `VARCHAR` | | E-mail address(es), comma-separated |
+| `telephonenumbers` | `VARCHAR` | | Telephone number(s) |
+| `street` | `VARCHAR` | | Street address |
+| `zip` | `VARCHAR` | | Postal code |
+| `city` | `VARCHAR` | | City |
+| `country` | `VARCHAR` | | Country |
+| `remarks` | `VARCHAR` | | Remarks |
+| `thumbnail` | `INTEGER` | FK -> `thumbnails.id` | Thumbnail (0 = none) |
+| `data_collector` | `INTEGER` | FK -> `persons.id` | User who entered the record (0 = administrator) |
+| `version` | `INTEGER` | | Optimistic locking version |
+
+@note The person barcode is not stored in the database but computed on
+demand from the person ID and the barcode prefix
+(`colman::compute_person_barcode()`).
+
+@note The row with `id = 0` is the administrator (always present,
+excluded from person queries via `WHERE id > 0`).
+
+Access: `add_new_person()`, `get_person()`, `change_person()`,
+`remove_person()`.
+
+---
+
+@section sec_db_lendings Table: lendings
+
+Each entry documents that a person has borrowed a number of copies of
+an item.  A lending is open as long as the sum of the associated
+`returns.count` values is smaller than `lendings.count`.
+
+@subsection sub_db_lendings_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `id` | `INTEGER` | **PK** | Unique lending ID |
+| `item` | `INTEGER` | FK -> `items.id`, index | Lent item |
+| `count` | `INTEGER` | | Number of copies lent |
+| `person` | `INTEGER` | FK -> `persons.id`, index | Borrowing person |
+| `datetime` | `DATETIME` | | Date and time of the lending in the format 'YYYY-MM-DD HH:MM:SS' |
+| `duedate` | `VARCHAR(10)` | | Due date `YYYY-MM-DD` (empty = none) |
+| `remarks` | `VARCHAR` | | Remarks |
+| `data_collector` | `INTEGER` | FK -> `persons.id` | User who entered the record (0 = administrator) |
+| `version` | `INTEGER` | | Optimistic locking version |
+
+Access: `add_new_lending()`, `get_lending()`, `change_lending()`,
+`remove_lending()`, `extend_lendings()`.
+
+---
+
+@section sec_db_returns Table: returns
+
+Each entry documents the (partial) return of a lending.  Several
+returns per lending are allowed.
+
+@subsection sub_db_returns_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `id` | `INTEGER` | **PK** | Unique return ID |
+| `lending` | `INTEGER` | FK -> `lendings.id`, index | Associated lending |
+| `count` | `INTEGER` | | Number of copies returned |
+| `datetime` | `DATETIME` | | Date and time of the return in the format 'YYYY-MM-DD HH:MM:SS' |
+| `remarks` | `VARCHAR` | | Remarks |
+| `data_collector` | `INTEGER` | FK -> `persons.id` | User who entered the record (0 = administrator) |
+| `version` | `INTEGER` | | Optimistic locking version |
+
+Access: `add_new_return()`, `get_return()`, `change_return()`,
+`remove_return()`.
+
+---
+
+@section sec_db_reservations Table: reservations
+
+Stores active item reservations.  Each person may create exactly one
+reservation per item (UNIQUE constraint on `item_id` and `person_id`),
+but the `count` column allows reserving several copies of the same
+item.  The sum of all active reservations for an item must not exceed
+`items.available`.
+
+Expired reservations are cleaned up lazily: in
+`get_reservations_for_item()`, `get_reservation()` and within
+`add_new_lending()`, all expired entries for the item concerned are
+deleted first.
+
+@subsection sub_db_reservations_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `id` | `INTEGER` | **PK** | Unique reservation ID |
+| `item_id` | `INTEGER` | FK -> `items(id)`, index | Reserved item |
+| `person_id` | `INTEGER` | FK -> `persons(id)`, index | Reserving person |
+| `count` | `INTEGER` | | Number of reserved copies (&gt;= 1) |
+| `reserved_at` | `TEXT` | | Time stamp of the reservation (ISO 8601) |
+| `expires_at` | `TEXT` | | Expiry date (ISO 8601 date) |
+| `version` | `INTEGER` | | Optimistic locking version (starts at 1) |
+| `data_collector` | `INTEGER` | FK -> `persons.id` | User who entered the reservation |
+
+Constraint: `UNIQUE(item_id, person_id)` — one person, one reservation
+per item.
+
+Access: `add_reservation()`, `remove_reservation()`,
+`get_reservations_for_item()`, `get_reservation()`,
+`get_reservations()`.
+
+---
+
+@section sec_db_credentials Table: credentials
+
+Stores the login data of a person: username, Argon2 password hash and
+external identity (OIDC subject).  Only persons with a password must
+authenticate with it when opening a database file or logging in to the
+REST server.  The same data is used by the desktop application and the
+REST server, so the desktop password and the REST login are always in
+sync.
+
+@subsection sub_db_credentials_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `person_id` | `INTEGER` | **PK**, FK -> `persons(id)` | Associated person (0 = administrator) |
+| `username` | `TEXT` | **UNIQUE** | Unique login name |
+| `password_hash` | `TEXT` | | Argon2 hash of the password |
+| `external_id` | `TEXT` | **UNIQUE** | OIDC subject identifier |
+
+Password access: `set_password()`, `get_password()`, `has_password()`,
+`remove_password()`, `change_own_password()`.
+
+Username access: `get_username()`, `set_username()`,
+`remove_username()`.  `set_username()` returns `false` if the chosen
+name is already taken (UNIQUE constraint).
+
+REST login: `check_local_credentials()`, `set_local_credentials()`,
+`delete_local_credentials()`.
+
+Password hashing: `colman::hash_password()` / `colman::verify_password()`
+from `colman_passwords.hpp` (dependency: `libargon2`).
+
+---
+
+@section sec_db_permissions Table: permissions
+
+Stores fine-grained permissions per person as boolean flags.  When the
+administrator (person_id = 0) is created, all flags are set to TRUE.
+New persons receive the flags of the chosen profile (see
+`colman_permission_deps.hpp`); persons may only grant permissions they
+hold themselves.
+
+@subsection sub_db_permissions_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `person_id` | `INTEGER` | **PK**, FK -> `persons(id)` | Associated person (0 = administrator) |
+| `edit_persons` | `BOOLEAN` | | Create, delete or change persons |
+| `create_lenders` | `BOOLEAN` | | Create borrowers (restricted permissions) |
+| `create_data_collectors` | `BOOLEAN` | | Create data collectors (restricted permissions) |
+| `collect_lendings` | `BOOLEAN` | | Record lendings |
+| `collect_returns` | `BOOLEAN` | | Record returns |
+| `collect_acquisitions` | `BOOLEAN` | | Record acquisitions |
+| `collect_liquidations` | `BOOLEAN` | | Record liquidations |
+| `view_history` | `BOOLEAN` | | View the history |
+| `view_persons` | `BOOLEAN` | | View person lists |
+| `view_items` | `BOOLEAN` | | View the catalogue |
+| `edit_preferences` | `BOOLEAN` | | Change the collection settings |
+| `print_ids` | `BOOLEAN` | | Print ID cards |
+| `print_barcodes` | `BOOLEAN` | | Print labels |
+| `edit_categories` | `BOOLEAN` | | Change media types and signature categories |
+| `view_personal_data` | `BOOLEAN` | | View own personal data (e.g. lendings) |
+| `manage_label_layouts` | `BOOLEAN` | | Create and delete label sheet layouts |
+| `calibrate_printers` | `BOOLEAN` | | Edit printer calibration settings |
+| `edit_id_layout` | `BOOLEAN` | | Edit the ID card layout |
+| `print_signatures` | `BOOLEAN` | | Print signature (spine) labels |
+| `change_actions` | `BOOLEAN` | | Change or delete recorded actions in the history |
+| `edit_program_settings` | `BOOLEAN` | | Change the program settings |
+| `manage_classes` | `BOOLEAN` | | Manage classes and the school year change |
+| `reserve` | `BOOLEAN` | | Reserve items for oneself (default: TRUE) |
+| `edit_reservations` | `BOOLEAN` | | Create, change or delete reservations for others (default: FALSE, admin: TRUE) |
+| `admin_permissions` | `BOOLEAN` | | Edit item-specific reservation settings (default: FALSE, admin: TRUE) |
+
+@note SQLite has no native `BOOLEAN` type; the values are stored as
+`INTEGER` (0 = FALSE, 1 = TRUE).
+
+Access: `get_permissions()`, `get_user_permissions()`,
+`create_default_permissions()`, `has_permission()`, `set_permission()`,
+`remove_permissions()`, `is_reserve_only()`.
+
+---
+
+@section sec_db_classes Table: classes
+
+Class list of the class management.  The class names offered for
+persons are stored with an empty `academic_year`.
+
+@subsection sub_db_classes_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `name` | `VARCHAR` | **PK** (part) | Class name (e.g. `"10a"`) |
+| `academic_year` | `VARCHAR` | **PK** (part) | Academic year; currently always empty |
+| `count` | `INTEGER` | | Number of pupils (currently unused) |
+
+The composite primary key is `(name, academic_year)`.
+
+Access: `load_class_names()`, `add_class_name()`,
+`remove_class_name()`, `rename_class_name()`,
+`apply_school_year_changes()`.
+
+---
+
+@section sec_db_translations Table: translations
+
+Localized display names for the columns of the type-specific attribute
+tables and for the type names themselves.
+
+@subsection sub_db_translations_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `tablename` | `VARCHAR` | **PK** (part) | Table name (e.g. `"books"`) or `"types"` |
+| `column` | `VARCHAR` | **PK** (part) | Column name or type name |
+| `language` | `VARCHAR` | **PK** (part) | Language code (QLocale::Language as integer) |
+| `name` | `VARCHAR` | | Localized display name |
+
+The composite primary key is `(tablename, column, language)`.
+
+Access: `get_type_locale()`, `get_type_field_label()`.
+
+For the six predefined types and their fields,
+`SQLQueries::ensure_predefined_translations()` stores German and
+English display names (table `PredefinedNames` in
+`colman_sql_queries_types.cpp`).  The function runs when a collection
+is created and every time it is opened; it only writes missing entries
+or entries that still contain the raw column name, so that names
+changed by the user are kept and older collections automatically
+receive the English names.
+
+---
+
+@section sec_db_data_types Table: data_types
+
+Describes the data type and further parameters of each column of a
+type-specific attribute table.
+
+@subsection sub_db_data_types_schema Schema
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `type_id` | `INTEGER` | **PK** (part), FK -> `types.id` | Associated media type |
+| `column` | `VARCHAR` | **PK** (part) | Column name in the attribute table |
+| `data_type` | `INTEGER` | | Data type enum (`colman::Type::DataType`) |
+| `infos` | `BLOB` | | Additional parameters as base64-encoded QDataStream (QVariantMap) |
+| `position` | `INTEGER` | | Display order (default 0) |
+| `marc21_tag` | `VARCHAR` | | MARC21 field designator for CSV/MARC export (empty = none) |
+
+The composite primary key is `(type_id, column)`.
+
+**Values of `data_type`** (enum `colman::Type::DataType`):
+
+| Value | Name | UI element | Meaning |
+|---|---|---|---|
+| 0 | `String` | `QPlainTextEdit` | Multi-line text |
+| 1 | `ShortString` | `QLineEdit` | Single-line text |
+| 2 | `Date` | `QDateEdit` | Date |
+| 3 | `Time` | `QTimeEdit` | Time |
+| 4 | `Integer` | `QSpinBox` | Integer |
+| 5 | `Float` | `QDoubleSpinBox` | Floating-point number |
+| 6 | `Duration` | composite | Duration |
+| 7 | `Table` | `QTableView` | Table |
+| 8 | `IntegerRanges` | custom | Integer ranges |
+
+**Keys in `infos`** (QVariantMap):
+
+| Key | Type | Meaning |
+|---|---|---|
+| `"minimum"` / `"maximum"` | `QVariant` | Optional value limits |
+| `"use_minimum"` / `"use_maximum"` | `bool` | Whether the limit is active |
+| `"table_info"` | serialized `KeyVector` | Column definition for `Table` fields |
+| `"is_repeatable"` | `bool` | Field may occur several times (multi-value); the values are then stored in `item_list_values` |
+
+---
+
+@section sec_db_common_field_positions Table: common_field_positions
+
+Display position of the common item fields (name, place, description,
+…) among the type-specific fields, per type.
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `type_id` | `INTEGER` | **PK** (part), FK -> `types(id)` | Media type |
+| `field` | `VARCHAR` | **PK** (part) | Name of the common field |
+| `position` | `INTEGER` | | Display position |
+
+Access: `get_combined_field_order()`, `get_default_common_field_order()`,
+`save_field_order()`.
+
+---
+
+@section sec_db_signature_categories Tables: signature_top_categories, signature_bottom_categories
+
+Categories offered for the upper and lower signature label.
+
+| Table | Columns | Key |
+|---|---|---|
+| `signature_top_categories` | `name` | **PK** `name` |
+| `signature_bottom_categories` | `top_category`, `name` | **PK** `(top_category, name)` |
+
+`SQLQueries::seed_signature_categories()` creates the default
+categories in the language of the user interface when a collection is
+created (translation context `colman::SignatureCategories`).  Existing
+categories are not changed.
+
+Access: `read_signature_top_categories()`,
+`add_signature_top_category()`, `remove_signature_top_category()`,
+`add_signature_bottom_category()`, `remove_signature_bottom_category()`.
+
+---
+
+@section sec_db_table_versions Table: colman_table_versions
+
+One change counter per table (`items`, `persons`, `lendings`,
+`returns`, `acquisitions`, `liquidations`, `reservations`, `types`,
+`classes`, `collection`).
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `table_name` | `TEXT` | **PK** | Name of the watched table |
+| `version` | `INTEGER` | | Incremented on every change |
+
+Triggers `tv_<table>_ins|upd|del` increment the counter after every
+insert, update and delete.  `query_table_versions()` returns all
+counters; clients (REST client, Flutter client) poll them to refresh
+their views when other clients have changed data.
+
+---
+
+@section sec_db_type_tables Type-specific attribute tables
+
+For each media type, a table with the name stored in `types.tablename`
+is created when the type is created.  Its schema:
+
+| Column | Type | Key | Description |
+|---|---|---|---|
+| `item_id` | `INTEGER` | **PK**, FK -> `items.id` | Associated item |
+| `<attribute name>` | `VARCHAR` | | One attribute of the type (depending on the definition) |
+
+Each column besides `item_id` corresponds to an entry in `data_types`
+and `translations`.  The column name is normalized from the attribute
+name by `string_to_column_name()` (lower case, special characters
+replaced).
+
+Fields marked as `is_repeatable = true` in `data_types.infos` do
+**not** store their values in this table, but exclusively in
+`item_list_values`.  The corresponding column remains `NULL`.
+
+**Example** for the predefined type `"book"` with the table name
+`"books"` (excerpt):
+
+@code{.sql}
+CREATE TABLE books (
+    item_id   INTEGER PRIMARY KEY,  -- FK -> items.id
+    authors   VARCHAR,
+    publisher VARCHAR,
+    edition   VARCHAR
+);
+@endcode
+
+---
+
+@section sec_db_relations Table relations
+
+@code
+collection        (key/value store, 1 row per setting)
+
+types             types.id <------------------------------+
+  data_types             type_id FK ----------> types.id  |
+  common_field_positions type_id FK ----------> types.id  |
+                                                          |
+items             items.type FK -------------> types.id --+
+  items.thumbnail       FK -> thumbnails.id
+  items.data_collector  FK -> persons.id
+  schoolitems           item_id FK -> items.id
+  item_list_values      item_id FK -> items.id
+  items_fts             rowid      = items.id
+  <tablename>           item_id FK -> items.id
+  acquisitions          item    FK -> items.id
+  liquidations          item    FK -> items.id
+  lendings              item    FK -> items.id
+    lendings.person     FK -> persons.id
+    returns             lending FK -> lendings.id
+  reservations          item_id FK -> items.id
+    reservations.person_id FK -> persons.id
+
+persons           persons.id
+  persons.thumbnail     FK -> thumbnails.id
+  persons.school_class  ~  classes.name (by value)
+  credentials           person_id FK -> persons.id
+  permissions           person_id FK -> persons.id
+  *.data_collector      FK -> persons.id   (all movement tables)
+
+translations      (tablename, column, language) PK
+classes           (name, academic_year) PK
+signature_bottom_categories.top_category ~ signature_top_categories.name
+colman_table_versions  (table_name) PK, maintained by triggers
+@endcode
+
+*/

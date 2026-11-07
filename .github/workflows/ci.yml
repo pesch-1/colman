@@ -1,0 +1,101 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) Christoph Pesch 2026
+#
+# Continuous integration: builds and tests the Qt desktop application,
+# the REST server and client, and the Flutter client.
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desktop:
+    name: Qt build and tests (Ubuntu 24.04)
+    # Ubuntu 24.04 ships Qt 6.4.2, colman's minimum supported Qt version.
+    runs-on: ubuntu-24.04
+    env:
+      QT_QPA_PLATFORM: offscreen
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake pkg-config ccache \
+            libsqlite3-dev libargon2-dev libssl-dev libzxing-dev \
+            libgl-dev libvulkan-dev libxkbcommon-dev \
+            qt6-base-dev qt6-svg-dev qt6-tools-dev qt6-l10n-tools \
+            qt6-httpserver-dev qt6-websockets-dev qt6-multimedia-dev \
+            qt6-webengine-dev qt6-webchannel-dev libqt6sql6-sqlite
+
+      - name: Restore compiler cache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: ccache-${{ runner.os }}-
+
+      - name: Configure
+        run: cmake -B bld
+
+      - name: Build
+        run: cmake --build bld -j"$(nproc)"
+
+      - name: Test
+        run: ctest --test-dir bld --output-on-failure
+
+      - name: Check source tarball
+        # Every file in the repository must be listed in COLMAN_DIST_FILES.
+        run: |
+          cmake --build bld --target dist
+          tar tzf bld/colman-*.tar.gz | sed 's|^[^/]*/||' | grep -v '/$' \
+            | sort > dist_files.txt
+          git ls-files | sort > repo_files.txt
+          missing=$(comm -13 dist_files.txt repo_files.txt)
+          if [ -n "$missing" ]; then
+            echo "::error::Files missing from COLMAN_DIST_FILES:"
+            echo "$missing"
+            exit 1
+          fi
+
+  flutter:
+    name: Flutter analyze and tests
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: flutter
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.4
+          cache: true
+
+      - name: Get packages
+        run: flutter pub get
+
+      - name: Check generated localizations are up to date
+        run: |
+          flutter gen-l10n
+          git diff --exit-code -- lib/l10n
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test

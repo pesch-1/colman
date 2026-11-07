@@ -1,0 +1,165 @@
+# Doxyfile 1.9.8
+# Doxygen-Konfiguration für das Colman-Tutorial.
+# Erzeugt eine eigenständige Dokumentation nur aus colman_tutorial.dox einer
+# Sprache (doc/tutorial/<lang>/).  Wird pro Sprache von CMake konfiguriert.
+# Aufruf: cmake --build bld --target tutorial_<lang>
+
+#---------------------------------------------------------------------------
+# Projektmetadaten
+#---------------------------------------------------------------------------
+
+PROJECT_NAME           = "@TUTORIAL_PROJECT_NAME@"
+PROJECT_NUMBER         = @PROJECT_VERSION@
+PROJECT_BRIEF          =
+PROJECT_LOGO           = @CMAKE_CURRENT_SOURCE_DIR@/flutter/assets/icons/colman_logo.jpeg
+OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@/tutorial/@TUTORIAL_LANG@
+CREATE_SUBDIRS         = NO
+OUTPUT_LANGUAGE        = @TUTORIAL_OUTPUT_LANGUAGE@
+
+#---------------------------------------------------------------------------
+# Extraktion
+#---------------------------------------------------------------------------
+
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+EXTRACT_ANON_NSPACES   = NO
+HIDE_UNDOC_MEMBERS     = YES
+HIDE_UNDOC_CLASSES     = YES
+SHOW_FILES             = NO
+SHOW_NAMESPACES        = NO
+SHOW_INCLUDE_FILES     = NO
+SORT_MEMBER_DOCS       = NO
+SORT_BRIEF_DOCS        = NO
+
+#---------------------------------------------------------------------------
+# Warnungen
+#---------------------------------------------------------------------------
+
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = NO
+WARN_LOGFILE           = @CMAKE_CURRENT_BINARY_DIR@/tutorial/@TUTORIAL_LANG@/doxygen_warnings.log
+
+#---------------------------------------------------------------------------
+# Eingabe
+#---------------------------------------------------------------------------
+
+INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/doc/tutorial/@TUTORIAL_LANG@/colman_tutorial.dox
+INPUT_ENCODING         = UTF-8
+FILE_PATTERNS          = *.dox
+RECURSIVE              = NO
+
+EXAMPLE_PATH           =
+IMAGE_PATH             = @CMAKE_CURRENT_SOURCE_DIR@/images \
+                         @CMAKE_CURRENT_SOURCE_DIR@/doc/tutorial/@TUTORIAL_LANG@/screenshots \
+                         @CMAKE_CURRENT_SOURCE_DIR@/flutter/assets/icons \
+                         @CMAKE_CURRENT_SOURCE_DIR@/flutter/assets/icons/hint.jpeg
+HTML_EXTRA_FILES  = @CMAKE_CURRENT_SOURCE_DIR@/flutter/assets/icons/hint.jpeg \
+                    @CMAKE_CURRENT_SOURCE_DIR@/flutter/assets/icons/warning.jpeg
+LATEX_EXTRA_FILES = @CMAKE_CURRENT_SOURCE_DIR@/flutter/assets/icons/hint.jpeg \
+                    @CMAKE_CURRENT_SOURCE_DIR@/flutter/assets/icons/warning.jpeg
+
+#---------------------------------------------------------------------------
+# Quellcode-Ansicht
+#---------------------------------------------------------------------------
+
+SOURCE_BROWSER         = NO
+INLINE_SOURCES         = NO
+STRIP_CODE_COMMENTS    = YES
+REFERENCED_BY_RELATION = NO
+REFERENCES_RELATION    = NO
+
+#---------------------------------------------------------------------------
+# HTML-Ausgabe
+#---------------------------------------------------------------------------
+
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+HTML_COLORSTYLE        = LIGHT
+HTML_DYNAMIC_SECTIONS  = NO
+GENERATE_TREEVIEW      = YES
+TREEVIEW_WIDTH         = 280
+SEARCHENGINE           = YES
+USE_MATHJAX            = NO
+HTML_EXTRA_STYLESHEET  = @CMAKE_CURRENT_SOURCE_DIR@/doc/colman_doxy_extra.css
+
+#---------------------------------------------------------------------------
+# LaTeX / PDF-Ausgabe
+#---------------------------------------------------------------------------
+
+GENERATE_LATEX         = YES
+LATEX_OUTPUT           = latex
+LATEX_CMD_NAME         = pdflatex
+MAKEINDEX_CMD_NAME     = makeindex
+LATEX_MAKEINDEX_CMD    = makeindex
+USE_PDFLATEX           = YES
+COMPACT_LATEX          = NO
+PAPER_TYPE             = a4
+EXTRA_PACKAGES         = enumitem
+LATEX_HEADER           =
+LATEX_FOOTER           =
+LATEX_EXTRA_STYLESHEET = @CMAKE_CURRENT_SOURCE_DIR@/doc/colman_tutorial.sty
+PDF_HYPERLINKS         = YES
+LATEX_BATCHMODE        = NO
+LATEX_HIDE_INDICES     = NO
+
+#---------------------------------------------------------------------------
+# Diagramme (deaktiviert — reines Textdokument)
+#---------------------------------------------------------------------------
+
+HAVE_DOT               = NO
+CLASS_GRAPH            = NO
+COLLABORATION_GRAPH    = NO
+INCLUDE_GRAPH          = NO
+INCLUDED_BY_GRAPH      = NO
+
+#---------------------------------------------------------------------------
+# Ausgabeformate (deaktiviert)
+#---------------------------------------------------------------------------
+
+GENERATE_RTF           = NO
+GENERATE_MAN           = NO
+GENERATE_XML           = NO
+GENERATE_DOCBOOK       = NO
+GENERATE_AUTOGEN_DEF   = NO
+GENERATE_PERLMOD       = NO
+
+#---------------------------------------------------------------------------
+# Präprozessor
+#---------------------------------------------------------------------------
+
+ENABLE_PREPROCESSING   = NO
+
+
+#---------------------------------------------------------------------------
+# Aliase
+#---------------------------------------------------------------------------
+
+ALIASES += tip=" \
+\htmlonly<table style='border:none; background:#f9f9f9; padding:10px; width:100%;'><tr><td style='vertical-align:top;'><img src='hint.jpeg' style='width:32px;'/></td><td style='padding-left:10px;'><b>@TUTORIAL_TIP@:</b><br>\endhtmlonly \
+\latexonly\noindent\begin{tabular}{@{}l@{\hspace{12pt}}p{\dimexpr\linewidth-36pt\relax}@{}}\raisebox{\dimexpr-\height+10pt\relax}{\includegraphics[height=24pt]{hint.jpeg}} & \textbf{@TUTORIAL_TIP@:}\newline\ignorespaces\endlatexonly"
+
+ALIASES += endtip=" \
+\htmlonly</td></tr></table>\endhtmlonly \
+\latexonly\end{tabular}\vspace{10pt}\endlatexonly"
+
+ALIASES += hint=" \
+\htmlonly<table style='border:none; background:#f9f9f9; padding:10px; width:100%;'><tr><td style='vertical-align:top;'><img src='hint.jpeg' style='width:32px;'/></td><td style='padding-left:10px;'><b>@TUTORIAL_HINT@:</b><br>\endhtmlonly \
+\latexonly\noindent\begin{tabular}{@{}l@{\hspace{12pt}}p{\dimexpr\linewidth-36pt\relax}@{}}\raisebox{\dimexpr-\height+10pt\relax}{\includegraphics[height=24pt]{hint.jpeg}} & \textbf{@TUTORIAL_HINT@:}\newline\ignorespaces\endlatexonly"
+
+ALIASES += endhint=" \
+\htmlonly</td></tr></table>\endhtmlonly \
+\latexonly\end{tabular}\vspace{10pt}\endlatexonly"
+
+ALIASES += warning=" \
+\htmlonly<table style='border:none; background:#f9f9f9; padding:10px; width:100%;'><tr><td style='vertical-align:top;'><img src='warning.jpeg' style='width:32px;'/></td><td style='padding-left:10px;'><b>@TUTORIAL_WARNING@:</b><br>\endhtmlonly \
+\latexonly\noindent\begin{tabular}{@{}l@{\hspace{12pt}}p{\dimexpr\linewidth-36pt\relax}@{}}\raisebox{\dimexpr-\height+10pt\relax}{\includegraphics[height=24pt]{warning.jpeg}} & \textbf{@TUTORIAL_WARNING@:}\newline\ignorespaces\endlatexonly"
+
+ALIASES += endwarning=" \
+\htmlonly</td></tr></table>\endhtmlonly \
+\latexonly\end{tabular}\vspace{10pt}\endlatexonly"
+

@@ -1,0 +1,6 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource prefix="/translations">
+    <file alias="colman_de.qm">colman_de.qm</file>
+  </qresource>
+</RCC>

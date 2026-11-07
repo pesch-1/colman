@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest an idea or improvement for colman.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for your idea!  Please search the existing issues first.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: >-
+        What would you like to do that colman does not support yet?  How is
+        your library or collection organised?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How could colman support this?
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and workarounds
+      description: What do you do today instead?

@@ -1,0 +1,1249 @@
+/**
+
+@mainpage Colman – Library and Collection Manager
+
+@tableofcontents
+
+The end-user documentation is the tutorial in `doc/tutorial/<lang>/`
+(German and English, target `tutorial_<lang>`).
+
+Colman is a Qt 6/SQLite application for managing school libraries and
+other collections. Its core functionality covers the management of
+media (items), persons (borrowers), as well as lendings, returns,
+acquisitions, liquidations and reservations. Besides the desktop
+application there are a REST server, a Qt REST client sharing the
+desktop UI, and a Flutter client for mobile devices (`flutter/`).
+
+@section sec_build Build & Start
+
+@code
+cmake -B bld && cmake --build bld -j4
+./bld/colman
+@endcode
+
+Required Qt modules: `Core Concurrent Gui HttpServer Svg SvgWidgets
+Widgets PrintSupport Sql Network Xml Test LinguistTools`. The desktop
+application and the REST client additionally need `Multimedia`,
+`WebChannel`, `WebEngineWidgets` and ZXing-C++ (camera barcode
+scanning, Amazon cover browser); without them only the headless
+targets (REST server, tools, tests) are built (`COLMAN_BUILD_GUI`).
+Further system dependencies: `libsqlite3`, `libargon2` (password
+hashing), OpenSSL (jwt-cpp, fetched via CMake FetchContent).
+The minimum supported Qt version is 6.4.2; newer Qt APIs must be
+guarded with `QT_VERSION_CHECK`. Database files have the extension
+`.col`.
+
+The project version (currently 2.0.0) is defined in `CMakeLists.txt`
+and is available in the code via the compiler macro `COLMAN_VERSION`.
+Builds with GCC/Clang use `-Wall -Wextra`; the code base is kept free
+of warnings.
+
+The GitHub Actions CI (`.github/workflows/ci.yml`) builds and tests on
+Ubuntu 24.04 with Qt 6.4.2 (the minimum supported Qt version), checks
+that every file of the repository is listed in `COLMAN_DIST_FILES`, and
+runs `flutter analyze` and `flutter test`.
+
+Generated files that must **not** be edited manually: `moc_*.cpp`,
+`qrc_*.cpp`, `*.qm`, and in the Flutter client
+`flutter/lib/l10n/app_localizations*.dart`. There are no Qt Designer
+`.ui` files; the whole UI is written in C++.
+
+@section sec_cmake CMake targets
+
+**Libraries**
+
+| Target | Description |
+|---|---|
+| `colman_core` | Static library with all non-UI sources (entities, SQL layer, barcodes, lookups, …) |
+| `colman_rest` | Static library with the REST support (`RestQueries`, auth middleware, JWT validation) |
+
+**Applications and tools**
+
+| Target | Description |
+|---|---|
+| `colman` | Desktop application |
+| `colman_rest_server` | REST API server (headless; convenience target `server`) |
+| `colman_rest_client` | REST client with the full desktop UI |
+| `colman_transfer` | Command-line import/export of persons (CSV) and items (JSON), see `colman_admin_tools.dox` |
+| `colman_gen_testdb` | Fills a `.col` file with random items for performance tests |
+| `colman_query_isbn` | Command-line ISBN lookup tool |
+| `colman_label_layout_app` | Interactive test for `LabelLayoutWidget` |
+| `colman_label_selection_app` | Interactive test for `LabelSelectionWidget` |
+| `colman_calibrate_printer` | Interactive printer calibration test |
+| `colman_test_label_printer` | Interactive thermal printer test |
+
+**Tests** (run with `ctest --test-dir bld`; network tests only with
+`COLMAN_RUN_NETWORK_TESTS=1`)
+
+| Target | Covers |
+|---|---|
+| `colman_actions_test` | Barcode action classification |
+| `colman_db_util_test` | Database utilities (encryption detection, thumbnail paths, column names) |
+| `colman_queries_test` | SQL layer and view queries |
+| `colman_reservations_test` | Reservations |
+| `colman_permission_deps_test` | Permission dependencies and delegation |
+| `colman_class_management_test` | Class renaming for a new school year, class list merging |
+| `colman_passwords_test` | Password hashing |
+| `colman_cutter_test` | Cutter/signature computation |
+| `colman_json_test` | JSON serialization |
+| `colman_isbn_test`, `colman_bgg_test`, `colman_name_test` | Internet lookups |
+| `colman_auth_middleware_test`, `colman_jwt_validator_test` | REST authentication |
+| `colman_rest_queries_test`, `colman_rest_authorization_test`, `colman_rest_stress_test` | REST client/server round trips, permissions, concurrency |
+| `colman_mdns_announcer_test` | mDNS server discovery |
+
+**Other targets**
+
+| Target | Description |
+|---|---|
+| `lupdate_colman` | Update the `.ts` files of the main application |
+| `doc` | Doxygen documentation (HTML + PDF) |
+| `tutorial_<lang>` | Doxygen tutorial for one language (HTML + `tutorial/<lang>/latex/colman_tutorial.pdf`); `tutorial` builds all languages |
+| `tutorial_screenshots_<lang>` | Regenerate the tutorial screenshots (see @ref page_tutorial_screenshots) |
+| `dist` | Source tarball `colman-<version>.tar.gz` (contents: `COLMAN_DIST_FILES`) |
+| `deploy` | Self-contained binary tarball (requires linuxdeploy in `tools/`) |
+
+@section sec_resources Qt resources
+
+| Resource file | Contents |
+|---|---|
+| `colman_owls.qrc` | Owl icon set (start page, central page, dialogs) |
+| `colman_thirdparty.qrc` | Third-party logos ("Powered by BGG") |
+| `colman_app_translations.qrc` | Translations: `colman_de.qm` |
+
+The image files live in `flutter/assets/icons/` and
+`flutter/assets/thirdparty/`, so that the Flutter client can use them
+as assets. The `.qrc` files refer to them via aliases, which keeps the
+resource paths stable (`:/icons/owls/<name>.jpeg`).
+
+@section sec_entry Entry point
+
+`main()` in `colman_main.cpp`:
+1. Sets the QApplication metadata (`cpesch`/`colman`)
+2. Evaluates the developer hooks `--ui-snapshot=<dir>` (before the
+   translations are loaded, so that the pixel baseline stays
+   language-independent) and `--tutorial-screenshots=<dir>` (see
+   @ref page_tutorial_screenshots; redirects QSettings to a temporary
+   directory)
+3. Loads the Qt system translations and the application translations
+   (`colman_de.qm`) from embedded Qt resources
+4. Parses the command line (`QCommandLineParser`): `--help`,
+   `--trace-level <number>`, optional `.col` file as positional argument
+5. Applies the stored font size and installs the font size shortcut
+   filter
+6. Creates the central AppData instance, sets the thumbnail directory
+   and the system network proxy
+7. Builds the main window (`MainWindowUi::setup_ui()`) and calls
+   `setup_start_page()` and `setup_preferences_page()`; all other pages
+   are set up once a collection has been opened (in
+   `colman_start_page.cpp`)
+8. Shows the main window and starts the Qt event loop
+
+@subsection sec_trace Trace level and console output
+
+colman is silent by default. Diagnostic output goes through Qt logging
+categories from `colman_trace.hpp`, whose debug output is disabled by
+default:
+
+| Category | Macro | Active from `--trace-level` | Contents |
+|---|---|---|---|
+| `colman.lookup` | `qCDebug(colman_lookup_log)` | 2 (`LookupTraceLevel`) | Internet lookup: ISBN/EAN/title, SRU, HTTP errors |
+
+`colman::set_trace_level()` sets the filter rules via
+`QLoggingCategory::setFilterRules()` (including the suppression of the
+KDirModel warnings). Write new diagnostic output with `qCDebug()` and a
+suitable category, not with `qDebug()`. During development a category
+can also be enabled via the environment variable
+`QT_LOGGING_RULES="colman.lookup.debug=true"` (this also works in
+programs without `--trace-level`, e.g. `colman_query_isbn`).
+`colman_rest_server` and `colman_rest_client` offer the same
+`--trace-level` option and use `colman::set_trace_level(QString const&)`
+for it (which validates the input).
+
+---
+
+@page page_architecture Architecture
+
+@section sec_appdata Central state: AppData
+
+colman::AppData (`colman_app_data.hpp/.cpp`) is the **only** state
+container of the application. It is passed by reference to all
+functions – there are no global or file-local mutable variables (only
+constants are allowed at file scope).
+
+Important public members:
+
+| Member | Type | Meaning |
+|---|---|---|
+| `queries_` | `std::unique_ptr<IQueries>` | Data access: `SQLQueries` (local `.col` file) or `RestQueries` (REST client) |
+| `filename_` | `QString` | Path of the opened `.col` file |
+| `current_data_collector_` | `int` | Logged-in user: `-1` = not logged in, `0` = administrator, `>0` = `persons.id` |
+| `mw_` | `MainWindowUi` | Hand-written main window UI (see @ref sec_pages) |
+| `w_` | `QMainWindow` | Main window widget |
+| `isbn_queries_`, `ean_queries_`, `bgg_queries_`, `name_queries_` | `IsbnQueries`, `EanQueries`, `BggQueries`, `NameQueries` | Internet lookups by ISBN, EAN, BoardGameGeek ID and title |
+| `show_external_id_ui_` | `bool` | `true` in REST client mode (shows OIDC-related fields) |
+
+**Programmatically created widgets:** pages whose layout is built at
+runtime (start page, central page, some sub-pages) keep their widgets
+as AppData members so that other parts of the code can access them,
+e.g. `open_button_`, `new_button_`, `recently_opened_` (start page),
+the central page tiles `new_person_button_` … `scan_button_`, and
+`class_management_page_`, `camera_scan_page_`,
+`search_item_detail_page_`.
+
+In addition, AppData holds the view model instances of the pages –
+`QAbstractTableModel` subclasses from `colman_table_models.hpp`, e.g.
+`person_model_`, `lending_person_model_`, `lending_item_model_`,
+`return_lending_model_`, `combined_history_model_` – together with
+their pagination state (`*_offset_`, `*_has_more_`).
+
+@section sec_pages Page architecture
+
+The UI is based on the `QStackedWidget` `MainWindowUi::pages_stack_`.
+`MainWindowUi` (`colman_main_window_ui.hpp`) is written by hand; its
+`setup_ui()` is split into `colman_main_window_ui.cpp` and one file per
+flow (`colman_main_window_ui_lending.cpp`, `_return`, `_acquisition`,
+`_liquidation`, `_management`). Each page module offers up to three
+kinds of functions:
+
+- **`setup_<name>_page(s)(QApplication&, AppData&)`** – once: UI
+  connections, model initialization
+- **`enter_<name>_page(AppData&)`** – on page switch: set focus, load
+  data
+- **`refresh_<name>_page(s)(AppData&)`** – after data changes: reload
+  models and views
+
+`setup_start_page()` and `setup_preferences_page()` are called from
+`main()`; all other `setup_*` functions run once a collection has been
+opened (`colman_start_page.cpp`). The REST client calls the same
+functions from `colman_rest_client_main.cpp`.
+
+**Page overview:**
+
+| Module | Purpose |
+|---|---|
+| `colman_start_page` | Logo, open/create collection, recently used, login (`AdminLoginPage`, `UserLoginPage`, `DbPasswordPage`), due-returns reminder |
+| `colman_create_collection_page` | Step-by-step flow for creating a new collection |
+| `colman_central_page` | Central navigation page after login; own password; barcode scanner dispatch |
+| `colman_lending_page` | Guided lending flow (also reservations) |
+| `colman_group_lending_page` | Group lending: one copy for each ticked borrower, hand-out list |
+| `colman_return_page` | Guided return flow |
+| `colman_acquisition_page` | Guided acquisition flow (create item, internet lookup, number of copies) |
+| `colman_liquidation_page` | Guided liquidation flow |
+| `colman_search_page` | Item search with filters, item detail page, list printing and CSV export |
+| `colman_history_page` | Transaction history (filter, change, delete) |
+| `colman_person_page` | Create/edit persons, permissions, usernames |
+| `colman_person_view_page` | Person list |
+| `colman_person_barcode_page` | ID card printing |
+| `colman_item_barcode_page` | Item label printing |
+| `colman_signature_print_page` | Signature (spine) label printing |
+| `colman_item_type_page` | Manage media types and their fields |
+| `colman_class_management_page` | Class management and new school year |
+| `colman_camera_scan_page` | Barcode scanning with a camera |
+| `colman_settings_page` | Collection settings (name, logo, lending period, reservations, …) |
+| `colman_preferences_page` | Program settings stored in QSettings (internet services and tokens, proxy, thumbnails, timeouts, …) |
+| *(dynamic)* | Action selection page when a scanned barcode allows several actions (see @ref sec_barcode_dispatch) |
+
+The editors for ID card, item card and signature label layouts
+(`colman_id_editor`, `colman_item_card_editor`,
+`colman_signature_label_editor`) are opened from the central page as
+pages of the stack as well.
+
+Lending, return, acquisition and liquidation are each implemented as a
+single guided multi-step flow; the former split into an "expert" and
+an "easy" mode has been removed.
+
+The start page is built entirely programmatically: logo
+(`colman_logo.jpeg`), title ("ColMan" + version number), subtitle
+("the collection manager"), the buttons open/new/exit and the recently
+used table.
+
+@section sec_models View model layer
+
+`colman_table_models.hpp` defines the `QAbstractTableModel` subclasses
+that populate the table views of the application. Each class wraps a
+`std::vector<Row>` and offers a refresh method that correctly encloses
+`beginResetModel()` / `endResetModel()`:
+
+| Class | Usage |
+|---|---|
+| `TypeListModel` | Media type list |
+| `PersonListModel` | Person lists (lending, return, person pages, ID cards) |
+| `StartPagePersonListModel` | Login list on the start page (including password flag) |
+| `ItemListModel` | Item lists (acquisition, liquidation, lending, labels, search) |
+| `OpenLendingListModel` | Open lendings of a person (return flow) |
+| `DueLendingListModel` | Due/open lendings (start page reminder, "open lendings" page) |
+| `HistoryCombinedModel` | Combined transaction history |
+| `HistoryAcquisitionListModel`, `HistoryLiquidationListModel`, `HistoryLendingListModel`, `HistoryReturnListModel` | History per action type |
+| `ChangePasswordsPersonListModel` | Admin list for setting/removing passwords |
+
+Each `Row` structure is defined as a public nested struct
+(`ItemListModel::Row`, `LendingListModel::Row`, …). Column numbers are
+anchored in `data()` and `headerData()` via `switch` statements; the
+first column always contains the database ID and is hidden via
+`QTableView::setColumnHidden(0, true)`.
+
+`PersonListModel` provides the columns ID, last name, first name, class
+(`PersonListModel::ClassColumn`), title (`PersonListModel::TitleColumn`)
+and username.  `PersonListWidget::hide_column()` hides columns
+permanently (also after every model reset); the `person` and `lending`
+pages hide the title this way.
+`PersonListWidget` uses the class column for an optional class filter
+(`enable_class_filter()`, `set_class_names()`): the combo box sets an
+exact regex filter on the `QSortFilterProxyModel`; "all classes"
+(invalid item data) removes it, "without class" (empty string) filters
+for persons without a class.  The filter is active on the `person`
+page; `person_barcode` filters its `QTreeWidget` the same way via
+`person_barcode_class_`.
+
+`PersonCheckListWidget` (`colman_person_check_list_widget.hpp`) is a
+checkable person list with name search, class filter and "Select all" /
+"Deselect all" (acting on the visible rows only; hidden rows keep their
+check state).  Rows can be disabled (`set_disabled_ids()`) and annotated
+(`set_notes()`); an optional guard (`set_check_guard()`) vetoes checks,
+e.g. when no copies are left.  The group lending page and step 2 of the
+return page (several returning persons, `IQueries::add_group_return()`)
+use it.  Its
+capacity rule: borrowers with an own reservation of the item always fit
+(they take a reserved copy); all others together may use at most
+`available - sum of all reservations` copies.  This matches the check of
+`IQueries::add_group_lending()`, which inserts all lendings in one
+transaction.
+
+All class filters (person page, ID card printing, open lendings) offer
+the union of `load_class_names()` and the classes actually assigned to
+persons (`merge_class_names()` in `colman_class_names.hpp`, sorted
+numerically via `QCollator`).  The class field in `PersonWidget` still
+offers only the class list; `confirm_school_class()` in
+`colman_person_page.cpp` asks for confirmation when an unknown class is
+saved and, given the `manage_classes` permission, adds it to the list
+via `add_class_name()`.
+
+"Without class" in the open lendings is filtered on the client side:
+`query_due_lendings()` interprets an empty class name as "no filter",
+so the rows are reduced afterwards to persons without a class
+(`classless_person_ids_`) – without changes to `IQueries` or the REST
+API.
+
+`DueLendingListModel::Row` carries the class separately from the name
+(`school_class`, its own column 3 on the "open lendings" page);
+`person_with_class()` returns the former "Name (class)" format, which
+the start page and `person_name` in `GET /api/lendings/due` continue to
+use.
+
+The models are filled by the view query functions of `IQueries` (see
+@ref page_sql), which return typed vectors that are loaded directly
+into the models, e.g.:
+
+| Function | Usage |
+|---|---|
+| `query_types()` | Media type list |
+| `query_persons()`, `query_lending_persons()` | Person lists (including class) |
+| `query_items()`, `query_acquired_items()`, `query_available_items()`, `query_lent_items()`, `query_items_with_type()` | Item lists, paginated via `offset`/`limit` (`count_items()` for the total) |
+| `query_items_for_search()` | Search page (full-text search via the FTS5 table `items_fts`) |
+| `query_open_lendings()`, `query_item_lendings()`, `query_due_lendings()` | Open, per-item and due lendings |
+| `query_combined_history()` | History of all action types, optionally filtered by period and action type |
+| `query_*_field_completions()` | Autocomplete suggestions |
+
+`query_combined_history()` accepts an `is_admin` parameter: the name of
+the data collector is only included for administrators.
+
+@section sec_barcode_dispatch Barcode scanner dispatch
+
+The central navigation page receives barcode scanner input (USB
+keyboard emulation: character sequence + Enter): the page widget
+`CentralPage` (in `colman_central_page.cpp`) collects the characters in
+`keyPressEvent()` and passes the string on when Enter arrives. The
+camera button (`scan_button_`) feeds barcodes decoded via
+`scan_barcode()` (`colman_camera_scan_page`) into the same path.
+`possible_actions()` (`colman_actions.cpp`) classifies the barcode by
+the collection-specific prefix (or as ISBN/EAN) and returns a list of
+`ActionInfo` structures.
+
+`dispatch_actions()` branches depending on the length of the list:
+
+| Number of actions | Behavior |
+|---|---|
+| 0 | No reaction |
+| 1 | `dispatch_single_action()` → navigate directly to the matching page |
+| >1 | `dispatch_multiple_actions()` → show the action selection page |
+
+**`ActionInfo` fields** (in `colman_actions.hpp`):
+
+| Field | Type | Meaning |
+|---|---|---|
+| `action_` | `Action` | `None`, `Acquisition`, `Liquidation`, `Lending`, `Return` |
+| `item_id_` | `int` | DB ID of the identified item (-1 = unknown) |
+| `person_id_` | `int` | DB ID of the person (-1 = unknown) |
+| `lending_id_` | `int` | DB ID of the associated lending (-1 = unknown) |
+| `acquisition_id_` | `int` | DB ID of the associated acquisition (-1 = unknown) |
+| `barcode_` | `QString` | Scanned barcode string (e.g. ISBN) |
+
+**`dispatch_single_action()`** calls `enter_*_for_action()`:
+
+| Action | Function |
+|---|---|
+| `Acquisition` | `enter_acquisition_page_for_action()` |
+| `Lending` | `enter_lend_page_for_action()` |
+| `Return` | `enter_return_page_for_action()` |
+| `Liquidation` | `enter_liquidation_page_for_action()` |
+
+Each of these functions navigates to the matching page and sets
+preselections (person, item, lending) based on the IDs contained in
+`ActionInfo`. Reactive query refreshes ensure that dependent tables are
+filtered immediately.
+
+**`dispatch_multiple_actions()`** creates a dynamic selection page
+(object name `"action_selection_page"` in the `QStackedWidget`):
+
+- Back button (full width) → central page
+- Heading "What do you want to do?" (bold)
+- Scrollable list of `ActionButton` entries (icon, bold title,
+  multi-line description), one per action, with the owl icon of the
+  action (`action_icon_path()`) and a descriptive text
+  (`action_description()`):
+  - **Return:** item name — author, borrower name, lending date
+  - **Lending:** item name — author
+  - **Acquisition:** barcode (ISBN)
+  - **Liquidation:** item name — author
+
+Clicking an entry calls `dispatch_single_action()` for the selected
+action. On the next call of `dispatch_multiple_actions()` the existing
+selection page is first removed from the stack and deleted.
+
+@section sec_login Login & user management
+
+After a database file has been opened, the user must authenticate:
+
+- **Encrypted collections** first ask for the database password
+  (`DbPasswordPage`).
+- **Administrator login** (`AdminLoginPage`): password page with a
+  3-second lock after a failed attempt. Sets
+  `data.current_data_collector_ = 0`.
+- **User login** (`UserLoginPage`): person list + password field, also
+  with a 3-second lock. Sets `data.current_data_collector_ = person_id`.
+- If no password is set, password entry is skipped.
+
+All login pages are pages of the stack in `colman_start_page.cpp`.
+What a user may do is decided by the permissions of the logged-in
+person (`has_permission()`, table `permissions`, see
+@ref page_database); they control the visibility of the tiles on the
+central page. `current_data_collector_` is also stamped as data
+collector on all mutating operations.
+
+**Layout of the central page** (`setup_central_page()`): the tiles are
+arranged in four row widgets (lending desk, stock, persons and own
+account, setup), each a left-aligned `QHBoxLayout`. Hidden tiles leave
+no gap; rows without a visible tile are hidden each time the page is
+entered. `equalize_button_sizes()` sets all tiles (including hidden
+ones) to the width of the widest and the height of the highest via
+`setFixedSize()`, so that the columns stay aligned even with long
+translations and tiles with one- and two-line labels are equally high;
+it runs again after every label change (lend/reserve) and on font size
+changes. The screenshot scenario checks the sizes and the alignment
+automatically (`check_central_grid()`).
+
+**Passwords** are hashed with Argon2 (`colman_passwords.hpp`,
+`colman::hash_password()` / `colman::verify_password()`). The hashes
+are stored in the `credentials` table of the respective database file.
+The same table also stores the REST API username and the external OIDC
+ID (column `external_id`), so that the desktop password and the REST
+login are always in sync.
+
+Users change their **own password** via `change_own_password()`
+(`IQueries`): the current password is checked against the stored hash
+before the new (already hashed) value is set. Over REST this is the
+endpoint `POST /api/me/password` (`{old_password, new_password}`, since
+API minor 21) — the only password endpoint without
+`may_manage_target`, because the caller proves knowledge of the current
+password. Setting/deleting *other users'* passwords remains reserved to
+`POST`/`DELETE /api/persons/<id>/password` (admin list view in the
+Flutter client `/api/persons/change-passwords`).
+
+---
+
+@page page_entities Domain entities
+
+All entities are simple data classes with getters/setters in the
+`colman` namespace.
+
+@section sec_collection Collection
+
+`colman_collection.hpp` – collection-wide settings.
+
+Important fields: `name_`, `organization_`, `responsible_`,
+`logo_raw_` (QByteArray, original raw data — SVG, PNG or another
+format; rendered on demand for the screen and at full printer
+resolution for printing), `barcode_prefix_`, `data_version_`,
+`max_person_id_`, `use_lending_period_` and `lending_period_*`,
+`allow_reservations_`, `reservation_period_days_`,
+`default_item_type_`, `default_is_school_item_`,
+`grade_range_min_`/`grade_range_max_` (grade levels for school items)
+and `server_name_` (name announced for LAN discovery).  The fields `id_card_layout_`,
+`item_card_layout_` and `sig_label_layout_` still exist, but are only
+filled on loading from legacy entries, if present (read migration into
+local presets), and are no longer written back to the database —
+layouts are stored locally per client.
+
+Methods for SVG logo support:
+- `has_svg_logo()` — checks whether `logo_raw_` contains SVG data
+- `get_logo_raw()` — returns the raw data for printing
+- `set_logo_raw(arr)` — sets the raw data (format auto-detected)
+
+Helper functions for barcode computation and parsing:
+`compute_item_barcode()`, `parse_item_barcode()`,
+`compute_person_barcode()`, `parse_person_barcode()`.
+`add_lending_period()` computes the default due date.
+
+@section sec_type Type
+
+`colman_type.hpp` – defines a user-defined media type with its own
+database table and dynamic attributes.
+
+- `name_` – display name
+- `tablename_` – SQLite table name
+- `keys_` – ordered list of attributes as `KeyVector`
+
+Attribute types (`DataTypeInfo`): `String`, `ShortString`, `Date`,
+`Time`, `Integer`, `Float`, `Duration`, `Table`, `IntegerRanges`.
+
+An attribute can be marked as repeatable via the `"is_repeatable"` key
+in `DataTypeInfo::info_`.  Repeatable fields may contain several values
+(e.g. several subject keywords) and are stored in the database in the
+`item_list_values` table instead of the type-specific table.  The
+function `colman::is_repeatable(DataTypeInfo)` checks this flag.  The
+type editor shows the column "Repeatable" (German: "Wiederholbar").
+
+@section sec_item Item
+
+`colman_item.hpp` – a physical item (e.g. a book).
+
+- `name_`, `barcode_`, `place_`, `description_`, `keywords_`
+- `type_id_` – foreign key to Type
+- `values_` – dynamic type attributes as `StringMap` (single values)
+- `list_values_` – repeatable type attributes as `StringListMap`
+  (several values per key; persisted in `item_list_values`)
+- `is_school_item_`, `subject_`, `academic_year_` – school book fields
+- `signature_top_`, `signature_bottom_` – upper and lower signature
+  label (spine labels; stored in the database as `signature_top` and
+  `signature_bottom`). The acquisition flow remembers the signatures of
+  the most recently created item per collection in QSettings
+  (`acquisition_signature/<hex(name + barcode prefix)>/top|bottom`) and
+  sets them as default via `ItemWidget::set_default_signatures()`;
+  internet lookup results are applied via
+  `ItemWidget::lookup_result_to_fields()`, so that only a non-empty
+  looked-up signature replaces the default.
+- `thumbnail_id_` – image in the database
+- `allow_reservations_`, `reservation_period_days_` – per-item
+  reservation settings (`-1` = inherit from the collection)
+- `data_collector_id_` – ID of the user who entered the record
+  (0 = administrator)
+- `version_` – optimistic locking counter (REST ETags)
+
+@section sec_person Person
+
+`colman_person.hpp` – a borrower.
+
+- `lastname_`, `firstname_`, `title_`, `school_class_`
+- `barcode_`
+- `emails_`, `telephone_`, address fields, `remarks_`
+- `username_`, `external_id_` – login data (stored in `credentials`)
+- `thumbnail_id_`
+- `data_collector_id_` – ID of the user who entered the record
+- `version_` – optimistic locking counter (REST ETags)
+
+@section sec_transactions Transaction entities
+
+| Entity | File | Purpose | Key fields |
+|---|---|---|---|
+| `Lending` | `colman_lending.hpp` | Lending | `item_id_`, `person_id_`, `count_`, `date_`, `duedate_` |
+| `Return` | `colman_return.hpp` | Return | `lending_id_`, `count_`, `date_` |
+| `Acquisition` | `colman_acquisition.hpp` | Acquisition (stock increase) | `item_id_`, `count_`, `date_` |
+| `Liquidation` | `colman_liquidation.hpp` | Liquidation (stock decrease) | `item_id_`, `count_`, `date_` |
+
+All four transaction entities also have a `data_collector_id_` field
+that records the user who entered them.
+
+**Stock computation:**
+@code
+stock_size() = sum(acquisitions) - sum(liquidations)
+available()  = stock_size()      - sum(open lendings)
+@endcode
+
+---
+
+@page page_sql SQL layer
+
+All data access goes through the abstract interface `colman::IQueries`
+(`colman_iqueries.hpp`). It has two implementations:
+
+- `SQLQueries` (`colman_sql_queries.hpp`) – direct SQLite access to a
+  local `.col` file; used by the desktop application and the REST
+  server. The implementation is split by topic into
+  `colman_sql_queries.cpp` (database file, encryption, collection,
+  backup), `colman_sql_queries_types.cpp`, `_items.cpp`,
+  `_persons.cpp`, `_movements.cpp` (acquisitions, liquidations,
+  lendings, returns, reservations) and `_history.cpp` (history, class
+  management); shared helpers are in `colman_sql_queries_impl.hpp`.
+- `RestQueries` (`colman_rest_queries.hpp`) – forwards the calls to a
+  `colman_rest_server` over HTTP; used by `colman_rest_client`.
+
+There are no SQL queries outside `colman_sql_queries*.cpp`.
+
+@section sec_sql_patterns Function patterns
+
+The functions of `IQueries` follow the scheme:
+
+- `create_*` / `add_new_*` / `add_*` – insert
+- `load_*` / `get_*` / `read_*` – read
+- `save_*` / `change_*` / `set_*` – update
+- `remove_*` – delete
+- `query_*` – view queries returning typed `std::vector<Row>` values
+  for the table models (see @ref sec_models)
+- `change_*_versioned()` – updates with optimistic locking (version
+  check), used by the REST server for ETags
+
+@section sec_sql_groups Function groups
+
+**Database file:** `create_new_database()` (optionally encrypted),
+`add_administrator()`, `load_database()`, `save_database()`,
+`create_tables()`; on opening, `load_database()` applies schema
+migrations (see @ref page_database)
+
+**Encryption:** `supports_encryption()`, `is_encrypted()`,
+`encrypt_database()`, `change_encryption_key()`,
+`remove_encryption()`
+
+**Collection:** `create_collection()`, `change_collection()`,
+`read_collection()`; signature categories:
+`read_signature_top_categories()`, `add_/remove_signature_*_category()`
+
+**Types:** `add_new_type()`, `get_type()`, `get_type_id()`,
+`get_type_name()`, `get_type_locale()`, `change_type()`,
+`remove_type()`, `type_id_for_media_kind()` /
+`media_kind_for_type_id()`, field order
+(`get_combined_field_order()`, `save_field_order()`)
+
+**Items:** `add_new_item()`, `get_item()`, `change_item()`,
+`remove_item()`, `force_remove_item()`, `restrict_item_to_type()`,
+`items_by_isbn()`, `items_by_ean()`
+
+**Computed queries for items:** `available()`, `stock_size()`,
+`have_lendings()`, `get_recently_acquired_item_ids()` (the most
+recently acquired items) and `get_items_acquired_between()` (items
+acquired within a period) — both drive the filters of label printing
+(`colman_item_barcode_page`) and are also available via the REST
+endpoints `/api/items/recently-acquired` and
+`/api/items/acquired-between`, respectively.
+
+**Persons:** `add_new_person()`, `get_person()`, `change_person()`,
+`remove_person()`, `person_known()`, `email_known()`,
+`username_known()`, `lending_balance()`,
+`get_person_by_external_id()`, `set_person_external_id()`
+
+**Acquisitions / Liquidations / Lendings / Returns:**
+`add_new_*()`, `get_*()`, `change_*()`, `remove_*()` each
+
+**Reservations:** `add_reservation()`, `remove_reservation()`,
+`get_reservations_for_item()`, `get_reservation()`,
+`get_reservations()`
+
+**Permissions:** `get_permissions()`, `get_user_permissions()`,
+`create_default_permissions()`, `has_permission()`,
+`set_permission()`, `remove_permissions()`, `is_reserve_only()`;
+delegation rules in `colman_permission_deps.hpp`
+
+**Class management:** `load_class_names()`, `add_class_name()`,
+`remove_class_name()`, `rename_class_name()`,
+`apply_school_year_changes()`
+
+**Concurrency:** `get_version()`, `change_*_versioned()`,
+`query_table_versions()` (change counters per table, maintained by
+triggers; clients poll them to refresh their views)
+
+**Extending due dates:** `extend_lendings(ids, duedate)` sets the due
+date of several lendings in one transaction (REST:
+`POST /api/lendings/extend`, permission `collect_lendings`).  The
+desktop UI for this is `colman_extend_lending_dialog.hpp` with two
+entry points following the rule "the dialog only asks for what is not
+yet known": `extend_lendings_of_person()` (only the person is known —
+lending step 1; selection + date) and `extend_selected_lendings()` (the
+lendings are known — selected rows on the "open lendings" page, the
+lending chosen in return step 3; date only).  The proposed date never
+shortens a due date: max(today, latest current due date) plus the
+default lending period (`Collection::add_lending_period()`), or plus 14
+days without a default lending period (`propose_due_date()` in
+`colman_extend_lending_dialog.cpp`).
+The Flutter client follows the same rule
+(`flutter/lib/widgets/extend_lending_dialog.dart`):
+`showExtendLendingDialog()` in the person step of the lending,
+`showExtendSelectedLendingsDialog()` in the details step of the return
+and in the selection mode of `OpenLendingsScreen` (button "Extend due
+date" in the bottom bar or a long press on a row; in selection mode
+"Cancel" and "Extend (n)" in the same bar); the proposed date comes
+from `CollectionInfo.proposeExtendedDueDate()` (same rule as
+`propose_due_date()`), the preset due date for new lendings from
+`CollectionInfo.addLendingPeriod()` (same end-of-month rule as
+`QDate::addMonths`).  For the list of open lendings,
+`GET /api/lendings/due` therefore also accepts `collect_lendings`.
+
+**History:** `query_combined_history()` combines all action types via
+`UNION ALL`; the `action_filter` parameter (e.g. `"lending"`) restricts
+the query to one type (REST: query parameter `action`; Flutter:
+drop-down in the history). `apply_action_change()` and
+`batch_delete_history_actions()` change or delete recorded actions.
+
+**Credentials (desktop & REST):** `set_password()`, `get_password()`,
+`has_password()`, `remove_password()`, `change_own_password()`,
+`check_local_credentials()`, `set_local_credentials()`,
+`delete_local_credentials()`, `get_username()`, `set_username()`,
+`remove_username()`
+
+All credential data — desktop password hash, REST username/password
+hash and OIDC `external_id` — are stored together in the `credentials`
+table (one record per person). UPSERT syntax keeps the columns
+independently updatable.
+
+**Thumbnails:** `store_thumbnail()`, `get_thumbnail()`,
+`use_local_thumbnail()`, `have_local_thumbnail()`
+
+**Barcodes:** `compute_item_barcode()`, `parse_item_barcode()`,
+`is_item_barcode()`, `compute_person_barcode()`,
+`parse_person_barcode()`, `is_person_barcode()` (see
+@ref sec_barcodes)
+
+---
+
+@page page_backup Auto backup
+
+`SQLQueries` writes automatic backups of the opened `.col` file:
+
+- `backup_once()` – copies the database file next to it with a
+  numeric suffix (e.g. `school.col.~3~`). If there are more than 20
+  backup files, old ones are removed (at least 10 are kept); an
+  optional callback can ask the user first.
+- `backup_after_change()` – called by all mutating operations: writes
+  one backup per session before the first change, then counts the
+  changes and writes another backup once the threshold is reached
+  (QSettings key `changes_until_backup`, default 16).
+
+In-memory databases (no file path) are not backed up.
+
+---
+
+@page page_errors Error handling
+
+@section sec_try_catch COLMAN_TRY / COLMAN_CATCH
+
+`colman_try_catch.hpp` – macro-based exception handling for UI event
+handlers:
+
+@code
+void MyPage::on_button_clicked()
+{
+  COLMAN_TRY
+  {
+    // database operations that may throw exceptions
+  }
+  COLMAN_CATCH;  // catches colman::Error and std::exception,
+                  // shows a dialog, writes to std::cerr
+}
+@endcode
+
+Variants: `COLMAN_INT_CATCH` (sets an int variable),
+`COLMAN_STRING_CATCH` (stores the error message as a string).
+
+@section sec_error colman::Error
+
+`colman_error.hpp` – custom exception class.
+
+@code
+throw colman::Error("Record not found", COLMAN_HERE);
+@endcode
+
+`COLMAN_HERE` expands to file name + line number.
+
+@section sec_assert COLMAN_ASSERT / COLMAN_VERIFY
+
+`colman_assert.hpp` – multi-level assertion framework
+(Alexandrescu & Torjo pattern):
+
+| Macro | Active in | Behavior |
+|---|---|---|
+| `COLMAN_ASSERT(expr)` | Debug mode | Configurable per level |
+| `COLMAN_VERIFY(expr)` | Always | Throws an exception (default) |
+
+Levels: `.warn()` (continue), `.debug()` (ask the user),
+`.error()` (exception), `.fatal()` (abort).
+
+Values can be attached for diagnostics:
+
+@code
+COLMAN_ASSERT(x > 0)(x).msg("x must be positive").error();
+@endcode
+
+---
+
+@page page_barcodes Barcodes & printing
+
+@section sec_barcodes Barcode system
+
+- Barcodes are collection-specific (prefix from
+  `Collection::barcode_prefix_`)
+- Items: `compute_item_barcode(collection, type_id, item_id)`
+- Persons: `compute_person_barcode(collection, person_id)`
+- Barcodes are never stored but always computed.
+- Code128 rendering: `colman_code128_item.hpp` – `Code128Item`
+  (`QGraphicsItem` subclass); `adapt_size(width, height, width_unit)`
+  adapts the bar width to the available zone (clamps to
+  0.95 × width / rl_sum_ if `width_unit` is too large)
+
+@subsection sec_barcode_formats Barcode formats
+
+All colman barcodes are pure digit strings (`P` = 5-digit prefix,
+`t`/`i` = number of digits of the following type/item/person ID,
+always ≥ 1):
+
+| Format | Kind   | Structure           | Check digit                     | Length |
+|--------|--------|---------------------|---------------------------------|--------|
+| 1      | Item   | `P t T i I c`       | Σ(position · digit) mod 10      | 9+t+i  |
+| 1      | Person | `P 0 i I c`         | Σ(position · digit) mod 10      | 8+i    |
+| 2      | Item   | `P 00 t T i I c'`   | (GTIN check digit + 5) mod 10   | 10+t+i |
+| 2      | Person | `P 00 0 i I c'`     | (GTIN check digit + 5) mod 10   | 10+i   |
+
+Only format 2 is generated; both formats are read, so that labels and
+ID cards that have already been printed remain valid. Format 1
+occasionally collides with ISBN/EAN: e.g. `5486111410276` (item 1027)
+is also a valid EAN-13. Format 2 rules this out by construction:
+
+- The GTIN check digit (weights 3, 1, 3, … from the right) is identical
+  for EAN-8, UPC-A, EAN-13/ISBN-13 and GTIN-14. `c'` always differs from
+  it, so a format 2 barcode is an invalid GTIN at any length.
+- Format 2 has at least 11 digits and therefore cannot be an
+  ISBN-10/ISSN.
+- The marker `00` after the prefix never occurs in format 1. Older
+  colman versions therefore reject format 2 instead of misinterpreting
+  it. Server and clients must be updated together (REST API 2.2).
+
+Distinction in `parse_*_barcode()` (digits `d1 d2 d3` after the
+prefix): `d1 ≥ 1` → format 1 item; `d1 = 0, d2 ≥ 1` → format 1 person;
+`000` → format 2 person; `00`, `d3 ≥ 1` → format 2 item. Each format
+only checks its own check digit. The Flutter client computes person
+barcodes locally (`computePersonBarcode` in
+`flutter/lib/models/id_card_layout.dart`); this function must match
+`compute_person_barcode()`.
+
+@section sec_id_card ID card layout editor
+
+`colman_id_editor.hpp/.cpp` – interactive ID card layout editor:
+
+- Three movable and resizable zones: **barcode**, **text**,
+  **logo** (optional)
+- **Resizing**: eight handles (corners + edge midpoints) on each zone;
+  the logo zone only has four corner handles (the aspect ratio is
+  preserved)
+- **Double-clicking a zone** automatically expands it to the largest
+  possible area within the card boundaries without overlapping other
+  zones. For the logo zone the aspect ratio of the logo is preserved;
+  the barcode and text zones fill the maximum rectangular area
+  completely.
+- The layout is held as an `IdCardLayout` struct and persisted
+  **locally per client** (desktop: `QSettings`; Flutter:
+  `IdCardLayoutStore`), since different printers may be attached to
+  each client. It is **no longer** stored in the database or sent to
+  the server via the REST API. Existing
+  `id_card_*`/`item_card_*`/`sig_lbl_*` entries in old `.col` files are
+  taken over into the local presets once on opening
+  (`migrate_card_layouts`) and are not written afterwards.
+- The text zone shows four lines: collection name, organization, issue
+  date, person name (bold)
+- When printing (`colman_person_barcode_page`), the SVG logo is
+  rendered directly as `QGraphicsSvgItem` + `QSvgRenderer` — so it
+  appears at full printer DPI instead of as a scaled raster copy
+
+**Data types** (`colman_id_card_layout.hpp`):
+
+`IdCardElementType` – zone type: `Barcode`, `Text`, `Logo`
+
+`IdCardElement` – position and size of a zone:
+
+| Field | Meaning |
+|---|---|
+| `type_` | Zone type |
+| `orientation_` | Rotation angle in degrees (0 / 90 / 180 / 270) |
+| `x_mm_` / `y_mm_` | Position of the top-left corner (mm) |
+| `width_mm_` / `height_mm_` | Zone dimensions (mm) |
+
+`IdCardLayout` – complete card layout:
+
+| Field | Meaning |
+|---|---|
+| `card_width_mm_` / `card_height_mm_` | Card dimensions (mm); width = longer side |
+| `barcode_` / `text_` / `logo_` | Zone descriptions |
+| `has_logo_` | `true` if a logo zone is configured |
+
+`card_width_mm_ == 0` means: no layout configured yet.
+
+@section sec_print Printing
+
+Print preview via `QPrintPreviewDialog`. Reports are generated as HTML
+tables. `colman_preview_file_dialog.hpp` – extended file dialog with
+preview.
+
+The search page (`colman_search_page`) adds a configurable list print
+and a Koha-compatible CSV export with MARC21 column headers.
+
+SVG logos are automatically rendered at the printer's resolution when
+printing (`Qt6::SvgWidgets`). On screen, a rasterized `QPixmap` from
+`Collection::logo_` is still used.
+
+---
+
+@page page_labels Label printing
+
+@section sec_label_entry_points Entry points
+
+The label printing page (`colman_item_barcode_page`) can be reached
+from the central navigation page. In addition,
+`enter_item_barcode_page_for_item(data, item_id, back)` jumps directly
+to the page with the item already checked; the `back` callback
+determines where the back button leads. Callers are the acquisition
+completion page ("Print label") and the item detail page of the search
+(`colman_search_page`).
+
+@section sec_label_layout LabelLayoutWidget
+
+`colman_label_layout_widget.hpp` – widget for managing label sheet
+layouts.
+
+The data type `colman::LabelLayoutPreset` describes a format:
+
+| Field | Meaning |
+|---|---|
+| `name` | Display name (key for user presets) |
+| `columns` / `rows` | Number of columns and rows |
+| `label_width` / `label_height` | Label width/height (mm) |
+| `left_margin` / `top_margin` | Left/top page margin (mm) |
+| `h_gap` / `v_gap` | Horizontal/vertical gap between labels (mm) |
+| `page_width_mm` / `page_height_mm` | Printable page size (mm; default A4) |
+| `builtin` | `true` = immutable factory preset |
+| `is_label_printer`, `printer_cups_name`, `printer_dpi` | Thermal/label printer binding |
+| `rotate_180` | Rotate the output by 180° |
+
+`LabelLayoutWidget` offers a combo box with all known layouts (factory
+presets + user presets), input fields for the geometry and a live
+preview of the A4 page. Clicking **Apply** emits the signal
+`layout_applied(LabelLayoutPreset const&)`.
+
+For thermal/label printer presets (`is_label_printer == true`) the
+widget shows a separate **printer** combo box listing the printers
+detected via `list_thermal_printers()`. This allows changing the printer
+bound to a layout (`printer_cups_name` / `printer_dpi`) later on without
+losing geometry or arrangement; a printer that is no longer detected is
+kept as an entry.
+
+Static helper methods for direct access without a widget instance:
+- `builtin_layouts()` – all factory presets (Avery, Herma, Sigel)
+- `load_user_layouts()` – user presets from `QSettings`
+- `save_user_layout()` / `delete_user_layout()` – persistence
+
+Standalone test app: `colman_label_layout_app` (called without
+arguments).
+
+@section sec_label_selection LabelSelectionWidget
+
+`colman_label_selection_widget.hpp` – widget for selecting individual
+labels on a label sheet.
+
+The return type `colman::SelectedLabel` identifies a label:
+
+| Field | Meaning |
+|---|---|
+| `col` / `row` | Column/row index (0-based) |
+| `x_mm` / `y_mm` | Position of the top-left corner on the page (mm) |
+| `width_mm` / `height_mm` | Width and height (mm) |
+
+`LabelSelectionWidget` consists of:
+- **Combo box** with layout selection + icon button that opens a
+  `LabelLayoutWidget` dialog (allows managing layouts without a context
+  switch)
+- **QGraphicsView** with clickable label rectangles:
+  - white = selectable
+  - blue = selected
+  - grey + "forbidden" cursor = maximum reached
+- **"Deselect all"** and **"Select all"** buttons (the latter fills up
+  positions in row-major order until the maximum is reached) + status
+  line "N / max selected"
+
+The constructor receives the maximum number of selectable labels:
+@code
+auto* w = new colman::LabelSelectionWidget(10);
+// … embed in a dialog …
+QList<colman::SelectedLabel> sel = w->selected_labels();
+@endcode
+
+Fewer than the requested number may be selected (the remaining labels
+go on a new sheet); more than `max_count` is blocked.
+
+Standalone test app: `colman_label_selection_app [max_count]`
+(default: 10). Clicking **Confirm** prints the selection to stdout and
+exits the program.
+
+@section sec_thermal_printer Thermal printer support
+
+`colman_label_printer.hpp/.cpp` – printing on thermal printers
+(Vevor Y486, Brother QL, Dymo, Zebra, TSC, …): preferably as a raw
+TSPL job directly via `/dev/usb/lp*`, otherwise via CUPS.
+
+**Scene coordinates:** 1 scene unit = 0.1 mm (10 units/mm) –
+consistent with the rest of colman.
+
+`ThermalPrinterInfo` – describes a detected thermal printer:
+
+| Field | Meaning |
+|---|---|
+| `cups_name` | CUPS-internal name (passed to `QPrinter`) |
+| `display_name` | Human-readable model name |
+| `default_size_mm` | Default label dimensions (mm); (0,0) if unknown |
+| `dpi` | Native resolution (default: 203 dpi) |
+
+**API overview:**
+
+| Function | Purpose |
+|---|---|
+| `list_thermal_printers()` | All CUPS printers that meet the thermal criteria |
+| `thermal_printer_ready(cups_name)` | Checks whether the printer is still available |
+| `list_thermal_printer_devices()` | All existing USB printer devices (`/dev/usb/lp*`), vendor-independent |
+| `query_paper_status(device_path)` | Paper status of a USB printer device (`PaperStatus`: `Ok`/`Empty`/`Unknown`); first via the USB status byte (`LPGETSTATUS` ioctl), on failure via the TSPL status query `ESC !?` |
+| `thermal_printer_paper_status()` | Combined paper status of all connected USB printers; reports `Empty` only if no device reports paper |
+| `warn_when_out_of_labels(parent)` | Shows a warning dialog when the label roll is empty; `true` = cancel printing |
+| `warn_when_roll_runs_out_while_printing(parent, label_count, size_mm)` | Monitors the printer after a job has been sent and warns if the roll runs out **during** printing |
+| `prime_thermal_printer_geometry(size_mm, dpi)` | Transfers the label geometry (EPL2 `Q<height>,<gap>`) to all TSPL-capable USB printers; called by `send_images_to_thermal_printer()` before every CUPS fallback job (the direct TSPL job carries its own geometry) |
+| `render_label_scene(scene, size_mm, dpi, cal)` | Renders scene → `QImage` with embedded DPI metadata; the optional `PrinterCalibration cal` (default: identity) shifts/scales the content to correct the print offset |
+| `load_printer_calibration(cups_name)` / `save_printer_calibration(...)` | Loads/saves the printer-specific `PrinterCalibration` (offset/scale) from/to QSettings (`colman_printer_calibration.hpp`) |
+| `send_image_to_thermal_printer(image, cups_name, size_mm, dpi, error)` | Sends a finished image without a dialog (wrapper around the multi-image variant) |
+| `send_images_to_thermal_printer(images, cups_name, size_mm, dpi, error)` | Sends several labels as **one** job: preferably as a raw TSPL job (1-bit threshold, pixel-exact) directly to `/dev/usb/lp*`, otherwise as a CUPS job (pages via `newPage()`); avoids the printer's recalibration/pause between single jobs |
+| `print_label_scene(scene, size_mm, cups_name, dpi, error)` | Convenience wrapper: renders and prints in one step |
+
+**Detection:** the thermal criteria are (OR):
+- make-and-model or CUPS name contains a keyword (Vevor, Brother QL,
+  Dymo, Zebra, TSC, Niimbot, …)
+- the printer reports at least one page size whose shorter side is
+  between 5 mm and 110 mm
+
+**Paper-out detection:** `query_paper_status()` works in two stages.
+First it reads the status byte of the USB printer class (IEEE 1284
+convention, bit 5 = "paper empty") via the `LPGETSTATUS` ioctl of the
+usblp kernel driver – a passive class request that does not disturb the
+data stream. Many label printer firmwares, however, do not answer the
+underlying `GET_PORT_STATUS` request (Vevor Y486 and Munbyn RW403B
+return `EIO`); in that case the second stage sends the TSPL immediate
+status query `ESC !?` and reads back the response byte with a timeout
+(bit 2 = "out of paper", verified on the device: 0x00 with roll, 0x07
+without). The second stage is an active request into the data stream
+and is therefore only triggered immediately before printing labels.
+Access requires read permission on `/dev/usb/lp*` (user in group
+`lp`); in addition, the nodes disappear while a CUPS job is running
+(the CUPS backend detaches usblp) – in both cases the query returns
+`Unknown` and printing continues unhindered. All three label printing
+paths (`colman_card_batch_print.cpp`, `colman_signature_print_page.cpp`)
+call `warn_when_out_of_labels()` before printing and abort if the roll
+is empty.
+
+**Direct TSPL printing:** `send_images_to_thermal_printer()` thresholds
+each rendered label to 1 bit (50 % grey, bit 0 = black) and writes the
+whole batch as **one** raw TSPL job (`SIZE`/`GAP`/`DIRECTION 0`/
+`REFERENCE`/`DENSITY`, then `CLS` + `BITMAP` + `PRINT 1` per label) to
+the first suitable `/dev/usb/lp*` device: one that answers the TSPL
+status query, or a TSPL model known by its USB ID whose firmware never
+answers (Munbyn RW403B). Such models are **not queried at all**: the
+query bytes end up in their command parser, and the firmware then
+discards the entire following job (verified on the RW403B) — which is
+why the paper pre-check and form length priming are skipped there.
+Unknown silent devices are left to the CUPS fallback (raw TSPL sent to
+a Brother QL/Dymo/ZPL printer would be garbage). Reason for the direct
+path: the CUPS raster chain (PDF → Ghostscript → `rastertolabel`)
+scales the page image by sub-pixel amounts (Qt rounds the page size to
+whole points, e.g. 15 mm → 43 pt → 121 px for an image height of
+120 px) and rasterizes the resulting grey edges with halftone
+dithering — the print looks grainy. The direct path outputs the
+rendered image pixel-exactly; the Flutter client prints over USB the
+same way. The job is built with the **placement profile** of the target
+device (`TsplDeviceProfile`, assigned via the USB vendor/product ID):
+the Vevor Y486 needs `REFERENCE -64,0` and bitmap x = 11 mm (constants
+of the Flutter client, so that desktop and mobile prints line up), the
+Munbyn RW403B and unknown models print edge-exact from the default
+origin (`REFERENCE 0,0`, x = 0). The `BITMAP` command uses mode 1 (OR)
+— identical to overwriting on the buffer cleared by `CLS`, but the
+RW403B firmware silently discards jobs with mode 0 completely (verified
+on the device). The print darkness is passed on unchanged as TSPL
+`DENSITY` (0–15) (the CUPS driver halved the value). Before closing the
+device, the write path (`write_all()`) waits via `poll(POLLOUT)` until
+the printer has accepted all bytes: the usblp kernel driver transfers
+writes via a single in-flight URB, reports `POLLOUT` exactly when no
+write URB is active any more, and cancels a still running URB on
+`close()` — without the wait, jobs larger than the 8 kB driver buffer
+would be truncated (symptom: only the first label of a batch is
+printed). Without an accessible TSPL device (missing permissions,
+network printer, foreign firmware) the function falls back to the
+previous CUPS path.
+
+**Post-print monitoring:** If the roll runs out **in the middle of a
+batch**, the printer pauses with the rest of the job in memory and
+continues printing on its own after a new roll has been inserted
+(verified on the Y486) — but without a notice the user would not know
+why printing stopped. `warn_when_roll_runs_out_while_printing()` is
+therefore called by all three label printing paths after a job has been
+sent successfully: it polls the TSPL status query every 500 ms (modal
+`QProgressDialog` against re-entrancy; cancelling only ends the
+monitoring, not the printing) and shows the notice dialog on "out of
+paper" (bit 0x04). Measured Y486 behavior on which the logic is based:
+while the head is printing, the firmware does **not answer** the status
+query at all — silence of an opened device is therefore the "printing"
+signal; when the roll runs out mid-job it answers again, with bit 0x04
+set (0x24, then 0x06/0x07); after the end of the job it returns 0x00.
+The monitoring ends with the first idle response after observed
+activity, after three idle responses without any activity (CUPS
+fallback, whose job is not running yet) or at the latest at the safety
+deadline (3 s + 1 s per label). Responses that are not picked up pile
+up in the device FIFO — `tspl_query_status()` therefore drains the read
+channel before every query and evaluates the most recent byte. If no
+device can be opened (CUPS fallback detaches usblp, missing
+permissions), the function returns immediately without a dialog;
+devices whose firmware never answers the status query (Munbyn RW403B —
+accepts jobs but never sends a byte back) are skipped, since their
+silence would otherwise wrongly mean "printing". The RW403B therefore
+has neither a paper pre-check nor roll-end monitoring. How many labels
+are still missing cannot be queried — TSPL offers no progress query,
+only the binary paper status.
+
+**Form length priming (CUPS fallback only):** the CUPS driver
+(`rastertolabel`, EPL2) sends only `N`/`q<width>`/`GW…`/`P1` per label,
+but **no form length** — the printer takes it from its stored state.
+This setting is volatile on e.g. the Vevor Y486: after switching off it
+falls back to a default that rarely matches the inserted roll, and the
+printer then feeds several blank labels after each label.
+`send_images_to_thermal_printer()` therefore calls
+`prime_thermal_printer_geometry()` before every CUPS job, which
+transfers the label height plus a 2 mm default gap (EPL2
+`Q<height>,<gap>` in dots) directly via `/dev/usb/lp*` — only to devices
+that have previously answered the TSPL status query.
+
+**180° rotation:** on request, `render_label_scene()` rotates the
+content by half a turn (`rotate_180`, from
+`LabelLayoutPreset::rotate_180` or the checkbox "Rotate output by 180°"
+in the layout editor) — for printers whose feed direction prints upside
+down. The calibration is applied after the rotation, so it stays in
+printer coordinates.
+
+**Printing without a dialog:** `QPrinter::setFullPage(true)` and
+`QPageSize(mm, Millimeter)` set the exact label size; margins are set
+to 0. If the CUPS driver does not accept arbitrary page sizes,
+`render_label_scene()` + `lp -o PageSize=Custom.…` can be used as an
+alternative.
+
+Interactive test program: `colman_test_label_printer` – select a
+printer, enter label dimensions and DPI, enter text and a barcode
+string, show a preview and print on the selected printer. It also shows
+all `/dev/usb/lp*` devices with their paper status (to verify the
+paper-out detection on the real device).
+
+---
+
+@page page_tutorial_screenshots Tutorial screenshots
+
+The tutorial lives per language in `doc/tutorial/<lang>/`:
+
+| File | Contents |
+|---|---|
+| `colman_tutorial.dox` | Tutorial text of the language |
+| `sample_data.json` | Sample data (collection, classes, persons, items, lendings, input of the scenes) |
+| `screenshots/*.jpg` | Generated screenshots; the file names are the same in all languages (e.g. `050_lending_01.jpg`) |
+
+The screenshots are generated with
+@code
+tools/tutorial_screenshots.sh --lang de      # or: --lang en
+cmake --build bld --target tutorial_screenshots_de
+@endcode
+The script sets the locale (`LC_ALL`, `LANG`, `LANGUAGE`), uses the Qt
+platform `offscreen` by default (`--display` renders visibly on the
+desktop in the native style, `--network` additionally captures images
+that depend on the internet) and starts
+`colman --tutorial-screenshots=<dir> --tutorial-data=<json>`.
+
+`colman_tutorial_screenshots.cpp` (`run_tutorial_screenshots()`)
+creates a new collection with the real start wizard, inserts the sample
+data partly through the UI and partly directly via `IQueries`, and runs
+through the tutorial chapters one after another.  The following applies:
+
+- QSettings (including Qt's own settings) are stored in a
+  `QTemporaryDir`; the user's configuration remains untouched.
+  Native dialogs are disabled so that file dialogs can be controlled.
+- Widgets are found independently of the language: via the
+  `MainWindowUi` and `AppData` members or via `objectName` (convention:
+  snake_case with a trailing `_`, e.g. `create_collection_next_`,
+  `login_password_`). New scenes may need additional `setObjectName()`
+  calls.
+- Modal dialogs (`exec()`) block the caller; a watcher timer hands every
+  new modal dialog to the handler registered with `expect_dialog()` /
+  `click_dialog()`.  Unexpected dialogs are reported, saved as
+  `unexpected_dialog.jpg` and closed.
+- If a step fails, the program exits with exit code 1, names the step
+  and saves `failed_step.jpg`.
+
+New language: create `doc/tutorial/<lang>/` with `sample_data.json`
+(and later `colman_tutorial.dox`), and add the language to
+`tools/tutorial_screenshots.sh` (locale) and to `CMakeLists.txt`
+(`COLMAN_TUTORIAL_LANGS`, Doxygen output language, tip/note texts,
+screenshot target).
+
+---
+
+@page page_localization Localization
+
+German translations are in `localization/colman_de.ts` (source) and
+`colman_de.qm` (compiled). Qt's own translations are loaded at runtime
+from the Qt system directory.
+
+The `.qm` file is generated automatically from the `.ts` source during
+the CMake build via `qt6_add_translation()` and embedded as a Qt
+resource in the executables -- in the desktop app, the REST client and
+also in the REST server (`colman_rest_server`).  Like the desktop app,
+the server installs the translations according to the system language
+(`QLocale::system()`, i.e. `LANGUAGE`/`LANG`), so that data it creates
+-- such as the default signature categories of a new collection -- is
+created in that language.  REST responses themselves are not affected.
+
+Update the translation sources (extract new/changed `tr()` calls):
+@code
+cmake --build bld --target lupdate_colman
+@endcode
+
+After the build, a POST_BUILD script (`cmake/check_lupdate.cmake`)
+checks via a timestamp comparison whether source files are newer than
+the `.ts` file and, if so, prints a hint with the exact command to run.
+
+Since `QT_NO_KEYWORDS` is set, Qt macros must be used in their `Q_`
+form: `Q_EMIT`, `Q_SIGNALS`, `Q_SLOTS`.
+
+---
+
+@page page_coding_style Coding style quick reference
+
+Full rules: `colman_coding_style.hpp/.cpp`.
+Automatic formatting: `.clang-format` (via `clang-format-17`).
+
+- **Indentation:** 2 spaces, no tabs, 80-character line width
+- **Namespace:** everything in `namespace colman`, no `using namespace`
+- **East const:** `int const&` instead of `const int&`
+- **Classes/types:** CamelCase (`Item`, `Person`)
+- **Functions/variables:** snake_case (`get_item()`, `item_id`)
+- **Private members:** snake_case + trailing underscore (`name_`)
+- **File-local constants:** CamelCase in an anonymous namespace
+- **No global/file-local variables:** only constants at file scope;
+  mutable state belongs in class members or function parameters
+- **Includes:** corresponding header first; guard pattern
+  (`#ifndef SYSTEM_QSTRING / #include / #define`)
+- **Braces:** Allman for classes/functions; same line for a single-line
+  condition (`if(x){`)
+
+*/

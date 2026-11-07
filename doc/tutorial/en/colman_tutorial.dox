@@ -1,0 +1,2664 @@
+/**
+
+@page tutorial_new_db Creating a New Collection
+
+@tableofcontents
+
+This tutorial guides you step by step through all functions of
+Colman -- from creating the first database to everyday lending and
+returning. Each section builds on the previous one, so that by the
+end you can run a fully set up school library.
+
+@note Colman is a Qt application. All button labels in this
+tutorial refer to the English user interface. The program uses the
+language of your operating system; if it is set to German, the
+German tutorial applies.
+
+When Colman starts for the first time, the <b>start page</b>
+appears. To set up a new library, click <b>create new
+collection</b>.
+
+@section tutorial_new_db_start Start Page
+
+At the top, the start page shows the <b>Colman logo</b>, the title
+<b>ColMan</b> with the version number and the subtitle <b>the
+collection manager</b>. Below are:
+
+- <b>create new collection</b> -- starts the sequence of steps for
+  creating a new collection (directly in the main window).
+- <b>open existing collection</b> -- opens a file dialog for
+  loading an existing `.col` file.
+- <b>recently opened</b> -- shows a table of the recently used
+  collections with collection name, file name and date. A double
+  click opens the collection directly.
+- <b>quit program</b> -- exits Colman.
+
+The start page also has two small buttons for increasing and
+decreasing the font size (see also @ref tutorial_accessibility).
+
+@tip
+Colman can also be started from the command line with a `.col` file
+as argument:
+
+`./colman my_collection.col`
+
+`--help` lists all options. `--trace-level 2` prints the requests of
+the internet lookup to the console – useful for troubleshooting when
+a title is not found.
+@endtip
+
+@image html 001_start.jpg "Colman start page"
+@image latex 001_start.jpg "Colman start page"
+
+@section tutorial_wizard Setting Up the Collection
+
+Creating a new collection is a sequence of steps directly in the
+main window (no separate window). <b>Next</b> takes you to the next
+step, <b>back</b> (across the full width at the top) one step back.
+The Enter key moves to the next field or triggers <b>Next</b>.
+
+<b>Step 1 -- Collection name and organization</b>
+
+Enter the basic data of your collection:
+
+- <b>collection name</b> (required) -- e.g. "Textbook Collection".
+  This name appears on library cards and barcodes.
+- <b>organization</b> (required) -- e.g. "Springfield High School".
+  Also appears on printouts.
+- <b>responsible</b> (optional) -- name of the contact person.
+
+@image html 002_new_collection_name.jpg "Step 1: collection name"
+@image latex 002_new_collection_name.jpg "Step 1: collection name"
+
+
+<b>Step 2 -- Logo</b>
+
+Optionally, you can choose a logo that is printed on library cards.
+Click <b>browse</b> to select an image file (SVG, PNG, JPG or XPM).
+A preview of the logo is shown. SVG files are rendered
+automatically at the printer's resolution when printing.
+
+@image html 003_new_collection_logo.jpg "Step 2: choose a logo"
+@image latex 003_new_collection_logo.jpg "Step 2: choose a logo"
+
+<b>Step 3 -- Lending period</b>
+
+Here you decide whether there is a default lending period:
+
+- Enable <b>use default lending period</b>.
+- Set the period in <b>year(s)</b>, <b>month(s)</b> and
+  <b>day(s)</b>.
+
+Without a lending period, lendings are created without a due date.
+
+Below, you decide whether items may be reserved: <b>Allow
+reservations</b> is enabled by default; in the field below you set
+how many days a reservation remains valid (default: 14). Both values
+can be changed later in the
+@ref tutorial_settings_collection "collection settings".
+
+@image html 004_new_collection_lending_period.jpg "Step 3: lending period"
+@image latex 004_new_collection_lending_period.jpg "Step 3: lending period"
+
+<b>Step 4 -- School items</b>
+
+This step is aimed at school libraries:
+
+- <b>default item type is school item</b> -- when enabled, new
+  items automatically get the fields <b>subject</b>, <b>academic
+  year</b> and a school item type (e.g. workbook, teacher's manual).
+
+@tip
+The <b>academic year</b> is entered as single grades or ranges,
+separated by commas -- for example <tt>5-7, 9</tt>. This lets you
+filter for a range of grades in the search later.
+@endtip
+
+@image html 005_new_collection_school_items.jpg "Step 4: school items"
+@image latex 005_new_collection_school_items.jpg "Step 4: school items"
+
+@section tutorial_wizard_encryption Setting Up Encryption (optional)
+
+If the encryption driver is available, the step <b>Encrypt
+Collection</b> follows. It lets you protect the new `.col` file with
+a password from the start.
+
+- <b>Without encryption</b>: leave the check box <b>Encrypt this
+  collection</b> unchecked and click <b>Next</b>.
+- <b>With encryption</b>: check the box. Enter a password into the
+  fields <b>New password</b> and <b>Confirm</b>. A strength
+  indicator shows the quality of the chosen password. Click
+  <b>Next</b>.
+
+Encryption can also be enabled or disabled later on the settings
+page (see @ref tutorial_encryption).
+
+@image html 007_new_collection_encryption.jpg "Step: setting up encryption"
+@image latex 007_new_collection_encryption.jpg "Step: setting up encryption"
+
+@note The file password is independent of the administrator
+password. If you forget the file password, the `.col` file can no
+longer be opened.
+
+@section tutorial_admin_password Administrator Password
+
+In the step <b>Set Administrator Password</b> you define the
+password of the administrator account. Enter the password into both
+fields (<b>Password</b> and <b>Confirm</b>) and click <b>Next</b>.
+
+@image html 008_new_collection_admin_password.jpg "Setting the administrator password"
+@image latex 008_new_collection_admin_password.jpg "Setting the administrator password"
+
+@warning Remember this password well! It is required for all
+administrative functions. The password is stored in the database as
+an Argon2 hash and cannot be recovered in plain text.
+@endwarning
+
+@section tutorial_wizard_file Storage Location
+
+In the last step you choose the file name and location of your
+collection. The file gets the extension `.col`. <b>Finish</b>
+creates the collection -- and, if chosen, encrypts it right away and
+sets the administrator password.
+
+If the file already exists, you are asked for confirmation first;
+if you decline overwriting it, you stay on this step and can choose
+a different name.
+
+@image html 006_new_collection_file.jpg "Last step: storage location"
+@image latex 006_new_collection_file.jpg "Last step: storage location"
+
+@tip
+Save the file in a location that is backed up regularly (e.g. a
+network drive or cloud folder). Colman creates backups
+automatically, but an additional backup does no harm.
+@endtip
+
+After the collection has been created, you are automatically logged
+in as administrator and reach the
+@ref tutorial_login_central "central navigation page".
+
+---
+
+@page tutorial_open_collection Opening an Existing Collection
+
+To load an existing `.col` file, use one of the following options
+on the start page:
+
+- <b>open existing collection</b> -- opens a file dialog in which
+  you select the desired `.col` file.
+- <b>recently opened</b> -- a double click on an entry of the table
+  opens the collection directly.
+
+@image html 010_open_collection.jpg "Opening an existing collection"
+@image latex 010_open_collection.jpg "Opening an existing collection"
+
+For an unencrypted collection, the login page appears directly
+afterwards.
+
+@section tutorial_open_encrypted Opening an Encrypted Collection
+
+If you enabled encryption when creating the collection or later in
+the settings (see @ref tutorial_encryption), opening the `.col` file
+first shows the page <b>Enter the database password</b>:
+
+1. Enter the file password into the field <b>Password</b>.
+2. Click <b>OK</b> or press <b>Enter</b>.
+   - With the correct password, the collection is loaded and the
+     login page appears.
+   - With a wrong password, an error message (<b>Wrong password or
+     database error.</b>) appears and the password field is
+     cleared. You have three attempts in total.
+3. After three failed attempts, the file is not opened.
+
+Clicking <b>Back</b> returns you to the start page without opening
+the file.
+
+@image html 011_database_password.jpg "Entering the database password"
+@image latex 011_database_password.jpg "Entering the database password"
+
+@note The file password is independent of the administrator
+password. If you have forgotten the file password, the `.col` file
+can no longer be opened.
+
+@section tutorial_new_db_due Notice of Due Returns When Opening
+
+When you open a collection, Colman automatically checks whether
+there are lendings due today. If so (on Fridays: due by Monday), the
+page <b>Due Returns</b> appears right after logging in, with a table
+of the affected items (due date, borrower, count, name). The print
+button prints the list; <b>back</b> takes you to the central
+navigation page.
+
+---
+
+@page tutorial_persons Adding Persons (Borrowers)
+
+Before books can be lent, the persons (borrowers) must be added --
+usually pupils or teachers.
+
+@section tutorial_persons_navigate Navigation
+
+Log in as administrator. On the <b>central navigation page</b>,
+click <b>manage borrowers</b>.
+
+@image html 009_central_page.jpg "Central navigation page"
+@image latex 009_central_page.jpg "Central navigation page"
+
+@section tutorial_persons_add Adding a New Person
+
+The persons page has two areas: on the left the list of existing
+persons with a search field, on the right the input form.
+
+The <b>Class</b> selection next to the search field restricts the
+list to a single class or to persons with <b>no class</b>.
+
+1. In the right area, fill in at least the fields <b>last name</b>
+   and <b>first name</b>, and enter a unique user name into the
+   field <b>Username</b> at the top right. Colman suggests one from
+   the name. Optionally, you can also enter title, email, telephone,
+   street, city, zip, country, school class and remarks.
+
+   @tip
+   Preferably choose the class from the list. If you type a class
+   that does not yet exist in the class management, Colman asks when
+   saving whether it should be added to the list of classes. Typos
+   such as "5 a" instead of "5a" are noticed immediately this way.
+   @endtip
+2. Click <b>insert as new person</b>. The button stays disabled as
+   long as the name or the user name is missing. If the user name is
+   already taken, an error message appears and the person is not
+   added.
+3. The person appears with their user name in the list on the left
+   and automatically gets a barcode.
+4. Right afterwards, the page <b>Set Initial Password</b> appears.
+   Here you can optionally set a <b>password</b> (both fields must
+   match). If you leave the password empty or leave the page with
+   <b>back</b>, the person can only log in after a password has been
+   set later (see @ref tutorial_passwords).
+
+@image html 013_add_person.jpg "Adding a person"
+@image latex 013_add_person.jpg "Adding a person"
+
+@image html 014_initial_password.jpg "Setting the initial password"
+@image latex 014_initial_password.jpg "Setting the initial password"
+
+@tip
+You can also type the <b>last name</b> into the search field on the
+left first to check whether the person already exists. If so, a
+warning appears when you nevertheless try to add a second person
+with the same name.
+@endtip
+
+@tip
+You can also set the user name of an existing person later directly
+on the persons page: select the person → fill in the field
+<b>Username</b> at the top right → click <b>Set Username</b>. If an
+existing user name is to be changed, a confirmation dialog appears.
+@endtip
+
+@section tutorial_persons_permissions Setting Permissions
+
+In the <b>Permissions</b> area (icon: owl with a lock) on the
+persons page, you adjust the access rights of the selected person.
+This requires the permission <b>Edit persons</b>, <b>Create
+borrowers</b> or <b>Create data collectors</b>; you can only grant
+permissions you hold yourself (see @ref tutorial_permissions). The area is embedded directly in the persons page
+and shows all available permissions (e.g. the right to make
+reservations) as check boxes.
+
+@image html 016_permissions.jpg "Editing the permissions of a person"
+@image latex 016_permissions.jpg "Editing the permissions of a person"
+
+@note By default, new persons may only <b>Reserve media</b> and
+<b>View personal data</b>. All further rights (e.g. <b>Record
+lendings</b>) must be enabled explicitly.
+
+@tip You can also delegate adding persons selectively: with
+<b>Create borrowers</b> a person may only set up borrowers, with
+<b>Create data collectors</b> only persons for acquisitions and
+liquidations. The rule always applies: you can only grant rights
+that you hold yourself.
+@endtip
+
+@section tutorial_persons_edit Editing a Person
+
+1. Select the person in the list on the left. The fields on the
+   right are filled with their data automatically.
+2. Change the desired fields.
+3. Click <b>change person</b>.
+
+@section tutorial_persons_remove Removing a Person
+
+1. Select the person in the list.
+2. Click <b>remove person</b>.
+3. Confirm the security prompt.
+
+@warning A person can only be removed if they have no open
+lendings. Return all lendings first if necessary.
+@endwarning
+
+@section tutorial_persons_clear Clearing the Fields
+
+<b>clear fields</b> resets all input fields on the right and clears
+the selection in the list. This is useful if you want to add a new
+person after editing another one.
+
+---
+
+@page tutorial_person_barcodes Printing Library Cards
+
+Every person automatically gets a barcode. From it, library cards
+can be printed that are read with a barcode scanner at the lending
+desk.
+
+@section tutorial_person_barcodes_navigate Navigation
+
+On the central navigation page, click <b>print IDs</b>.
+
+@section tutorial_person_barcodes_print Printing
+
+1. On the left, a searchable list of persons appears. Check the
+   persons for whom you want to print cards. You can narrow the list
+   with the search and then click <b>Select all</b>.
+
+   The <b>Class</b> selection next to the search field shows only
+   the persons of a particular class.
+
+   @tip
+   This is how you print the cards of a whole class at once: choose
+   the class, click <b>Select all</b>, print.
+   @endtip
+
+   If you only want to see the most recently added persons, enable
+   the check box <b>Only the last … created persons</b> next to the
+   selection buttons and set the desired number in the spin box next
+   to it. The list then only shows the correspondingly most recently
+   added persons. By default, this restriction is off and all
+   persons are shown.
+
+   @tip
+   Handy right after adding a new class or a group of new borrowers:
+   restrict the list to the last <i>n</i> persons and quickly print
+   exactly their cards with <b>Select all</b>.
+   @endtip
+
+2. Click <b>Print library cards</b>.
+3. On the next page, choose the desired ID card layout in the field
+   <b>Layout</b> at the top. Only the named ID card layouts you
+   created yourself are offered (see @ref tutorial_label_layouts);
+   the last one used is preselected. For a sheet layout, click the
+   positions in the sheet preview that are to be printed on (at most
+   as many as there are cards to print); the counter at the bottom
+   right shows how many positions are selected, <b>Deselect all</b>
+   clears the selection and <b>Select all</b> selects positions from
+   the first one onward until the maximum is reached.
+4. What appears on a card is defined by the ID card layout --
+   usually:
+   - the collection logo (if any; SVG logos are rendered at the
+     printer's DPI),
+   - the collection name and the organization,
+   - the date of issue,
+   - the full name of the person (bold),
+   - the Code 128 barcode.
+5. Click <b>Print</b>. For a sheet layout, the print dialog for
+   choosing the printer appears the first time; a thermal label
+   printer prints directly without a dialog. If more cards are
+   selected than positions, you then choose the positions on the
+   next sheet. <b>Cancel</b> aborts printing.
+
+If <b>Show border</b> is enabled on the selection page, a thin
+cutting line is printed around each card.
+
+@image html 070_id_cards_print_01.jpg "Printing library cards"
+@image latex 070_id_cards_print_01.jpg "Printing library cards"
+@image html 071_id_cards_print_02.jpg "Printing library cards: layout and positions"
+@image latex 071_id_cards_print_02.jpg "Printing library cards: layout and positions"
+@image html 072_id_cards_print_recent.jpg "Printing ID cards: only recently created persons"
+@image latex 072_id_cards_print_recent.jpg "Printing ID cards: only recently created persons"
+
+
+@par Creating an ID card layout
+ID card layouts are created in the <b>ID card layout editor</b>
+(button <b>edit ID layout</b> on the central navigation page). There
+you choose the printer and label format at the top and arrange the
+zones for barcode, text and logo below: drag a zone to move it; drag
+one of the white handles at the corners and edge centres to resize
+it. A <b>double click</b> automatically extends a zone to the largest
+possible area without overlapping the others. Printer, format and
+arrangement together form <b>one</b> named layout, which you save
+with the single <b>Save</b> button at the bottom right. This way you
+can create several ID card layouts (see @ref tutorial_label_layouts).
+
+@image html 021_id_card_layout.jpg "ID card layout editor"
+@image latex 021_id_card_layout.jpg "ID card layout editor"
+
+@tip
+Print the cards on card stock or label paper so that they last.
+Alternatively, you can laminate them.
+@endtip
+
+---
+
+@page tutorial_classes Class Management
+
+The class management lets you create, rename and delete school
+classes and plan the class transitions for the new school year. The
+class of a person (entered in the field <b>school class</b> in the
+person management) is used as a filter in the view
+@ref tutorial_open_lendings "Open Lendings".
+
+@section tutorial_classes_navigate Navigation
+
+On the central navigation page, click <b>class management</b>.
+
+@section tutorial_classes_main Main Page: Managing Classes
+
+The main page shows the list of all existing classes and, at the
+top, the configured <b>Grade range</b> (e.g. 1 to 4 at a primary
+school, 5 to 13 at a secondary school).
+
+@image html 170_classes.jpg "Class management -- main page"
+@image latex 170_classes.jpg "Class management -- main page"
+
+The available actions:
+
+- <b>Add</b> -- create a new class (an input field appears)
+- <b>Remove</b> -- delete the selected class (after confirmation)
+- <b>Rename</b> -- rename the selected class
+- <b>Save</b> -- save the grade range
+- <b>New school year</b> -- start the school year planning (see
+  below)
+
+@note Removing a class only removes the class name; the persons
+assigned to it remain unchanged.
+
+@section tutorial_classes_new_year Planning a New School Year
+
+<b>New school year</b> opens a two-page assistant that automates
+the class transitions:
+
+<b>Page 1 -- Defining the transitions</b>
+
+For each existing class, a table shows the current class name and
+an editable field for the new name (e.g. "5a" → "6a"). Classes that
+leave the grade range (graduating classes) get no new name and are
+deleted. In the last row <b>(new class)</b> -- <b>Add new class</b>
+creates further rows -- you enter new entry classes (e.g. "1a" for
+the new first-graders). <b>Apply</b> takes you to page 2.
+
+@image html 171_new_school_year_01.jpg "New school year -- page 1: defining the transitions"
+@image latex 171_new_school_year_01.jpg "New school year -- page 1: defining the transitions"
+
+<b>Page 2 -- Review and execute</b>
+
+An overview table shows every person, grouped by class, with their
+current and new class; persons without a new class (leavers) have an
+empty field <b>New class</b>. Optionally, enable <b>Delete persons
+without a new class</b> to remove pupils who have left from the
+database automatically. <b>Execute</b> applies all changes at once.
+
+@image html 172_new_school_year_02.jpg "New school year -- page 2: review and execute"
+@image latex 172_new_school_year_02.jpg "New school year -- page 2: review and execute"
+
+@warning Executing the change of school year cannot be undone.
+Make a backup copy of the `.col` file beforehand.
+@endwarning
+
+---
+
+@page tutorial_login Logging In
+
+When you open an existing collection, the login page appears first.
+
+@section tutorial_login_selection Choosing the Account
+
+The login selection shows up to three buttons and an input field for
+the barcode scanner:
+
+- <b>Administrator Login</b> -- log in as administrator with full
+  access to all management functions.
+- <b>User Login</b> -- log in as a regular user with restricted
+  access.
+- <b>close collection</b> -- returns to the start page.
+- <b>or scan ID card</b> -- input field for scanning a user's ID
+  card (barcode scanner).
+
+<b>User Login</b> only appears if the collection contains persons
+besides the administrator. Below, <b>A-</b> and <b>A+</b> adjust the
+font size.
+
+@image html 012_login_selection.jpg "Login selection"
+@image latex 012_login_selection.jpg "Login selection"
+
+
+@section tutorial_login_admin Administrator Login
+
+Using the button:
+
+1. Click <b>Administrator Login</b>.
+2. Enter the administrator password.
+3. Click <b>Login</b>.
+
+Using the barcode scanner: scan the administrator's ID card barcode
+on the login page -- the administrator login page opens immediately.
+
+With a wrong password, <b>Wrong password!</b> appears and input is
+blocked for three seconds.
+
+
+@section tutorial_login_user User Login
+
+Using the button:
+
+1. Click <b>User Login</b>.
+2. Enter your <b>user name</b> or scan your <b>ID card barcode</b>
+   into the field <b>Username or barcode</b>.
+3. Enter your <b>password</b>.
+4. Click <b>Login</b>.
+
+Using the barcode scanner on the login page: scan the ID card
+barcode directly on the login selection page -- the password page
+opens immediately with the barcode field filled in and the focus on
+the password field.
+
+With a wrong user name, barcode or password, an error message
+appears and input is blocked for three seconds.
+
+@note Users need a password to log in. The administrator sets it in
+the person management (see @ref tutorial_passwords). No user name is
+required for the barcode login -- the ID card barcode is sufficient.
+
+@section tutorial_login_central Central Navigation Page
+
+After logging in successfully, the <b>central navigation page</b>
+appears. It is the heart of Colman and gives access to all
+functions.
+
+The buttons are arranged in four rows by task area -- the most
+frequently needed at the top; within a row they follow the usual
+order of work. The administrator sees all buttons except <b>My
+reservations</b>. Regular users only see the buttons for which they
+have the permission named in brackets (see
+@ref tutorial_persons_permissions); hidden buttons leave no gap, and
+rows without a visible button are omitted entirely.
+
+<b>Row 1 -- Lending desk</b>
+- <b>lend item</b> (<b>Record lendings</b>); users who may only
+  <b>Reserve media</b> see <b>reserve item</b> here
+- <b>group lending</b> (<b>Record lendings</b>) -- one copy for each
+  member of a group, e.g. a class (see @ref tutorial_group_lending)
+- <b>return item</b> (<b>Record returns</b>)
+- <b>open lendings</b> (always visible; users without <b>View
+  person lists</b> only see their own lendings)
+- <b>My reservations</b> (only users with <b>Reserve media</b>)
+- <b>Search</b> (<b>View item lists</b>)
+- <b>Barcodes</b> (always visible) -- read a barcode with the camera
+  (see @ref tutorial_barcode_dispatch); only active if a camera is
+  connected
+
+<b>Row 2 -- Stock</b>
+- <b>acquire</b> (<b>Record acquisitions</b>)
+- <b>liquidate</b> (<b>Record liquidations</b>)
+- <b>print labels</b> (<b>Print labels</b>)
+- <b>print signatures</b> (<b>Print signature labels</b>)
+- <b>view history</b> (<b>View history</b>)
+
+<b>Row 3 -- Persons and own account</b>
+- <b>manage borrowers</b> (<b>Edit persons</b>, <b>Create
+  borrowers</b> or <b>Create data collectors</b>)
+- <b>print IDs</b> (<b>Print ID cards</b>)
+- <b>class management</b> (<b>Manage classes</b>)
+- <b>Change Passwords</b> (administrator only) or <b>Change
+  Password</b> (users, for their own account)
+- <b>log out</b> (always visible)
+
+<b>Row 4 -- Setup</b>
+- <b>Settings</b> (always visible)
+- <b>manage categories</b> (<b>Edit categories</b>)
+- <b>edit ID layout</b>, <b>edit item card layout</b> and <b>edit
+  signature layout</b> (each <b>Edit ID card layout</b>)
+- <b>calibrate printer</b> (administrator only)
+
+The status bar at the bottom shows who is currently logged in.
+
+@image html 009_central_page.jpg "Central navigation page (administrator)"
+@image latex 009_central_page.jpg "Central navigation page (administrator)"
+
+@image html 018_central_page_restricted.jpg "Central navigation page (user)"
+@image latex 018_central_page_restricted.jpg "Central navigation page (user)"
+
+
+---
+
+@page tutorial_logout Logging Out
+
+When you have finished your work or another user is to log in, you
+can log out without quitting the program.
+
+@section tutorial_logout_steps Procedure
+
+1. On the central navigation page, click <b>log out</b>.
+2. A security prompt appears: <b>Really log out?</b>
+3. Confirm with <b>Yes</b>. <b>No</b> returns you to the central
+   navigation page without logging out.
+
+After logging out, the login selection page appears (see
+@ref tutorial_login_selection). The database remains open, so that
+another user or the administrator can log in right away.
+
+@image html 160_logout.jpg "Logging out: security prompt"
+@image latex 160_logout.jpg "Logging out: security prompt"
+
+
+@tip
+Log out when you leave the lending desk or take a break. This
+prevents anyone else from making changes under your name.
+@endtip
+
+---
+
+@page tutorial_items Adding Items (Media)
+
+Items -- usually books -- are added with the function
+<b>acquire</b>. Colman guides you through it in two steps: first
+you select an existing item or enter a new one, then you enter the
+number of copies acquired.
+
+@section tutorial_items_navigate Navigation
+
+On the central navigation page, click <b>acquire</b>.
+
+@section tutorial_items_step1 Step 1: Selecting or Entering an Item
+
+The page <b>Step 1: Please select the item!</b> has two parts: on
+the left the list of existing media of the selected media type, on
+the right the data of the selected or new item.
+
+- The <b>Type</b> selection defines the media type (e.g. "Book",
+  "DVD", "Board game"). The default type from the collection
+  settings is preselected. The list on the left only shows media of
+  this type, and the fields matching the type appear on the right.
+  Data already entered is kept when the type is changed.
+- Below the list, the number of media shown is displayed. For very
+  large collections, <b>Load more...</b> appears -- a click loads
+  further media.
+- <b>Clear fields</b> clears the selection and empties the fields on
+  the right.
+
+@image html 030_acquisition_01.jpg "acquire -- step 1: selecting the item"
+@image latex 030_acquisition_01.jpg "acquire -- step 1: selecting the item"
+
+<b>Searching for an existing item (further copies):</b>
+- Enter the beginning of the name, the Colman barcode or the ISBN
+  into the field <b>name/barcode</b>, or scan the barcode. The
+  search starts as soon as you press <b>Enter</b> or leave the
+  field; the list then only shows the matching media. If there is
+  exactly one hit, it is selected automatically.
+- Select the desired item in the list. Its data appears on the
+  right (read-only). <b>Acquire more copies</b> takes you to
+  @ref tutorial_items_step2 "step 2".
+
+@image html 031_acquisition_02.jpg "acquire -- step 1: existing item found"
+@image latex 031_acquisition_02.jpg "acquire -- step 1: existing item found"
+
+<b>Adding a new item:</b>
+- Fill in the fields on the right (see below). As soon as a name has
+  been entered, the button <b>As new item</b> appears; it takes you
+  to @ref tutorial_items_step2 "step 2".
+- Or enter an ISBN or product barcode (EAN/UPC) into the field
+  <b>name/barcode</b>: if Colman does not find an existing entry, an
+  internet look-up starts automatically and its result is filled
+  into the fields on the right.
+- Or enter a <b>title as free text</b>: if Colman does not find an
+  existing entry, the
+  @ref tutorial_items_title_search "internet title search" opens
+  automatically for the media types book, CD, DVD and Blu-ray (for
+  board games the BoardGameGeek search, if it is enabled in the
+  program settings).
+
+<b>Entering the item data</b>
+
+When adding a new item, you fill in the data:
+
+- <b>name/title</b> (required) -- title of the book, DVD etc.
+- <b>subject</b> and <b>academic year</b> -- for school items.
+- <b>is school item</b> -- check this if the item is a textbook.
+- <b>signature top</b> / <b>signature bottom</b> -- optional
+  labelling for the spine label (e.g. subject area at the top,
+  author abbreviation at the bottom).
+- <b>description</b> -- short description or summary.
+- <b>keywords</b> -- topical keywords.
+- Additional type-specific fields (depending on the media type).
+
+@tip
+The signatures of the most recently acquired new item are suggested
+automatically for the next acquisition. If you enter several books
+of the same subject area, you only need to type them once.
+@endtip
+
+<b>ISBN look-up (recommended):</b>
+
+Enter the ISBN into the corresponding field or read the ISBN barcode
+on the back of the book with a <b>barcode scanner</b>. If the ISBN
+look-up is enabled in the program settings (see @ref tutorial_prefs),
+Colman automatically searches the internet for title, author,
+publication date and further details. In many cases you then do not
+need to enter anything by hand.
+
+Alternatively, click <b>Internet search</b> to look up an ISBN
+already entered.
+
+@anchor tutorial_items_title_search
+<b>Internet title search (books, CDs, DVDs, Blu-rays):</b>
+
+Even without an ISBN or barcode, you can take media data from the
+internet. Click <b>Internet search</b> with an empty ISBN or EAN
+field -- or enter a title as free text into the field
+<b>name/barcode</b>. The page <b>Title Search</b> opens:
+
+1. The title entered is already filled into the search field and
+   the search starts automatically; <b>Search</b> searches again
+   with a changed term.
+2. Colman queries all suitable services at the same time --
+   depending on the media type:
+   - <b>Book</b>: OpenLibrary, Google Books and the configured
+     library catalogues (SRU servers, e.g. the German National
+     Library)
+   - <b>CD</b>: MusicBrainz and the SRU servers
+   - <b>DVD / Blu-ray</b>: the SRU servers
+3. For each entry, the list of hits shows the title and -- if
+   available -- the author or artist as well as the year and the
+   source, e.g. "The Hobbit — J. R. R. Tolkien (1937) — Open
+   Library". This makes titles with the same name easier to tell
+   apart.
+4. Select the matching hit and click <b>Apply</b> (or double-click
+   the entry). The fields of the item -- such as author, publisher,
+   publication date, director or artist -- are filled in
+   automatically.
+
+Which services are queried is defined in the program settings (see
+@ref tutorial_prefs).
+
+@tip
+The results of the library catalogues are filtered by the selected
+media type: a DVD search, for example, automatically drops books
+with the same title. Still, it is worth looking at the source of the
+hits -- the same edition can be reported by several services.
+@endtip
+
+<!-- @image html 037_acquisition_title_search.jpg "acquire -- internet title search" -->
+<!-- @image latex 037_acquisition_title_search.jpg "acquire -- internet title search" -->
+
+<b>Cover image:</b>
+
+- Click <b>browse</b> next to the field <b>thumbnail</b> to load an
+  image from disk, or <b>scan</b> to take it with the camera.
+  <b>zoom</b> shows the image at full size.
+- If the automatic thumbnail download is enabled in the program
+  settings, the cover image is downloaded automatically during the
+  ISBN look-up.
+- <b>remove</b> detaches a cover image from the item, for example if
+  the automatic search delivered a wrong image.
+- <b>Amazon</b> fetches a cover image online: if the ISBN look-up
+  found a cover URL, that image is used directly; otherwise (or if
+  the item already has a cover image) an Amazon.de search for the
+  ISBN/EAN or the item name opens inside Colman. Click a product
+  image to adopt it as cover image; <b>back</b> returns without a
+  change.
+
+@anchor tutorial_cover_copyright
+<b>Which cover images may you use?</b>
+
+Cover images are protected by copyright. The rights usually belong to
+the publisher, illustrator or photographer -- not to Amazon or the
+other services from which Colman downloads the images. Amazon itself
+grants no rights to the content of its pages beyond personal,
+non-commercial use; collecting, storing or otherwise re-using the
+content is not covered by its
+<a href="https://www.amazon.de/gp/help/customer/display.html?nodeId=201909000">conditions
+of use</a>. Whether you may store an image in your collection
+therefore depends on copyright law alone. Under German law
+(other countries have similar rules):
+
+- <b>Private collection:</b> copies for purely private use are
+  permitted (§ 53 UrhG), as long as the collection is not made
+  available to others.
+- <b>Library:</b> publicly accessible libraries without commercial
+  purposes may reproduce works from their own stock for indexing and
+  cataloguing (§ 60e para. 1 UrhG) and show them in their catalogue.
+  This only covers items the library actually owns.
+- <b>Publication:</b> making the images available on a public web
+  page, in a newsletter or similar requires the consent of the rights
+  holder.
+
+The safest way is always to photograph or scan the cover of your own
+copy (<b>scan</b>). This information is no legal advice; if in doubt,
+ask the school authority or the rights holder.
+
+@tip
+Above the Amazon page, Colman shows a short reminder of these rules
+with a link to the Amazon conditions of use.
+@endtip
+
+@image html 032_acquisition_03.jpg "acquire -- entering the item data"
+@image latex 032_acquisition_03.jpg "acquire -- entering the item data"
+
+@image html 033_acquisition_04.jpg "acquire -- type-specific fields"
+@image latex 033_acquisition_04.jpg "acquire -- type-specific fields"
+
+@section tutorial_items_step2 Step 2: Number of Copies
+
+The page <b>Step 2: Edit acquisition details</b> shows the name of
+the item.
+
+1. Enter the number of new copies into the field <b>How many items
+   have been acquired?</b> (default: 1).
+2. Click <b>finish</b>. The acquisition is saved immediately; Colman
+   automatically records the current date and time as the time of
+   acquisition.
+
+<b>back</b> returns to step 1 without saving anything.
+
+@image html 034_acquisition_05.jpg "acquire -- step 2: number of copies"
+@image latex 034_acquisition_05.jpg "acquire -- step 2: number of copies"
+
+
+@section tutorial_items_done Completion
+
+After saving, the question <b>Further acquisitions?</b> appears with
+the following options:
+
+- <b>yes</b> -- enter another item (back to step 1).
+- <b>no</b> -- back to the central navigation page.
+
+Directly below are three print buttons for the newly added item:
+
+- <b>Print item card</b> -- opens the label printing page with the
+  new item already selected. From there, the book label can be
+  printed. <b>back</b> takes you back to this completion page, so
+  that you can print signature labels afterwards.
+- <b>Print upper signature</b> -- prints a signature label with the
+  upper signature of the new item.
+- <b>Print lower signature</b> -- prints a signature label with the
+  lower signature of the new item.
+
+@image html 036_acquisition_07.jpg "acquire -- completion with print options"
+@image latex 036_acquisition_07.jpg "acquire -- completion with print options"
+
+@note The signature print buttons use the most recently used
+signature layout. If it is a connected thermal label printer, it
+prints immediately; otherwise the signature printing page opens for
+choosing the layout. If no signature layout has been created yet,
+printing is not possible. For details on setting up layouts see
+@ref tutorial_label_layouts "Editing Label Layouts".
+
+---
+
+@page tutorial_item_barcodes Printing Labels for Items
+
+Every item automatically gets a barcode. From it, labels can be
+printed that you stick onto the item (e.g. the spine of a book).
+
+@section tutorial_item_barcodes_navigate Navigation
+
+On the central navigation page, click <b>print labels</b>.
+
+@section tutorial_item_barcodes_select Selecting Items
+
+1. Search for the desired item in the search field
+   (<b>barcode/ISBN/name</b>).
+2. In the list, check every item for which a label is to be printed,
+   or click <b>Select all</b> (<b>Deselect all</b> removes all
+   checks). Clicking an entry shows its data on the right.
+3. Click <b>Print labels</b>.
+
+If you only want to see the most recently acquired media, enable the
+check box <b>Only the last … acquired items</b> next to the
+selection buttons and set the desired number in the spin box next to
+it. The table then only shows the correspondingly most recently
+acquired items. By default, this restriction is off and all items
+are shown.
+
+If you need a fixed period instead, enable the check box
+<b>Acquired between</b> and set the start and end date in the two
+date fields next to it. The table then only shows items acquired in
+this period (both days included). The two restrictions are mutually
+exclusive: enabling one switches the other off.
+
+@tip
+Handy after a larger delivery: restrict the list to the last
+<i>n</i> acquisitions or enter the delivery period under
+<b>Acquired between</b>, and quickly select exactly the newly
+arrived media for labelling with <b>Select all</b>.
+@endtip
+
+@image html 080_item_labels_print_01.jpg "Printing labels: selecting items"
+@image latex 080_item_labels_print_01.jpg "Printing labels: selecting items"
+
+
+@section tutorial_item_barcodes_layout Layout and Positions
+
+After clicking <b>Print labels</b>, the printing page opens:
+
+- Choose the desired item card layout from the drop-down
+  <b>Layout</b>. Only the named item card layouts you created
+  yourself are offered (see @ref tutorial_label_layouts); the last
+  one used is preselected. There is no button for editing layouts
+  here -- layouts are created in the item card layout editor.
+- For a sheet layout, the preview shows the positions on the sheet.
+  Click the positions that are to be printed on (at most as many as
+  there are labels to print) -- this way partially used sheets can
+  be used, too. The counter at the bottom right shows how many
+  positions are selected; <b>Deselect all</b> clears the selection,
+  <b>Select all</b> selects positions from the first one onward until
+  the maximum is reached.
+  For a thermal label printer, there is no position selection.
+
+In the spin box <b>Copies</b>, set how many identical labels are to
+be printed per selected item (default: 1). For a sheet layout, the
+number of positions to choose increases accordingly; a thermal label
+printer outputs the corresponding number of labels per item.
+
+Optional: enable <b>Show border</b> to print a thin cutting line
+around each label.
+
+@image html 081_item_labels_print_02.jpg "Printing labels: layout and positions"
+@image latex 081_item_labels_print_02.jpg "Printing labels: layout and positions"
+
+@section tutorial_item_barcodes_print Printing
+
+Click <b>Print</b>. For a sheet layout, the print dialog for
+choosing the printer appears the first time; a thermal label printer
+prints directly without a dialog. If more items are selected than
+positions, you then choose the positions on the next sheet.
+<b>Cancel</b> aborts printing.
+
+What appears on a label is defined by the item card layout -- e.g.
+organization, title, author, ISBN, signature and the Code 128
+barcode (see @ref tutorial_label_layouts).
+
+---
+
+@page tutorial_label_layouts Editing Label Layouts
+
+Colman prints labels in three categories, each with its own visual
+editor on the central navigation page:
+
+- <b>ID cards</b> (library cards) -- editor <b>edit ID layout</b>.
+- <b>Item cards</b> (barcode labels for items) -- editor <b>edit
+  item card layout</b>.
+- <b>Signature labels</b> (spine labels) -- editor <b>edit signature
+  layout</b>.
+
+@section tutorial_label_layouts_what What Is a Layout?
+
+A <b>layout</b> combines everything that makes up a print job: the
+<b>printer</b>, the <b>geometry</b> (label size or sheet format with
+columns, rows, margins and gaps) and the <b>arrangement of the
+elements</b> on the label (barcode, text, logo or signature text).
+Each layout gets a <b>name</b> and belongs to exactly one category --
+a layout created in the ID card editor only appears when printing ID
+cards and cannot be used for book labels.
+
+You can create any number of layouts -- for example for different
+printers or labels, each with its own arrangement of elements. For
+common label sheets (e.g. Avery Zweckform, Herma) and for detected
+thermal label printers (registered in CUPS, e.g. Brother QL, Dymo
+LabelWriter), templates are available as a starting point -- but
+only in the editors, not in the print dialog.
+
+@section tutorial_label_layouts_editing Creating a Layout
+
+The procedure is the same in all three editors:
+
+1. Open the editor from the central navigation page.
+2. At the top, choose a template or one of your own layouts as a
+   starting point in the field <b>Layout</b>, or click <b>New</b>
+   for an empty start. The selection immediately loads geometry
+   <b>and</b> arrangement into the preview.
+3. At the top, define the <b>Printer</b> and the geometry (label
+   size for thermal printers; columns, rows, dimensions, margins and
+   gaps for sheets). For thermal printers, you can switch the field
+   <b>Printer</b> to another detected label printer at any time,
+   even for a saved layout, without losing size and arrangement.
+4. Arrange the zones in the preview below: dragging moves them, the
+   white handles resize them, a double click extends a zone to the
+   maximum.
+5. Enter a <b>Name</b> and click the single <b>Save</b> button at
+   the bottom right. Printer, geometry and arrangement are saved
+   together under this name. <b>Delete</b> removes one of your own
+   layouts (templates cannot be deleted).
+
+@image html 022_book_card_layout.jpg "Item card layout editor"
+@image latex 022_book_card_layout.jpg "Item card layout editor"
+@image html 023_signature_layout.jpg "Signature layout editor"
+@image latex 023_signature_layout.jpg "Signature layout editor"
+
+@note When printing (ID cards, book labels, signatures), you only
+choose an existing, named layout of the respective category; the
+last one used is preselected. There is no button for editing layouts
+in the print dialog.
+
+@section tutorial_label_layouts_options Printer Fine-Tuning
+
+The editor offers additional settings, saved per layout:
+
+- <b>Bar width reduction</b> -- how much narrower each black barcode
+  bar is drawn when printing (separately for each printer).
+- <b>Print darkness</b> (thermal printers only) -- how dark the
+  print is; higher values print darker. <b>Printer default</b>
+  leaves the printer's setting unchanged.
+- <b>Rotate output by 180°</b> (thermal printers only) -- turns the
+  printed content upside down in case the labels come out of the
+  printer upside down.
+
+@tip On a thermal printer, the heated dots bleed: black bars become
+wider, the white gaps narrower, and with too dark a setting narrow
+bars merge into a thick line -- the barcode becomes unreadable. Set
+a small <b>Bar width reduction</b> (typically 0.1--0.2 mm) for a
+thermal printer layout so that the bars have the correct width again
+after bleeding. For laser or inkjet printers, leave the value at 0.
+@endtip
+
+@tip The right <b>Print darkness</b> depends on the thermal paper
+used: coloured paper usually needs a lower value, white paper a
+higher one. Ideally, create one layout per paper type (such as
+"Thermal white" and "Thermal coloured"), each with a suitable
+darkness.
+@endtip
+
+@image html 024_bar_width_reduction.jpg "Bar width reduction in the layout editor"
+@image latex 024_bar_width_reduction.jpg "Bar width reduction in the layout editor"
+
+---
+
+@page tutorial_signature_print Printing Signature Labels
+
+Signature labels are narrow spine labels that show where an item is
+shelved in the library (e.g. "Fic" for fiction by author, "Sci 500"
+for science books in Dewey class 500).
+
+@section tutorial_signature_print_navigate Navigation
+
+On the central navigation page, click <b>print signatures</b>.
+
+@section tutorial_signature_print_layout Page Layout
+
+The signature printing page has two columns:
+
+<b>Left column -- list of items</b>
+
+Shows all items of the collection; the field above it filters the
+list by name. Click an item to copy its signatures into the combo
+boxes on the right.
+
+<b>Right column -- print controls</b>
+
+- Group <b>Upper signature</b>:
+  - combo box with all saved upper signature categories; free text
+    input is possible.
+  - counter for the desired number of labels.
+  - button <b>Print upper signature</b>.
+- Group <b>Lower signature</b>:
+  - combo box with all saved lower signature categories (independent
+    of the upper signature); free text input is possible.
+  - counter for the desired number of labels.
+  - button <b>Print lower signature</b>.
+
+No layout is chosen on this first page yet -- that happens only
+after clicking one of the print buttons.
+
+@image html 090_signature_print_01.jpg "Printing signature labels"
+@image latex 090_signature_print_01.jpg "Printing signature labels"
+
+@section tutorial_signature_print_workflow Printing
+
+After clicking <b>Print upper signature</b> or <b>Print lower
+signature</b>, a second page opens on which you first choose the
+<b>Layout</b>. Only the named signature layouts you created yourself
+are offered (see @ref tutorial_label_layouts); the last one used is
+preselected. If no signature layout has been created yet, the page
+points this out and printing stays disabled.
+
+<b>Thermal label printer</b>
+
+If the selected layout is a thermal printer, Colman prints the
+desired number of labels directly to the printer without any further
+dialog. If the printer cannot be reached, a warning asks you to
+connect the printer. If the printer reports an empty label roll, you
+are warned as well: insert a new roll and simply start printing
+again. If the roll runs out in the middle of a batch, Colman also
+points this out -- the printer remembers the rest of the job and
+continues printing on its own after the new roll has been inserted.
+Not every model can report its paper status; for such printers (e.g.
+Munbyn RW403B) these warnings are not available.
+
+@tip For crisp labels, Colman prefers to print directly over the USB
+connection to the thermal printer. For this, your user account on
+Linux must be a member of the group `lp` (once:
+`sudo usermod -aG lp username`, then log in again). Without this
+permission, printing goes through the print system and the result
+may be grainier.
+@endtip
+
+<b>Regular page printer</b>
+
+For a sheet layout, you continue on the same page:
+
+1. In a preview of the label sheet, click the desired positions (the
+   selected fields show a text preview).
+2. Click <b>Print</b>. The first time, a print dialog for choosing
+   the printer appears.
+3. The printed number is subtracted from the remaining number. If
+   labels are left, you can select further positions on the next
+   sheet.
+4. Repeat steps 1--3 until all labels are printed, or click
+   <b>Cancel</b>.
+
+@image html 091_signature_print_02.jpg "Signature labels: choosing positions"
+@image latex 091_signature_print_02.jpg "Signature labels: choosing positions"
+
+@note Signature labels can also be printed directly at the end of an
+acquisition -- see @ref tutorial_items_done "Completion".
+
+---
+
+@page tutorial_liquidation Removing Items (Liquidation)
+
+A liquidation reduces the stock of an item, e.g. when it is weeded
+out, lost or damaged.
+
+@section tutorial_liquidation_navigate Navigation
+
+On the central navigation page, click <b>liquidate</b>.
+
+@section tutorial_liquidation_step1 Step 1: Selecting the Item
+
+1. Enter the name, barcode or ISBN into the search field
+   <b>barcode/name</b>.
+2. The table only shows items with available stock.
+3. Select the desired item and click <b>next</b>. Alternatively, a
+   barcode scanner identifies the item automatically.
+
+Below the table, the number of loaded entries is shown. For very
+large collections, <b>Load more...</b> appears -- a click loads
+further media.
+
+@image html 040_liquidation_01.jpg "Liquidation -- step 1: selecting the item"
+@image latex 040_liquidation_01.jpg "Liquidation -- step 1: selecting the item"
+
+@section tutorial_liquidation_step2 Step 2: Number
+
+1. The item name and the number of available copies are shown for
+   confirmation.
+2. Enter the number into the field <b>how many items have been
+   liquidated?</b> (at most as many as are available).
+3. Click <b>finish</b>. Colman automatically records the current
+   date and time as the time of liquidation. <b>previous</b> returns
+   to step 1.
+
+@image html 041_liquidation_02.jpg "Liquidation -- step 2: number"
+@image latex 041_liquidation_02.jpg "Liquidation -- step 2: number"
+
+@section tutorial_liquidation_step3 Step 3: Completion
+
+The question <b>Further liquidations?</b> appears:
+
+- <b>yes</b> -- liquidate another item.
+- <b>no</b> -- back to the central navigation page.
+
+@image html 042_liquidation_03.jpg "Liquidation -- step 3: completion"
+@image latex 042_liquidation_03.jpg "Liquidation -- step 3: completion"
+
+---
+
+@page tutorial_barcode_dispatch Quick Access with a Barcode Scanner
+
+The quickest way to start a transaction is to scan a barcode
+directly on the central navigation page -- without clicking a button
+first.
+
+@section tutorial_barcode_dispatch_how How It Works
+
+Point the barcode scanner at the barcode of the item or of the
+library card and trigger the scanner. Colman detects the type of
+barcode automatically and takes you to the right page:
+
+<b>Item barcode:</b>
+
+- If the item is available and nobody has currently borrowed it,
+  Colman switches directly to the <b>lending page</b>. The item is
+  already selected.
+- If all copies are lent, Colman switches directly to the <b>return
+  page</b>. Item and borrower are already preselected.
+- If there are both available and lent copies, a selection page
+  appears (see below).
+
+<b>ISBN barcode (back of the book):</b>
+
+- If the book is not yet in the collection, Colman switches directly
+  to the <b>acquisition page</b>. The ISBN is already filled in.
+
+<b>Library card barcode:</b>
+
+- Colman switches directly to the <b>lending page</b> and selects the
+  person automatically.
+
+@section tutorial_barcode_dispatch_multi Selection Page for Several Options
+
+If the same barcode allows several actions (e.g. a book with copies
+that are both available and lent), the page <b>What do you want to
+do?</b> appears.
+
+1. For each possible action, the page shows an entry with
+   - the action icon (as on the central navigation page),
+   - the type of action (<b>Lending</b>, <b>Return</b> etc.) and
+   - a short description (item name, author if any, for returns also
+     the borrower's name and the lending date).
+2. Click the desired entry.
+3. Colman immediately switches to the matching page with the fields
+   filled in.
+
+<b>back</b> takes you back to the central navigation page.
+
+@par Typical desk workflow
+In the morning, one pupil returns a book and another wants to borrow
+the same one: scan the book twice -- the first scan shows the
+selection page (return / lend), the second scan (after the return)
+puts the book straight into the lending.
+
+@page tutorial_lending Lending
+
+Lending is done in several steps. The transaction links a person to
+an item and reduces the available stock.
+
+@section tutorial_lending_navigate Navigation
+
+On the central navigation page, click <b>lend item</b>.
+
+@section tutorial_lending_step1 Step 1: Selecting the Person
+
+1. On the left, a searchable list of persons appears. Type the name
+   or scan the barcode of the library card.
+2. Select the person.
+3. Click <b>next</b>.
+
+@image html 050_lending_01.jpg "Lending -- step 1: selecting the person"
+@image latex 050_lending_01.jpg "Lending -- step 1: selecting the person"
+
+@section tutorial_lending_extend Extending the Due Date
+
+If a person wants to keep an item longer, you extend the due date
+without taking the item back and lending it again:
+
+1. Select the person in step 1.
+2. Click <b>extend due date...</b> (bottom left).
+3. The dialog shows all open lendings of the person with due date,
+   class, count and name. All lendings are preselected; Ctrl-click
+   or Shift-click changes the selection.
+4. Check the <b>new due date</b>. The suggestion always extends: it
+   starts from the latest current due date of the selected lendings
+   (from today for lendings already overdue) and adds the default
+   lending period from the collection settings, or 14 days if none
+   is set. You can choose an earlier date by hand, but not one in
+   the past.
+5. Click <b>Extend</b>.
+
+Only users with the permission <b>Record lendings</b> (and the
+administrator) see the button.
+
+Further ways to extend:
+
+- <b>Open Lendings</b> (@ref tutorial_open_lendings_extend): select
+  lendings in the list -- also of several persons, e.g. a whole
+  class -- and extend them together.
+- <b>Return, step 4</b> (@ref tutorial_return_step4): extends
+  exactly the lending currently selected.
+
+Where the lendings are already determined, the dialog only asks for
+the new due date.
+
+@image html 055_lending_extend.jpg "Lending -- extending the due date"
+@image latex 055_lending_extend.jpg "Lending -- extending the due date"
+
+@section tutorial_lending_step2 Step 2: Selecting the Item
+
+1. Enter the name, barcode or ISBN into the search field. Media of
+   which no copy is available any more are shown in grey and cannot
+   be selected.
+2. Select the item.
+3. Click <b>next</b>.
+
+Below the table, the number of loaded entries is shown. For very
+large collections, <b>Load more...</b> appears -- a click loads
+further media.
+
+@image html 051_lending_02.jpg "Lending -- step 2: selecting the item"
+@image latex 051_lending_02.jpg "Lending -- step 2: selecting the item"
+
+@section tutorial_lending_step3 Step 3: Lending Details
+
+The names of the person and of the item are shown. Check or change:
+
+- <b>Lend</b> / <b>Reserve</b> -- radio buttons; visible if the user
+  has the reserve permission. <b>Lend</b> is selected by default.
+- <b>number</b> -- how many copies are lent (default: 1; at most as
+  many as are available and not reserved for others).
+- <b>with duedate</b> -- check box; only if a lending period is
+  configured. When checked, the due date is set.
+- <b>remarks</b> -- free text field.
+
+Colman automatically records the current date and time as the time
+of lending. Click <b>next</b>.
+
+@image html 052_lending_03.jpg "Lending -- step 3: details"
+@image latex 052_lending_03.jpg "Lending -- step 3: details"
+
+@section tutorial_lending_step4 Step 4: Summary
+
+A summary shows all details for checking: person, item, number, due
+date and remarks.
+
+Click <b>finish</b> to save the lending.
+
+@image html 053_lending_04.jpg "Lending -- step 4: summary"
+@image latex 053_lending_04.jpg "Lending -- step 4: summary"
+
+@section tutorial_lending_step5 Step 5: Completion
+
+The question <b>Further lendings for person?</b> appears:
+
+- <b>yes</b> -- lend another item to the same person (back to step
+  2: selecting the item).
+- <b>no</b> -- back to the central navigation page.
+
+@image html 054_lending_05.jpg "Lending -- step 5: completion"
+@image latex 054_lending_05.jpg "Lending -- step 5: completion"
+
+@par Barcode scanner workflow
+The quickest way: scan the person's library card (step 1), scan the
+barcode label of the book (step 2) and confirm (steps 3-4). In many
+cases, the whole lending is done in a few seconds.
+
+---
+
+@page tutorial_group_lending Group Lending
+
+With <b>group lending</b>, every member of a group -- typically a
+class -- receives one copy of the same item, e.g. a class set of
+workbooks. Instead of recording the lending for each person
+separately, you select the item first and then tick all borrowers
+in a list.
+
+Only users with the <b>Record lendings</b> permission (and the
+administrator) see this button.
+
+@section tutorial_group_lending_navigate Navigation
+
+On the central navigation page, click <b>group lending</b>.
+
+@section tutorial_group_lending_step1 Step 1: Selecting the Item
+
+1. Type the name, barcode or ISBN in the search field, or scan the
+   label of a copy. Items with no copy left are grayed out.
+2. Select the item.
+3. Click <b>next</b>. A scanned barcode leads directly to step 2.
+
+@image html 056_group_lending_01.jpg "Group lending -- step 1: selecting the item"
+@image latex 056_group_lending_01.jpg "Group lending -- step 1: selecting the item"
+
+@section tutorial_group_lending_step2 Step 2: Ticking the Borrowers
+
+The selected item is shown above the list. Every ticked person
+receives <b>one</b> copy.
+
+- <b>Class</b> -- restricts the list to one class.
+- <b>name/barcode</b> -- filters the list by last or first name. If
+  you scan a <b>library card</b> here, the person is ticked right
+  away; when handing out in the classroom you can simply scan all
+  cards one after the other.
+- <b>Select all</b> / <b>Deselect all</b> -- only affect the persons
+  currently visible. Ticked persons stay ticked when you switch the
+  class, so several classes can be combined.
+
+At the bottom left, Colman shows how many persons are selected and
+how many copies are left. You can tick at most as many persons as
+copies are available and not reserved for others. If the stock does
+not suffice for everybody on <b>Select all</b>, persons are ticked
+from top to bottom until no copy is left.
+
+The <b>Note</b> column shows:
+
+- <b>already has this item</b> -- the person still has a copy on
+  loan; the row is grayed out and cannot be ticked, so nothing is
+  handed out twice.
+- <b>has reserved ... copy(ies)</b> -- the person receives their
+  reserved copy; the reservation is reduced accordingly.
+
+Click <b>next</b>.
+
+@image html 057_group_lending_02.jpg "Group lending -- step 2: ticking the borrowers"
+@image latex 057_group_lending_02.jpg "Group lending -- step 2: ticking the borrowers"
+
+@section tutorial_group_lending_step3 Step 3: Details
+
+As with a single lending, you set the <b>due date</b> (suggested
+from the collection's default lending period) and may enter
+<b>remarks</b>. Both apply to all lendings of the group. Click
+<b>next</b>.
+
+@section tutorial_group_lending_step4 Step 4: Summary
+
+The summary shows the item, number, due date, remarks and the names
+of all borrowers. Click <b>finish</b>.
+
+Colman stores all lendings at once -- either all or none. If someone
+at another workstation has meanwhile lent copies so that they no
+longer suffice, a message appears and you return to step 2.
+
+@image html 058_group_lending_03.jpg "Group lending -- step 4: summary"
+@image latex 058_group_lending_03.jpg "Group lending -- step 4: summary"
+
+@section tutorial_group_lending_done Completion and Hand-out List
+
+- <b>Print hand-out list...</b> -- prints a list with number, name,
+  class and a signature column for each person, e.g. to sign when
+  handing out.
+- <b>Further group lending</b> -- starts again with step 1.
+- <b>done</b> -- back to the central navigation page.
+
+Every person gets a lending of their own. It appears individually in
+the history and in the open lendings and is returned like any other
+lending -- for the whole group at once with a group return (see
+@ref tutorial_return_group).
+
+@image html 059_group_lending_04.jpg "Group lending -- completion"
+@image latex 059_group_lending_04.jpg "Group lending -- completion"
+
+---
+
+@page tutorial_reservations Reservations
+
+A <b>reservation</b> secures a person the right to borrow an item
+next. Reserved copies are deducted when the available number is
+calculated for other users.
+
+@section tutorial_reservations_permission Prerequisite
+
+Reservations are only possible if the user has the permission
+<b>Reserve media</b>. The administrator grants this permission in
+the person management (@ref tutorial_persons_permissions).
+
+@section tutorial_reservations_create Creating a Reservation
+
+A reservation is created in the same procedure as a lending:
+
+1. On the central navigation page, click <b>lend item</b> (or
+   <b>reserve item</b>).
+2. Select the person in step 1.
+3. Select the item in step 2.
+4. In step 3, choose the radio button <b>Reserve</b> instead of
+   <b>Lend</b>.
+5. Optionally set an expiry date.
+6. Complete the transaction.
+
+@section tutorial_reservations_view Viewing Reservations
+
+Active reservations of an item are visible in the detail view of the
+search page (@ref tutorial_search) under <b>Active
+Reservations</b>.
+
+@section tutorial_reservations_cancel Cancelling Your Own Reservation
+
+Users can cancel their own reservations at any time from the central
+navigation page:
+
+1. On the central navigation page, click <b>My reservations</b>.
+2. The page shows all your own active reservations with item name
+   and expiry date.
+3. In the desired row, click <b>Cancel reservation</b> to delete the
+   reservation immediately.
+
+@tip The button <b>My reservations</b> is only visible to users with
+the permission <b>Reserve media</b>. Administrators (permission
+<b>Edit reservations</b>) manage reservations from the search page.
+@endtip
+
+@section tutorial_reservations_item_settings Reservation settings per item
+
+Whether items may be reserved and how long a reservation is valid is
+set for the whole collection in the settings (see
+@ref tutorial_settings_collection). Individual items can deviate from
+this: users with the permission <b>Edit item settings</b> (by default
+only the administrator) see the group <b>Reservation Settings</b> when
+editing an item:
+
+- <b>Allow reservations:</b> <b>Default (collection setting)</b>,
+  <b>Allowed</b> or <b>Not allowed</b>. With <b>Not allowed</b> the
+  item cannot be reserved.
+- <b>Override period:</b> a separate validity in days for reservations
+  of this item.
+
+---
+
+@page tutorial_return Returning
+
+A return completes an existing lending and increases the available
+stock.
+
+@section tutorial_return_navigate Navigation
+
+On the central navigation page, click <b>return item</b>.
+
+@section tutorial_return_step1 Step 1: Selecting the Item
+
+1. Enter the barcode, name or ISBN of the item being returned into
+   the search field. The table only shows items that are currently
+   lent.
+2. Select the item and click <b>next</b>. When scanning a barcode,
+   the item is selected automatically.
+
+@image html 060_return_01.jpg "Return -- step 1: selecting the item"
+@image latex 060_return_01.jpg "Return -- step 1: selecting the item"
+
+@section tutorial_return_step2 Step 2: Ticking the Person(s)
+
+1. The list only shows persons who currently have the selected item,
+   together with their <b>class</b>. Clicking a column header sorts
+   the list, e.g. by class. If a person holds several copies, their
+   number is shown in the <b>Note</b> column.
+2. Tick the returning person and click <b>next</b>.
+
+If only one person has borrowed the item, that person is already
+ticked and this step is skipped automatically.
+
+@image html 061_return_02.jpg "Return -- step 2: ticking the person"
+@image latex 061_return_02.jpg "Return -- step 2: ticking the person"
+
+@subsection tutorial_return_group Several Persons at Once (Group Return)
+
+When a group returns its copies -- e.g. a class its class set (see
+@ref tutorial_group_lending) -- simply tick several persons in
+step 2:
+
+- <b>Class</b> -- restricts the list to one class.
+- <b>Select all</b> / <b>Deselect all</b> -- affect the persons
+  currently visible. If someone is missing, select all first and
+  then untick the missing persons.
+- <b>name/barcode</b> -- filters by name; a scanned <b>library
+  card</b> ticks the person right away.
+
+The bottom left shows how many persons are selected. With several
+persons ticked, Colman takes back <b>all copies still on loan</b> to
+them: step 3 is skipped, in step 4 you only enter remarks, and the
+summary lists all persons and the total number of copies. Everything
+is stored at once -- either for all persons or for none. Partial
+returns or extending the due date are only possible for a single
+person.
+
+@image html 065_return_06.jpg "Group return -- step 2: ticking several persons"
+@image latex 065_return_06.jpg "Group return -- step 2: ticking several persons"
+
+@image html 066_return_07.jpg "Group return -- summary"
+@image latex 066_return_07.jpg "Group return -- summary"
+
+@section tutorial_return_step3 Step 3: Selecting the Lending
+
+If the person has borrowed the item several times (e.g. at different
+times), the table shows all open lendings. Select the matching one.
+
+If there is only one open lending, this step is skipped
+automatically.
+
+@image html 062_return_03.jpg "Return -- step 3: selecting the lending"
+@image latex 062_return_03.jpg "Return -- step 3: selecting the lending"
+
+@section tutorial_return_step4 Step 4: Return Details
+
+Shown are: person, item, number lent, number already returned and
+number still lent.
+
+Check or change:
+
+- <b>number</b> -- how many copies are returned (range: 1 to the
+  number still lent).
+- <b>remarks</b> -- free text field.
+
+Colman automatically records the current date and time as the time
+of return. Click <b>next</b>.
+
+@tip
+If the person only brings the item by to keep it longer, click
+<b>extend due date...</b> instead. The dialog only asks for the new
+due date of exactly this lending (see @ref tutorial_lending_extend).
+After extending, you can cancel the return with <b>back</b>.
+@endtip
+
+@image html 063_return_04.jpg "Return -- step 4: details"
+@image latex 063_return_04.jpg "Return -- step 4: details"
+
+@section tutorial_return_step5 Step 5: Summary and Completion
+
+A summary shows person, item, number, date and remarks. Click
+<b>finish</b>.
+
+Then the completion page follows with the question <b>Further
+returned items?</b>:
+
+- <b>yes</b> -- take back another item.
+- <b>no</b> -- back to the central navigation page.
+
+@image html 064_return_05.jpg "Return -- step 5: summary"
+@image latex 064_return_05.jpg "Return -- step 5: summary"
+
+---
+
+@page tutorial_search Search
+
+The search page offers a targeted full-text search across all items
+of the collection. For each hit, a detail view with the active
+lendings and reservations can be opened.
+
+@section tutorial_search_navigate Navigation
+
+On the central navigation page, click <b>Search</b>.
+
+@section tutorial_search_layout Page Layout
+
+The search page has two columns:
+
+<b>Left column -- search fields</b>
+
+- <b>Type</b> -- restricts the search to one media type; <b>All
+  types</b> searches the whole collection.
+- <b>Search (all fields)</b> -- searches all text fields at the same
+  time. Several search terms are separated by spaces and combined
+  with AND.
+- <b>Name/Title</b> -- filters by the title of the item only.
+- <b>Subject</b> -- filters by subject (for school items).
+- <b>Description</b> -- filters by the description of the content.
+- <b>Keywords</b> -- filters by keywords.
+- <b>Grade level</b> -- two selection fields for the range of grades
+  (<b>any</b> = no restriction).
+- Below follow groups with the type-specific fields (e.g. publisher,
+  publication date, director). If a type is selected, only its group
+  is shown.
+
+All search fields work together: the more fields are filled in, the
+narrower the set of hits. The list of hits is updated while you
+type.
+
+<b>Right column -- list of hits</b>
+
+The table shows all hits with Name/Title, Type, Available, Lent and
+Reserved. Below the table, these buttons are available -- depending
+on the permissions:
+
+- <b>Print...</b> and <b>Export CSV...</b> -- see
+  @ref tutorial_search_print.
+- <b>Reserve</b> or <b>Cancel reservation</b> -- for the selected
+  item (see @ref tutorial_reservations).
+- <b>Lend</b> -- starts the @ref tutorial_lending "lending" with the
+  selected item.
+- <b>Edit item</b> -- see @ref tutorial_search_edit.
+- <b>Delete item</b> -- removes an item of which no copies are left
+  in stock (after confirmation).
+
+@image html 110_search.jpg "Search page with list of hits"
+@image latex 110_search.jpg "Search page with list of hits"
+
+<b>Detail view</b>
+
+A <b>double click</b> on a hit opens the detail view of the item
+with:
+
+- the cover image (with <b>zoom</b>),
+- the <b>Item Information</b>: type, Colman barcode, place,
+  description, for school items subject and grade level, and the
+  type-specific attributes (e.g. author, publisher, publication
+  date),
+- the <b>Active Lendings</b> (borrower, number lent and returned),
+- the <b>Active Reservations</b>, if any.
+
+@image html 111_search_detail.jpg "Detail view of an item"
+@image latex 111_search_detail.jpg "Detail view of an item"
+
+With the button <b>print label</b> at the top right of the detail
+view, you can reprint the book label of the item at any time -- for
+example to replace a damaged label. Colman opens the label printing
+page with the item already checked; there you choose the layout and,
+if needed, the number of copies. <b>back</b> then takes you back to
+the detail view and from there to the list of hits.
+
+@section tutorial_search_load_more Many Hits: Load More
+
+For large collections, Colman initially loads only part of the
+search results. Below the table, the number of currently loaded
+entries is shown (e.g. <em>150 item(s) shown</em>). If the button
+<b>Load more...</b> appears, there are further hits that are not yet
+visible. A click appends the next set of hits to the list without
+discarding the previous results.
+
+If all search fields are empty and the collection is very large, the
+list stays empty until at least one search term has been entered.
+
+@tip
+Enter one or more search terms to narrow down the set of hits and
+find the desired item faster.
+@endtip
+
+@section tutorial_search_edit Editing an Item
+
+Items can be edited directly from the search page:
+
+1. Select the item in the list of hits.
+2. Click <b>Edit item</b>.
+3. Adjust the desired fields on the editing page.
+4. Confirm with <b>Save</b>. The list of hits is then updated.
+
+@tip The button <b>Edit item</b> is only visible to users with the
+permission <b>Record acquisitions</b>.
+@endtip
+
+@section tutorial_search_print Printing and CSV Export
+
+Two buttons are available below the table of results.
+
+<b>Step 1 -- Making a selection (optional)</b>
+
+<b>Ctrl+click</b> or <b>Shift+click</b> selects several rows.
+Without a selection, all hits are used for the export.
+
+<b>Step 2 -- Opening the selection page</b>
+
+Click <b>Print...</b> or <b>Export CSV...</b>. On the page you
+choose:
+
+- <em>All items</em> or <em>Selected items</em>.
+- Which fields appear in the list (all preselected).
+- When printing: whether cover images are included
+  (<b>Include thumbnails</b>).
+
+<b>Step 3a -- Printing</b>
+
+Click <b>Print...</b> on the page. The print preview opens, from
+which you start printing.
+
+<b>Step 3b -- Exporting CSV</b>
+
+Click <b>Export CSV...</b> and choose a location. The file created
+has MARC21 column headers (e.g. <tt>245$a</tt>, <tt>100$a</tt>) and
+can be imported into Koha directly.
+
+@tip
+The CSV export is also suitable for importing into LibreOffice Calc
+to create or process inventory lists.
+@endtip
+
+---
+
+@page tutorial_open_lendings Open Lendings
+
+The page <b>Open Lendings</b> lists all lendings that have not yet
+been fully returned and allows printing them -- e.g. for reminders or
+as a daily overview at the lending desk.
+
+@section tutorial_open_lendings_navigate Navigation
+
+On the central navigation page, click <b>open lendings</b>.
+
+@section tutorial_open_lendings_layout Page Layout
+
+The table shows all open lendings with due date, borrower, class,
+count and item name. Two filter fields restrict the view:
+
+- <b>Person</b> -- shows only the lendings of a particular person.
+- <b>Class</b> -- shows only the lendings of a particular class (if
+  recorded).
+
+The button <b>Print</b> opens a print preview of the filtered list.
+If <b>Number entries</b> is checked, every row of the printout gets a
+consecutive number.
+
+@image html 120_open_lendings.jpg "Open lendings"
+@image latex 120_open_lendings.jpg "Open lendings"
+
+@image html 121_open_lendings_preview.jpg "Open lendings: print preview"
+@image latex 121_open_lendings_preview.jpg "Open lendings: print preview"
+
+@tip
+Use the person filter to quickly check all open lendings of a pupil
+at the end of the school year.
+@endtip
+
+@section tutorial_open_lendings_extend Extending Due Dates
+
+1. If needed, narrow the list with <b>Person</b> or <b>Class</b>.
+2. Select the lendings whose due date is to be extended (Ctrl-click
+   for single rows, Shift-click for a range, Ctrl+A for all shown).
+3. Click <b>extend due date...</b> (bottom left).
+4. The dialog shows the selected lendings for checking. Check the
+   <b>new due date</b> (suggestion: latest current due date plus the
+   default lending period or 14 days, see
+   @ref tutorial_lending_extend) and click <b>Extend</b>.
+
+The table then shows the new due dates; the extended lendings remain
+selected. A double click on a row opens the return as before.
+
+@image html 122_open_lendings_extend.jpg "Open lendings: extending due dates"
+@image latex 122_open_lendings_extend.jpg "Open lendings: extending due dates"
+
+@tip
+Before the holidays, you can extend all lendings of a class to the
+end of the holidays in one step this way.
+@endtip
+
+---
+
+@page tutorial_history History (Transaction History)
+
+The history shows all recorded transactions in one common,
+chronologically sorted table.
+
+@section tutorial_history_navigate Navigation
+
+On the central navigation page, click <b>view history</b>.
+
+@section tutorial_history_table Table
+
+The table contains all actions (acquisitions, liquidations,
+lendings, returns) in a single view with the columns date/time,
+action, name of the item, number, user and -- for the administrator
+-- data collector.
+
+The fields <b>From</b> and <b>To</b> restrict the period;
+<b>Apply</b> reloads the table for this period. If <b>show all</b>
+is checked, all actions are shown regardless of the date. The
+selection list to the right restricts the table to one type of
+action, e.g. only lendings; <b>all actions</b> removes the
+restriction again. The table can be sorted by any column (click on
+the column header).
+
+Below the table, a label shows the number of currently loaded
+actions (e.g. <em>350 action(s) shown</em>). With very many entries,
+<b>Load more...</b> appears -- a click appends further actions to
+the table without discarding entries already loaded.
+
+@image html 100_history.jpg "History overview"
+@image latex 100_history.jpg "History overview"
+
+<b>show details</b> (or a double click on a row) opens a window with
+all details of the selected action.
+
+@par Deleting actions
+With the permission <b>Change and delete actions</b>, entries can be
+permanently removed from the history. To do so, select the entry and click <b>delete</b>. For
+actions that depend on each other (e.g. a return belonging to a
+lending), Colman shows all affected entries for confirmation before
+they are deleted together.
+
+With Ctrl-click or Shift-click you mark several entries or a whole
+range, e.g. all lendings of a mistaken group lending; <b>delete</b>
+then removes all marked entries together with their dependent actions
+in one step. <b>show details</b> and <b>change</b> only appear when
+exactly one entry is marked.
+
+@image html 101_history_delete.jpg "History: deleting entries"
+@image latex 101_history_delete.jpg "History: deleting entries"
+
+@warning Deleting history entries cannot be undone.
+@endwarning
+
+@par Changing actions
+With the same permission, individual history entries can be
+corrected later --
+e.g. a wrongly entered date. Select the entry and click
+<b>change</b>. A dialog shows the editable fields of the entry.
+Changes that would violate the logical sequence (e.g. a return date
+before the lending date) are rejected by Colman with an explanation
+of the conflicts.
+
+@image html 102_history_change.jpg "History: changing an entry"
+@image latex 102_history_change.jpg "History: changing an entry"
+
+The button <b>back</b> takes you back to the central navigation
+page.
+
+---
+
+@page tutorial_settings Settings
+
+The settings page is divided into four tabs. Which tabs you see
+depends on your permissions:
+
+- <b>Collection Settings</b> – permission <b>Edit preferences</b>
+- <b>Program Settings</b> – permission <b>Edit program settings</b>
+- <b>Accessibility</b> – everybody
+- <b>Encryption</b> – administrator only
+
+@section tutorial_settings_navigate Navigation
+
+On the central navigation page, click <b>Settings</b>.
+
+@section tutorial_settings_collection Tab: Collection Settings
+
+Here the basic data of the collection, defined when it was created,
+is managed:
+
+- <b>collection name</b> -- shown on library cards and barcodes
+- <b>organization</b> -- school or institution
+- <b>responsible</b> -- contact person
+- <b>logo</b> -- image file shown on library cards; chosen with
+  <b>browse</b>
+- <b>default lending period</b> -- default lending period in years,
+  months and days
+- <b>Allow reservations</b> -- whether items may be reserved and for
+  how many days a reservation is valid
+- <b>Default type for new items</b> -- media type preselected when
+  entering items
+- <b>items are school items by default</b> -- new items
+  automatically get the school fields
+- <b>Signature top categories</b> -- list of suggestions for the
+  upper signature (e.g. subject areas); <b>add</b> and <b>remove</b>
+  maintain the list
+- <b>Signature bottom categories (for selected top)</b> --
+  suggestions for the lower signature, each for the top category
+  selected above
+
+@image html 130_settings_01.jpg "Settings: collection settings"
+@image latex 130_settings_01.jpg "Settings: collection settings"
+
+@section tutorial_settings_program Tab: Program Settings
+
+These settings apply to all collections.
+
+<b>Thumbnail directory</b>
+
+The local directory in which cover images of items are stored;
+chosen with <b>browse</b>.
+
+<b>ISBN look-up</b>
+
+Colman can automatically search the internet for book data when an
+item is entered. To protect your privacy, Colman only connects to
+the services you explicitly enable here:
+
+- <b>search ISBN on openlibrary.org</b> -- free service, no API key
+  needed
+- <b>search ISBN on www.googleapis.com</b> -- Google Books;
+  optionally with your own <b>Google Books API key</b> (further down
+  on the tab)
+
+In addition, Colman queries the active SRU library catalogues (see
+below). Enable at least one service to use the ISBN look-up.
+
+<b>SRU servers (library catalogues)</b>
+
+The table lists public library catalogues that Colman queries via
+SRU -- preconfigured are, among others, the German National Library
+(DNB) and K10plus. Each row can be switched on or off with the check
+box in the column <b>Enable</b>. The columns <b>ISBN field</b>,
+<b>EAN field</b> and <b>Title field</b> contain the search indexes
+of the respective catalogue:
+
+- <b>ISBN field</b> / <b>EAN field</b> -- for the barcode search
+- <b>Title field</b> -- for the
+  @ref tutorial_items_title_search "internet title search"; if the
+  field is empty, the server is skipped in the title search
+
+<b>Services for the title search</b>
+
+Besides the SRU servers, the title search and the EAN search use the
+following services:
+
+- <b>search product barcode on MusicBrainz</b> -- CDs; free service,
+  no API key needed
+- <b>search board games on boardgamegeek.com</b> -- requires a
+  <b>boardgamegeek.com API token</b>
+- <b>look up EAN on opengtindb.org</b> -- games, DVDs, Blu-rays and
+  more; requires an <b>opengtindb.org user ID</b>
+
+Further down on the tab follow:
+
+- <b>proxy user name</b> and <b>proxy password</b> -- only needed if
+  internet access goes through a proxy requiring authentication
+- <b>try to download thumbnails</b> -- download cover images
+  automatically during the internet look-up
+- <b>internet lookup timeout</b> -- maximum waiting time for a query
+  in seconds
+- <b>Search threshold</b> -- how many items lists load initially
+  before <b>Load more...</b> appears (0 = always all)
+
+@tip
+For school libraries in German-speaking countries, the preconfigured
+catalogues DNB and K10plus are usually sufficient; elsewhere, add the
+SRU server of your national library. The DNB also catalogues DVDs and
+Blu-rays as specific releases -- with distributor, running time,
+language versions and age rating.
+@endtip
+
+<b>Barcode bar width</b>
+
+The width of the narrowest bar (X dimension) of the printed Code 128
+barcodes. The default value of 0.33&nbsp;mm is the value recommended
+for reliable scanning.
+
+@tip
+Only reduce this value if the barcodes must fit on very small
+labels -- and test beforehand whether your scanner still reads the
+finer bars reliably.
+@endtip
+
+@image html 131_settings_02.jpg "Settings: program settings"
+@image latex 131_settings_02.jpg "Settings: program settings"
+
+
+@section tutorial_accessibility Tab: Accessibility
+
+Here the <b>Font size</b> of the whole application can be adjusted.
+Set the desired value in the number field -- a preview shows the
+effect immediately.
+
+Alternatively, the font size can be changed at any time – even before
+logging in:
+
+- on the start page with the buttons <b>A+</b> and <b>A-</b>,
+- with the keyboard shortcuts <b>Ctrl++</b> and <b>Ctrl+-</b>;
+  <b>Ctrl+0</b> resets it to 12 points,
+- with <b>Ctrl + mouse wheel</b>.
+
+The allowed range is 8 to 24 points. The setting applies to the whole
+program and is kept for the next start.
+
+@image html 132_settings_03.jpg "Settings: accessibility"
+@image latex 132_settings_03.jpg "Settings: accessibility"
+
+@section tutorial_encryption Tab: Encryption
+
+Encryption is <b>optional</b> and disabled by default. If your
+collection contains personal data (names of pupils, lending
+history), it is advisable to encrypt the `.col` file so that
+unauthorized persons cannot read any data when accessing the file
+directly.
+
+Colman encrypts the entire database file with its own password. The
+current status (<b>encrypted</b> or <b>not encrypted</b>) is shown at
+the top of the tab as <b>Encryption status</b>. If the collection is
+encrypted, the page for entering the database password appears when
+the file is opened (see @ref tutorial_open_encrypted).
+
+<b>Enable Encryption</b>
+(only visible if the collection is not yet encrypted)
+
+1. Click <b>Enable Encryption</b>.
+2. Enter a password and confirm it. A strength indicator shows the
+   quality of the password.
+3. Click <b>OK</b>. From now on, the password is requested whenever
+   the file is opened.
+
+<b>Change Encryption Password</b>
+(only visible if the collection is already encrypted)
+
+1. Click <b>Change Password</b>.
+2. Enter the current and the new password.
+3. Click <b>OK</b>.
+
+<b>Disable Encryption</b>
+(only visible if the collection is already encrypted)
+
+1. Click <b>Disable Encryption</b>.
+2. Confirm with the current password.
+
+@image html 133_settings_04.jpg "Settings: encryption"
+@image latex 133_settings_04.jpg "Settings: encryption"
+
+@warning The password for the file encryption is independent of the
+administrator password. If you forget the file password, the `.col`
+file can no longer be opened -- not even by Colman itself.
+@endwarning
+
+@section tutorial_settings_save Saving Changes
+
+- <b>apply</b> -- saves the changes of the active tab.
+- <b>revert</b> -- discards the changes and restores the saved
+  values.
+- <b>back</b> -- leaves the page. If there are unsaved changes, you
+  are asked whether you want to apply them.
+
+---
+
+@page tutorial_prefs Program Settings (on the Settings Page)
+
+The program settings -- ISBN look-up, thumbnail directory and more --
+are described under
+@ref tutorial_settings_program "Settings → Program Settings".
+
+---
+
+@page tutorial_printer_calibration Calibrating the Printer (Administrator Only)
+
+If printed labels or library cards appear slightly shifted or
+distorted, the printer calibration corrects this. Colman stores a
+separate calibration for each printer, which is applied
+automatically to the next print job.
+
+@section tutorial_printer_calibration_navigate Navigation
+
+On the central navigation page, click <b>calibrate printer</b>.
+
+@image html 020_printer_calibration.jpg "Calibrating the printer"
+@image latex 020_printer_calibration.jpg "Calibrating the printer"
+
+@section tutorial_printer_calibration_steps Calibration Procedure
+
+First choose the printer to be calibrated in the field
+<b>Printer</b> at the top. If calibration values are already stored
+for it, they are shown in step&nbsp;3.
+
+<b>Step 1 -- Print calibration sheet</b>
+
+1. Put a sheet of plain paper into the printer.
+2. Click <b>Print calibration sheet</b> and confirm the print dialog
+   with the default settings (do not set any page margins or
+   scaling). The sheet contains three crosshairs at fixed positions:
+   - <b>A</b> at (50&nbsp;mm | 50&nbsp;mm) from the paper edge
+   - <b>B</b> at (150&nbsp;mm | 50&nbsp;mm) -- 100&nbsp;mm to the
+     right of A
+   - <b>C</b> at (50&nbsp;mm | 150&nbsp;mm) -- 100&nbsp;mm below A
+
+The preview on the right shows the calibration sheet.
+
+<b>Step 2 -- Measure and compute offset</b>
+
+1. Measure the actual distances of the crosshair centres from the
+   left and top paper edge with a ruler and enter the four values:
+   - <b>Cross A -- X distance</b> -- horizontal distance of cross A
+     from the left edge
+   - <b>Cross A -- Y distance</b> -- vertical distance of cross A
+     from the top edge
+   - <b>Cross B -- X distance</b> -- horizontal distance of cross B
+     from the left edge
+   - <b>Cross C -- Y distance</b> -- vertical distance of cross C
+     from the top edge
+2. Click <b>Compute offset</b>. Colman calculates the necessary
+   correction values for offset and scaling from them.
+
+<b>Step 3 -- Review and save calibration</b>
+
+This area shows the calculated correction values:
+
+- <b>X offset</b> -- horizontal shift in mm
+- <b>Y offset</b> -- vertical shift in mm
+- <b>X scale</b> -- horizontal scaling factor (1.0 = no correction)
+- <b>Y scale</b> -- vertical scaling factor (1.0 = no correction)
+
+- Click <b>Save</b> to store the values permanently for this
+  printer.
+- Click <b>Reset</b> to restore the last saved values.
+- Click <b>back</b> to return to the central navigation page without
+  saving.
+
+@note The calibration is stored per printer. If you use the same
+printer under different operating system names (e.g. after a printer
+driver update), you have to repeat the calibration.
+
+@section tutorial_printer_calibration_effect Effect of the Calibration
+
+After saving, the calibration is applied automatically to all print
+jobs on this printer -- both when printing labels
+(@ref tutorial_item_barcodes) and library cards
+(@ref tutorial_person_barcodes). A new calibration is only needed if
+the printer is replaced or the printer driver is reinstalled.
+
+---
+
+@page tutorial_passwords Managing Credentials
+
+@section tutorial_passwords_admin Credential Management (Administrator)
+
+The administrator can set or delete user names and passwords for all
+persons.
+
+1. On the central navigation page, click <b>Change Passwords</b>.
+2. On the left, a table with all persons (last name, first name,
+   title, user name) and the administrator appears.
+3. Select the desired person.
+
+<b>Managing user names:</b>
+
+4. Enter a unique name into the field <b>Username</b>.
+5. Click <b>Set Username</b>. If the name is already taken, an error
+   message appears.
+6. To remove a user name, click <b>Remove Username</b> (confirmation
+   required).
+
+<b>Managing passwords:</b>
+
+7. Enter the password into the fields <b>New password</b> and
+   <b>Confirm</b>.
+8. Click <b>Change Password</b>.
+9. To delete a password (e.g. for pupils who have left), click
+   <b>Delete Password</b>.
+
+@image html 150_passwords.jpg "Credential management (administrator)"
+@image latex 150_passwords.jpg "Credential management (administrator)"
+
+@section tutorial_passwords_user Changing the Password (User)
+
+Regular users can change their own password:
+
+1. On the central navigation page, click <b>Change Password</b>.
+2. Enter your <b>Current password</b>.
+3. Enter your <b>New password</b> and the <b>Confirm</b>ation.
+4. Click <b>OK</b>.
+
+@note Passwords are hashed with the Argon2 algorithm.
+
+---
+
+@page tutorial_backup Automatic Backup
+
+Colman automatically creates backup copies of the `.col` file in the
+same directory. The backup files get a consecutive number as suffix,
+e.g.:
+
+    my_collection.col.~1~
+    my_collection.col.~2~
+    my_collection.col.~3~
+
+A backup is created on the first save of a session and then
+automatically after every 16 changes. As soon as there are more than
+20 backup files, Colman asks whether older ones should be deleted
+(the 10 newest are always kept).
+
+In case of an error, rename the backup file with the highest number
+to the original file name (remove the suffix) to restore the last
+saved state.
+
+---
+
+@page tutorial_types Managing Media Types
+
+Media types (e.g. "Book", "DVD", "Periodical") define which fields
+an item has. Managing media types requires the permission <b>Edit
+categories</b>. When a new database is created, six types are already
+predefined; your own types can be added at any time.
+
+@section tutorial_types_navigate Navigation
+
+On the central navigation page, click <b>manage categories</b>.
+
+@section tutorial_types_overview Page Layout
+
+Left: list of the existing media types (<b>known item types</b>).
+Right: <b>item type name</b>, <b>search category</b> and the table
+<b>item type fields</b> of the selected type.
+
+The display names of the predefined types and fields exist in English
+and German; Colman shows them in the language of the user interface.
+
+The <b>search category</b> defines which internet services are
+queried when an item of this type is entered (book, CD, DVD, Blu-ray,
+board game or <b>none</b>). It is independent of the displayed name
+of the type.
+
+Below the table, <b>add field</b>, <b>remove field</b>, <b>remove
+all</b>, <b>Move up</b> and <b>Move down</b> arrange the fields; the
+buttons below them (<b>insert type</b>, <b>change type</b>,
+<b>remove type</b>, <b>revert</b>) save or discard the changes.
+
+@image html 140_item_types.jpg "Media type management"
+@image latex 140_item_types.jpg "Media type management"
+
+@section tutorial_types_predefined Predefined Media Types
+
+Every newly created database automatically contains six media types:
+
+- <b>Book</b>: Authors, Edition, Publication date, Publisher, Pages,
+  ISBN-10, ISBN-13, DDC
+- <b>Periodical</b>: ISSN, Publisher, Year of publication, Extent,
+  Note
+- <b>CD</b>: Artist, Publisher number, Publisher, Year of
+  publication, Language, Extent, Content type, Media type, Carrier
+  type, EAN
+- <b>DVD</b>: Director/cast, Publisher, Year of publication,
+  Language, Extent, Content type, Media type, Carrier type,
+  Participants, Target audience, EAN
+- <b>Blu-ray</b>: (same as DVD)
+- <b>Board game</b>: Designer, Illustrator, Publisher, Year of
+  publication, Min. players, Max. players, Minimum age, Playing time
+  (min.), Language, Genre, EAN
+
+These types can be changed or deleted like types you created
+yourself.
+
+@section tutorial_types_common Fixed Fields
+
+In addition to the type-specific fields, every item, regardless of
+its type, always has the following fixed fields:
+
+- <b>Item name</b> (MARC21: 245$a) -- name or title of the item
+- <b>Colman barcode</b> -- the automatically assigned barcode
+- <b>Thumbnail</b> -- cover image
+- <b>School item</b> -- marks the item as a school item (with
+  subject, academic year and kind)
+- <b>Place</b> -- shelf location
+- <b>Signature top</b> / <b>Signature bottom</b> -- text of the spine
+  label
+- <b>Description</b> (MARC21: 520$a) -- short description or summary
+- <b>Keywords</b> (MARC21: 650$a) -- topical keywords
+
+These fields appear greyed out in the table <b>item type fields</b>
+and cannot be removed, but they can be moved with <b>Move up</b> /
+<b>Move down</b>. The order determines the arrangement in the item
+form.
+
+@section tutorial_types_add Adding a New Media Type
+
+1. Enter the name into the field <b>item type name</b>.
+2. Click <b>add field</b> to add type-specific attributes.
+3. Define the data type for each field (see the list below).
+4. Optional: assign a MARC21 tag to each field (see
+   @ref tutorial_types_marc21).
+5. Optional: use the MARC21 template to insert a complete set of
+   fields at once (see @ref tutorial_types_template).
+6. Change the order of the fields with <b>Move up</b> and <b>Move
+   down</b>.
+7. Click <b>insert type</b>.
+
+Available field types:
+
+- <b>short text</b> -- single-line text input (e.g. author,
+  publisher)
+- <b>long text</b> -- multi-line text input (e.g. summary)
+- <b>integer</b> -- whole number, optionally with min/max (e.g.
+  number of pages)
+- <b>float</b> -- decimal number, optionally with min/max (e.g.
+  price)
+- <b>date</b> -- date field (e.g. publication date)
+- <b>time</b> -- time field
+- <b>duration</b> -- duration in the format HH:MM (e.g. running time
+  of a film)
+- <b>integer ranges</b> -- ranges of whole numbers (e.g. grades
+  5-10)
+- <b>table</b> -- nested table (e.g. list of copies)
+
+@section tutorial_types_marc21 Assigning MARC21 Fields
+
+The library format MARC21 defines standardized identifiers for
+bibliographic fields (e.g. 245$a stands for the title, 100$a for the
+main author). Colman can assign such a MARC21 tag to each
+type-specific field.
+
+The column <b>field name</b> of the table contains a selection list
+with grouped MARC21 fields. Proceed as follows:
+
+1. Click into the selection field of the column <b>field name</b>.
+2. Choose the matching MARC21 field from the list, e.g. author
+   (100$a) from the group main entry.
+3. Colman automatically sets the data type to the recommended type.
+4. Alternatively, type your own name; then no MARC21 tag is stored.
+
+The MARC21 tag is not shown in the item form; it serves consistent
+naming and a possible later data transfer.
+
+@section tutorial_types_template Using a MARC21 Template
+
+Instead of adding fields one by one, you can take over a ready-made
+selection of fields for common media types:
+
+1. Click the button <b>MARC21 template</b>.
+2. Choose one of the templates from the menu and confirm.
+
+Available templates:
+
+- <b>Book</b>: author, ISBN, edition, publisher, publication year,
+  pages, DDC, genre
+- <b>CD / Audio</b>: artist, publisher number, publisher, publication
+  year, language, extent, content type, media type, carrier type
+- <b>DVD / Video</b>: director, publication year, language, extent,
+  content type, media type, carrier type, participants, target
+  audience
+- <b>Periodical</b>: ISSN, publisher, publication year, extent, note
+
+The template only inserts fields that are not yet covered by a fixed
+field. "Title" and "Description" are therefore not inserted again,
+since they already exist as fixed fields.
+
+@note Existing type-specific fields are not deleted. The template
+only adds new fields at the end of the list.
+
+@section tutorial_types_repeatable Repeatable Fields
+
+Some fields can occur several times for one item, for example when a
+book has several authors. Such fields are marked as
+<b>Repeatable</b>.
+
+In the item form, repeatable fields have a <b>+</b> button. Click it
+to add another entry. The <b>-</b> button removes an entry again.
+
+For the predefined types, the following fields are repeatable:
+
+- <b>Book</b>: Authors (100$a), ISBN-10 / ISBN-13 (020$a), DDC (082$a)
+- <b>CD</b>: Artist (100$a)
+- <b>DVD</b> and <b>Blu-ray</b>: Director/cast (700$a)
+- <b>Board game</b>: Designer and Illustrator (700$a), Language
+  (546$a), Genre (655$a)
+
+When creating your own fields, enable repeatability with the check
+box <b>Repeatable</b> in the field's row.
+
+@section tutorial_types_change Changing a Media Type
+
+1. Select the type in the list on the left.
+2. Change the name or attributes.
+3. Click <b>change type</b>.
+
+@warning Data can be lost when changing a media type. Consider
+creating a new type instead and making a backup copy beforehand.
+@endwarning
+
+@section tutorial_types_remove Deleting a Media Type
+
+1. Select the type in the list.
+2. Click <b>remove type</b>.
+3. Confirm the security prompt.
+
+@warning Deleting a type also removes all associated items,
+acquisitions, liquidations, lendings and returns -- irreversibly!
+@endwarning
+
+---
+
+@page tutorial_permissions Permissions overview
+
+@tableofcontents
+
+Each person has a set of permissions. They determine which tiles
+appear on the central navigation page and what the person may do.
+The administrator always has all permissions. How to change the
+permissions of a person is described in
+@ref tutorial_persons_permissions.
+
+@section tutorial_permissions_list Available permissions
+
+| Permission | Allows |
+|---|---|
+| Edit persons | Create, change and delete persons and grant them one's own permissions |
+| Create borrowers | Create and edit borrowers only (view and reserve items) |
+| Create data collectors | Create and edit only persons who record acquisitions or liquidations |
+| Record lendings | Lend items |
+| Record returns | Record returns |
+| Record acquisitions | Acquire items |
+| Record liquidations | Liquidate items |
+| View history | View the history |
+| View person lists | Person lists and filters, reminder of due returns |
+| View item lists | The item search |
+| Edit preferences | The tab Collection Settings |
+| Print ID cards | Print ID cards |
+| Print labels | Print item labels |
+| Edit categories | Manage media types and signature categories |
+| View personal data | View one's own data and lendings |
+| Manage label layouts | Create and delete label sheet layouts |
+| Calibrate printers | Edit the printer calibration |
+| Edit ID card layout | Edit the ID card, item card and signature layouts |
+| Print signature labels | Print signature (spine) labels |
+| Change and delete actions | Change or delete entries in the history |
+| Edit program settings | The tab Program Settings |
+| Manage classes | Class management and the school year change |
+| Reserve media | Reserve items for oneself (default: yes) |
+| Edit reservations | Create, change and delete reservations for others (default: no) |
+| Edit item settings | Reservation settings of individual items (default: no) |
+
+@section tutorial_permissions_tiles Tiles of the central page
+
+A tile only appears if the logged-in person has the matching
+permission:
+
+| Tile | Required permission |
+|---|---|
+| manage borrowers | Edit persons, Create borrowers or Create data collectors |
+| acquire | Record acquisitions |
+| lend item | Record lendings (persons who may only <b>Reserve media</b> see <b>reserve item</b> instead) |
+| return item | Record returns |
+| liquidate | Record liquidations |
+| Search | View item lists |
+| view history | View history |
+| print IDs | Print ID cards |
+| print labels | Print labels |
+| print signatures | Print signature labels |
+| edit ID layout, edit item card layout, edit signature layout | Edit ID card layout |
+| manage categories | Edit categories |
+| class management | Manage classes |
+| My reservations | Reserve media |
+| Settings, open lendings | visible to everybody; the contents depend on the permissions |
+| calibrate printer | administrator only |
+
+@section tutorial_permissions_rules Rules for granting permissions
+
+- <b>You can only grant permissions you hold yourself.</b> Permissions
+  you may not grant are greyed out. This prevents anybody from gaining
+  additional rights through a second account.
+- Persons who may only <b>Create borrowers</b> or <b>Create data
+  collectors</b> can only edit persons whose permissions lie entirely
+  within their own – i.e. no staff or administrator accounts.
+- New persons may by default only <b>Reserve media</b> and <b>View
+  personal data</b>.
+
+---
+
+@page tutorial_multi_user Multi-user operation: server and clients
+
+@tableofcontents
+
+If several workstations are to work with the same collection at the
+same time, the database lives on a server machine (for example a
+Raspberry Pi). The server `colman_rest_server` provides the collection
+on the network; the workstations run `colman_rest_client`, which has
+the same user interface as the single-user version. The Colman app for
+Android connects to this server as well.
+
+@section tutorial_multi_user_server Starting the server
+
+When started for the first time with a database file that does not
+exist yet, the server creates the collection and asks for the
+administrator password:
+
+@code
+colman_rest_server --db /srv/colman/school.col --port 8080
+@endcode
+
+On all later starts the same command opens the existing collection.
+An encrypted collection additionally needs the database password
+(`--key-file` or the environment variable `COLMAN_DB_KEY`).
+
+@warning Outside a trusted local network the server must use TLS
+(`--cert` and `--key`); otherwise passwords are transmitted
+unencrypted.
+@endwarning
+
+@section tutorial_multi_user_client Logging in at a workstation
+
+Start `colman_rest_client`. The login page automatically offers
+servers found on the local network; otherwise enter the server address
+(e.g. `http://server:8080`) manually. Log in with your username and
+password – the first time as `admin` with the password chosen when the
+server was started. The server address is remembered for the next
+start.
+
+@section tutorial_multi_user_refresh Working at the same time
+
+Each workstation regularly asks the server for changes made by other
+workstations and refreshes its lists automatically. You can set the
+interval in the program settings under <b>poll interval (REST
+client)</b> (default: 10 seconds). If another workstation lends an item
+in the meantime, the displayed available count decreases accordingly.
+
+@tip For centrally managed user accounts the server can accept logins
+via an OpenID Connect provider (e.g. Authentik). The setup and all
+server options are described in the project README.
+@endtip
+
+---
+
+*/
+
+/**
+
+@page tutorial_appendix_errors Appendix: Error Display
+
+@tableofcontents
+
+When Colman encounters an error -- for example when connecting to
+the server -- the program shows a comprehensible error message. In
+addition, a button <b>Details...</b> appears, which gives access to
+technical information.
+
+@section tutorial_appendix_errors_message Error Message
+
+If an action fails, a red text with a short explanation appears.
+Typical messages are:
+
+- <b>Wrong username or password.</b> -- the login data is not
+  correct.
+- <b>Cannot connect to the server. Please check the server URL.</b>
+  -- the server cannot be reached or the address entered is wrong.
+- <b>Server error (status …).</b> -- the server returned an
+  unexpected error code.
+
+<!-- @image html 200_error_display.jpg "Error message with details button" -->
+<!-- @image latex 200_error_display.jpg "Error message with details button" -->
+
+@section tutorial_appendix_errors_details Showing Technical Details
+
+Click <b>Details...</b> to open a dialog with the exact technical
+description of the error. The window has the title <b>Error
+Details</b> and shows:
+
+- the HTTP status code (e.g. <b>HTTP 401</b>), and
+- the error message returned by the server, if any (e.g. a JSON
+  description).
+
+<!-- @image html 201_error_details.jpg "Details dialog with HTTP status code" -->
+<!-- @image latex 201_error_details.jpg "Details dialog with HTTP status code" -->
+
+@section tutorial_appendix_errors_copy Copying the Error Message
+
+The error text shown can be selected and copied to the clipboard.
+This way you can pass the message on to the administrator or paste
+it into an error report:
+
+1. Click into the error text in the details window.
+2. Select the desired text (e.g. with the mouse or with
+   <b>Ctrl+A</b> for everything).
+3. Copy it to the clipboard with <b>Ctrl+C</b>.
+
+@tip
+When reporting an error, please always copy the complete content of
+the details window. This makes the analysis much easier.
+@endtip
+
+---
+
+*/

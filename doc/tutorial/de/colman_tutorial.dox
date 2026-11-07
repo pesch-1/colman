@@ -1,0 +1,2879 @@
+/**
+
+@page tutorial_new_db Neue Sammlung anlegen
+
+@tableofcontents
+
+Dieses Tutorial führt dich Schritt für Schritt durch alle
+Funktionen von Colman -- von der ersten Datenbankerstellung bis
+zur täglichen Ausleihe und Rückgabe. Jeder Abschnitt baut auf
+dem vorherigen auf, so dass du am Ende eine vollständig
+eingerichtete Schulbibliothek verwalten kannst.
+
+@note Colman ist ein Qt-Programm mit deutscher Oberfläche.
+Alle Schaltflächenbeschriftungen in diesem Tutorial
+entsprechen der deutschen Lokalisierung.
+
+Beim ersten Start von Colman erscheint die
+<b>Startseite</b>. Um eine neue Bibliothek einzurichten,
+klicke auf <b>neue Sammlung anlegen</b>.
+
+@section tutorial_new_db_start Startseite
+
+Die Startseite zeigt im oberen Bereich das <b>Colman-Logo</b>,
+den Titel <b>ColMan</b> mit Versionsnummer sowie den Untertitel
+<b>the collection manager</b> (deutsch: <b>der
+Sammlungsverwalter</b>). Darunter folgen:
+
+- <b>neue Sammlung anlegen</b> -- startet die Schrittfolge
+  zum Erstellen einer neuen Sammlung (direkt im Hauptfenster).
+- <b>existierende Sammlung öffnen</b> -- öffnet einen
+  Dateidialog zum Laden einer vorhandenen `.col`-Datei.
+- <b>zuletzt geöffnet</b> -- zeigt eine Tabelle der zuletzt
+  verwendeten Sammlungen mit Sammlungsname, Dateiname und
+  Datum. Ein Doppelklick öffnet die Sammlung direkt.
+- <b>Programm beenden</b> -- beendet Colman.
+
+Außerdem befinden sich auf der Startseite zwei kleine
+Schaltflächen zum Vergrößern und Verkleinern der Schriftgröße
+(siehe auch @ref tutorial_accessibility).
+
+@tip
+Colman kann auch über die Kommandozeile mit einer `.col`-Datei
+als Argument gestartet werden:
+
+`./colman meine_sammlung.col`
+
+Mit `--help` zeigt Colman alle Optionen an. `--trace-level 2`
+gibt die Anfragen der Internetsuche auf der Konsole aus – das
+hilft bei der Fehlersuche, wenn ein Titel nicht gefunden wird.
+@endtip
+
+@image html 001_start.jpg "Startseite von Colman"
+@image latex 001_start.jpg "Startseite von Colman"
+
+@section tutorial_wizard Sammlung einrichten
+
+Das Anlegen einer neuen Sammlung läuft als Schrittfolge direkt im
+Hauptfenster ab (kein separates Fenster). Mit <b>Weiter</b> gelangst du
+zum nächsten Schritt, mit <b>zurück</b> (oben über die ganze Breite)
+einen Schritt zurück. Die Eingabetaste springt jeweils zum nächsten Feld
+bzw. löst <b>Weiter</b> aus.
+
+<b>Schritt 1 -- Sammlungsname und Organisation</b>
+
+Gib die Grunddaten deiner Sammlung ein:
+
+- <b>Sammlungs-Name</b> (Pflichtfeld) -- z. B. "Schulbuchsammlung".
+  Dieser Name erscheint auf Leihausweisen und Barcodes.
+- <b>Organisation</b> (Pflichtfeld) -- z. B. "Gymnasium Musterstadt".
+  Erscheint ebenfalls auf Ausdrucken.
+- <b>verantwortlich</b> (optional) -- Name des Ansprechpartners.
+
+@image html 002_new_collection_name.jpg "Schritt 1: Sammlungsname"
+@image latex 002_new_collection_name.jpg "Schritt 1: Sammlungsname"
+
+
+<b>Schritt 2 -- Logo</b>
+
+Optional kannst du ein Logo auswählen, das auf Leihausweisen
+gedruckt wird. Klicke auf <b>suchen</b>, um eine Bilddatei
+(SVG, PNG, JPG oder XPM) auszuwählen. Eine Vorschau des Logos wird
+angezeigt. SVG-Dateien werden beim späteren Ausdruck automatisch in
+der Auflösung des Druckers gerendert.
+
+@image html 003_new_collection_logo.jpg "Schritt 2: Logo auswählen"
+@image latex 003_new_collection_logo.jpg "Schritt 2: Logo auswählen"
+
+<b>Schritt 3 -- Leihdauer</b>
+
+Hier legst du fest, ob es eine Standard-Ausleihfrist gibt:
+
+- Aktiviere <b>Standard-Leihdauer festlegen</b>.
+- Stelle die Dauer in <b>Jahr(en)</b>, <b>Monat(en)</b>
+  und <b>Tag(en)</b> ein.
+
+Ist keine Leihdauer gesetzt, werden Ausleihen ohne
+Rückgabedatum angelegt.
+
+Darunter legst du fest, ob Medien reserviert werden dürfen:
+<b>Reservierungen erlauben</b> ist voreingestellt; im Feld darunter
+stellst du ein, wie viele Tage eine Reservierung gilt
+(Standard: 14). Beide Werte lassen sich später in den
+@ref tutorial_settings_collection "Sammlungs-Einstellungen" ändern.
+
+@image html 004_new_collection_lending_period.jpg "Schritt 3: Leihdauer"
+@image latex 004_new_collection_lending_period.jpg "Schritt 3: Leihdauer"
+
+<b>Schritt 4 -- Schulische Gegenstände</b>
+
+Dieser Schritt richtet sich an Schulbibliotheken:
+
+- <b>Gegenstände sind meist schulisch</b> -- wenn aktiviert,
+  erhalten neue Gegenstände automatisch die Felder
+  <b>Fach</b>, <b>Jahrgangsstufe</b> und einen Schulbuch-Typ
+  (z. B. Arbeitsheft, Lehrerband).
+
+@tip
+Die <b>Jahrgangsstufe</b> wird als einzelne Stufen oder Bereiche
+eingetragen, durch Komma getrennt -- zum Beispiel <tt>5-7, 9</tt>. So
+kannst du später in der Suche gezielt nach einer Stufenspanne filtern.
+@endtip
+
+@image html 005_new_collection_school_items.jpg "Schritt 4: Schulische Gegenstände"
+@image latex 005_new_collection_school_items.jpg "Schritt 4: Schulische Gegenstände"
+
+@section tutorial_wizard_encryption Verschlüsselung einrichten (optional)
+
+Sofern der Verschlüsselungs-Treiber verfügbar ist, folgt der Schritt
+<b>Verschlüsselung</b>.  Er ermöglicht es, die neue `.col`-Datei von
+Anfang an mit einem Passwort zu schützen.
+
+- <b>Ohne Verschlüsselung</b>: Lasse die Checkbox
+  <b>Diese Sammlung verschlüsseln</b> deaktiviert und
+  klicke auf <b>Weiter</b>.
+- <b>Mit Verschlüsselung</b>: Aktiviere die Checkbox.
+  Gib ein Passwort in die Felder <b>Passwort</b> und
+  <b>Passwort bestätigen</b> ein.  Ein Stärke-Indikator zeigt die
+  Qualität des gewählten Passworts an.  Klicke auf
+  <b>Weiter</b>.
+
+Die Verschlüsselung lässt sich auch nachträglich auf der
+Einstellungs-Seite aktivieren oder deaktivieren
+(siehe @ref tutorial_encryption).
+
+@image html 007_new_collection_encryption.jpg "Schritt: Verschlüsselung einrichten"
+@image latex 007_new_collection_encryption.jpg "Schritt: Verschlüsselung einrichten"
+
+@note Das Datei-Passwort ist unabhängig vom Administrator-
+Passwort.  Wer das Datei-Passwort vergisst, kann die
+`.col`-Datei nicht mehr öffnen.
+
+@section tutorial_admin_password Administrator-Passwort
+
+Im Schritt <b>Administrator-Passwort</b> legst du das Passwort für den
+Administrator-Account fest. Gib das Passwort in beide Felder
+(<b>Passwort</b> und <b>Bestätigung</b>) ein und klicke <b>Weiter</b>.
+
+@image html 008_new_collection_admin_password.jpg "Administrator-Passwort festlegen"
+@image latex 008_new_collection_admin_password.jpg "Administrator-Passwort festlegen"
+
+@warning Merke dir dieses Passwort gut! Es wird für
+alle administrativen Funktionen benötigt. Das Passwort wird
+mit dem Algorithmus Argon2 gehasht in der Datenbank
+gespeichert und kann nicht im Klartext zurückgewonnen werden.
+@endwarning
+
+@section tutorial_wizard_file Speicherort
+
+Im letzten Schritt wählst du Dateinamen und Speicherort für deine
+Sammlung. Die Datei erhält die Endung `.col`. Mit <b>Fertigstellen</b>
+wird die Sammlung angelegt -- und, falls gewählt, sofort verschlüsselt
+und mit dem Administrator-Passwort versehen.
+
+Existiert die Datei bereits, erscheint zuvor eine Sicherheitsabfrage;
+lehnst du das Überschreiben ab, bleibst du auf diesem Schritt und kannst
+einen anderen Namen wählen.
+
+@image html 006_new_collection_file.jpg "Letzter Schritt: Speicherort"
+@image latex 006_new_collection_file.jpg "Letzter Schritt: Speicherort"
+
+@tip
+Speichere die Datei an einem Ort, der regelmäßig
+gesichert wird (z. B. Netzlaufwerk, Cloud-Ordner). Colman
+erstellt zwar automatisch Backups, eine zusätzliche Sicherung
+schadet aber nicht.
+@endtip
+
+Nach erfolgreicher Erstellung bist du automatisch als
+Administrator angemeldet und gelangst zur
+@ref tutorial_login_central "zentralen Navigationsseite".
+
+---
+
+@page tutorial_open_collection Existierende Sammlung öffnen
+
+Um eine bereits vorhandene `.col`-Datei zu laden, verwende
+auf der Startseite eine der folgenden Möglichkeiten:
+
+- <b>existierende Sammlung öffnen</b> -- öffnet einen
+  Dateidialog, über den du die gewünschte `.col`-Datei
+  auswählen kannst.
+- <b>zuletzt geöffnet</b> -- Ein Doppelklick auf einen
+  Tabelleneintrag öffnet die Sammlung direkt.
+
+@image html 010_open_collection.jpg "Existierende Sammlung öffnen"
+@image latex 010_open_collection.jpg "Existierende Sammlung öffnen"
+
+Bei einer nicht verschlüsselten Sammlung erscheint
+anschließend direkt die Anmeldeseite.
+
+@section tutorial_open_encrypted Verschlüsselte Sammlung öffnen
+
+Hast du bei der Erstellung oder später in den Einstellungen
+die Verschlüsselung aktiviert (siehe @ref tutorial_encryption),
+erscheint beim Öffnen der `.col`-Datei zunächst die Seite
+<b>Datenbank-Passwort</b>:
+
+1. Gib das Datei-Passwort in das Feld <b>Passwort</b>
+   ein.
+2. Klicke auf <b>OK</b> oder drücke
+   <b>Eingabe</b>.
+   - Bei richtigem Passwort wird die Sammlung geladen und
+     die Anmeldeseite erscheint.
+   - Bei falschem Passwort erscheint eine Fehlermeldung
+     (<b>Falsches Passwort oder Datenbankfehler.</b>) und
+     das Passwortfeld wird geleert. Du hast insgesamt
+     drei Versuche.
+3. Nach drei fehlgeschlagenen Versuchen wird die Datei
+   nicht geöffnet.
+
+Klickst du auf <b>zurück</b>, kehrst du zur
+Startseite zurück, ohne die Datei zu öffnen.
+
+@image html 011_database_password.jpg "Datenbank-Passwort eingeben"
+@image latex 011_database_password.jpg "Datenbank-Passwort eingeben"
+
+@note Das Datei-Passwort ist unabhängig vom
+Administrator-Passwort.  Hast du das Datei-Passwort
+vergessen, lässt sich die `.col`-Datei nicht mehr öffnen.
+
+@section tutorial_new_db_due Hinweis auf fällige Rückgaben beim Öffnen
+
+Wenn du eine Sammlung öffnest, prüft Colman automatisch, ob
+es Ausleihen gibt, die heute fällig sind. Ist das der Fall
+(bzw. am Freitag: fällig bis Montag), erscheint unmittelbar
+nach der Anmeldung die Seite <b>Fällige Rückgaben</b> mit
+einer Tabelle der betroffenen Gegenstände (Fälligkeitsdatum,
+Ausleiher, Anzahl, Name). Über die Druck-Schaltfläche
+kannst du die Liste ausdrucken; mit <b>zurück</b> gelangst du
+zur zentralen Navigationsseite.
+
+---
+
+@page tutorial_persons Personen (Ausleiher) anlegen
+
+Bevor Bücher verliehen werden können, müssen die Personen
+(Ausleiher) angelegt werden -- in der Regel Schülerinnen und
+Schüler oder Lehrkräfte.
+
+@section tutorial_persons_navigate Navigation
+
+Melde dich als Administrator an. Auf der <b>zentralen
+Navigationsseite</b> klicke auf <b>Ausleihende verwalten</b>.
+
+@image html 009_central_page.jpg "Zentrale Navigationsseite"
+@image latex 009_central_page.jpg "Zentrale Navigationsseite"
+
+@section tutorial_persons_add Neue Person anlegen
+
+Die Personenseite besteht aus zwei Bereichen: links die Liste
+der vorhandenen Personen mit Suchfeld, rechts das
+Eingabeformular.
+
+Über das Auswahlfeld <b>Klasse</b> neben dem Suchfeld kannst du
+die Liste auf eine einzelne Klasse oder auf Personen <b>ohne
+Klasse</b> einschränken.
+
+1. Fülle im rechten Bereich mindestens die Felder
+   <b>Nachname</b> und <b>Vorname</b> aus und gib im Feld
+   <b>Benutzername</b> oben rechts einen eindeutigen Benutzernamen
+   ein; Colman schlägt einen aus dem Namen vor.  Optional kannst du auch Titel, E-Mail, Telefon, Straße,
+   Ort, PLZ, Land, Klasse und Bemerkungen eintragen.
+
+   @tip
+   Wähle die Klasse möglichst aus der Liste aus.  Tippst du eine
+   Klasse ein, die es in der Klassenverwaltung noch nicht gibt, fragt
+   Colman beim Speichern, ob sie in die Klassenliste aufgenommen werden
+   soll.  So fallen Tippfehler wie „5 a“ statt „5a“ sofort auf.
+   @endtip
+2. Klicke auf <b>Als neuen Ausleiher einfügen</b>.  Der Button
+   bleibt deaktiviert, solange Name oder Benutzername fehlen.  Ist
+   der Benutzername bereits vergeben, erscheint eine Fehlermeldung
+   und die Person wird nicht angelegt.
+3. Die Person erscheint mit ihrem Benutzernamen in der linken
+   Liste und erhält automatisch einen Barcode.
+4. Unmittelbar danach erscheint die Seite
+   <b>Anfangspasswort setzen</b>.  Hier kannst du optional ein
+   <b>Passwort</b> vergeben (beide Felder müssen übereinstimmen).
+   Lässt du das Passwort leer oder verlässt die Seite mit
+   <b>zurück</b>, kann sich die Person erst anmelden, nachdem ein
+   Passwort nachträglich vergeben wurde (siehe
+   @ref tutorial_passwords).
+
+@image html 013_add_person.jpg "Person anlegen"
+@image latex 013_add_person.jpg "Person anlegen"
+
+@image html 014_initial_password.jpg "Anfangspasswort festlegen"
+@image latex 014_initial_password.jpg "Anfangspasswort festlegen"
+
+@tip
+Du kannst auch direkt den <b>Nachnamen</b> in das Suchfeld
+links eintippen und prüfen, ob die Person bereits existiert.
+Falls ja, erscheint eine Warnung, wenn du trotzdem eine
+zweite Person gleichen Namens anlegen willst.
+@endtip
+
+@tip
+Den Benutzernamen einer bestehenden Person kannst du auch
+nachträglich direkt auf der Personen-Seite setzen: Person
+auswählen → Feld <b>Benutzername</b> oben rechts befüllen →
+<b>Benutzernamen setzen</b> klicken.  Soll ein bestehender
+Benutzername geändert werden, erscheint ein Bestätigungs-Dialog.
+@endtip
+
+@section tutorial_persons_permissions Berechtigungen festlegen
+
+Im Bereich <b>Berechtigungen</b> (Symbol: Eule mit
+Schloss) auf der Personenseite passt du die Zugriffsrechte der
+ausgewählten Person an. Dafür brauchst du die Berechtigung
+<b>Personen bearbeiten</b>, <b>Ausleiher anlegen</b> oder
+<b>Datenerfasser anlegen</b>; vergeben kannst du nur Rechte, die
+du selbst besitzt (siehe @ref tutorial_permissions). Der Bereich
+ist direkt in die Personenseite eingebettet und zeigt alle
+verfügbaren Berechtigungen (z. B. das Recht,
+Reservierungen vorzunehmen) als Kontrollkästchen.
+
+@image html 016_permissions.jpg "Berechtigungen einer Person bearbeiten"
+@image latex 016_permissions.jpg "Berechtigungen einer Person bearbeiten"
+
+@note Neue Personen dürfen standardmäßig nur <b>Medien
+reservieren</b> und ihre <b>Persönlichen Daten einsehen</b>. Alle
+weiteren Rechte (z. B. <b>Ausleihen erfassen</b>) müssen
+ausdrücklich aktiviert werden.
+
+@tip Du kannst das Anlegen von Personen auch gezielt delegieren:
+Mit <b>Ausleiher anlegen</b> darf eine Person nur Ausleiher
+einrichten, mit <b>Datensammler anlegen</b> nur Personen für
+Anschaffungen und Aussortierungen. Es gilt dabei stets: Man kann
+nur Rechte vergeben, die man selbst besitzt.
+@endtip
+
+@section tutorial_persons_edit Person bearbeiten
+
+1. Wähle die gewünschte Person in der linken Liste aus.
+   Die Felder rechts werden automatisch mit ihren Daten
+   gefüllt.
+2. Ändere die gewünschten Felder.
+3. Klicke auf <b>Ausleiher ändern</b>.
+
+@section tutorial_persons_remove Person entfernen
+
+1. Wähle die Person in der Liste aus.
+2. Klicke auf <b>Ausleiher entfernen</b>.
+3. Bestätige die Sicherheitsabfrage.
+
+@warning Eine Person kann nur entfernt werden, wenn sie keine
+offenen Ausleihen hat. Gib gegebenenfalls zuerst alle
+Ausleihen zurück.
+@endwarning
+
+@section tutorial_persons_clear Felder leeren
+
+Mit <b>Felder löschen</b> setzt du alle Eingabefelder
+rechts zurück und hebst die Auswahl in der Liste auf. Das ist
+nützlich, wenn du nach dem Bearbeiten einer Person eine neue
+Person anlegen möchtest.
+
+---
+
+@page tutorial_person_barcodes Benutzerausweise (Leihausweise) drucken
+
+Jede Person erhält automatisch einen Barcode. Daraus lassen
+sich Leihausweise drucken, die an der Ausleihtheke mit einem
+Barcode-Scanner eingelesen werden können.
+
+@section tutorial_person_barcodes_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>Ausweise drucken</b>.
+
+@section tutorial_person_barcodes_print Druckvorgang
+
+1. Links erscheint eine durchsuchbare Personenliste. Wähle
+   die Personen aus, für die du Ausweise drucken
+   möchtest. Du kannst mit der Suche die Liste eingrenzen
+   und dann <b>alle auswählen</b> klicken.
+
+   Über das Auswahlfeld <b>Klasse</b> neben dem Suchfeld zeigst du
+   nur die Personen einer bestimmten Klasse an.
+
+   @tip
+   So druckst du die Ausweise einer ganzen Klasse auf einmal: Klasse
+   wählen, <b>alle auswählen</b> klicken, drucken.
+   @endtip
+
+   Möchtest du nur die zuletzt angelegten Personen sehen,
+   aktiviere neben den Auswahlknöpfen das Kontrollkästchen
+   <b>Nur die letzten … angelegten Benutzer</b> und stelle im
+   Drehfeld daneben die gewünschte Anzahl ein. Die Liste zeigt
+   dann nur noch die entsprechend zuletzt angelegten Personen.
+   Standardmäßig ist diese Begrenzung ausgeschaltet und es werden
+   alle Personen angezeigt.
+
+   @tip
+   Praktisch, nachdem du gerade eine neue Klasse oder eine Gruppe
+   neuer Ausleiher angelegt hast: Begrenze die Liste auf die
+   letzten <i>n</i> Personen und drucke mit <b>alle auswählen</b>
+   schnell genau deren Ausweise.
+   @endtip
+
+2. Klicke auf <b>Leihausweise drucken</b>.
+3. Auf der nächsten Seite wählst du oben im Feld <b>Layout</b>
+   das gewünschte Ausweislayout. Angeboten werden nur die selbst
+   angelegten, benannten Ausweislayouts (siehe
+   @ref tutorial_label_layouts); voreingestellt ist das zuletzt
+   benutzte. Bei einem Bogenlayout klickst du in der Vorschau des
+   Bogens die Positionen an, auf die gedruckt werden soll (höchstens
+   so viele, wie Ausweise zu drucken sind); der Zähler unten rechts
+   zeigt, wie viele Positionen gewählt sind, <b>Alle abwählen</b>
+   hebt die Auswahl auf, <b>Alle auswählen</b> wählt ab der ersten
+   Position so viele Positionen, bis das Maximum erreicht ist.
+4. Was auf einem Ausweis steht, legt das Ausweislayout fest --
+   üblicherweise:
+   - das Sammlungslogo (falls vorhanden; SVG-Logos werden in der
+     Drucker-DPI gerendert),
+   - den Sammlungsnamen und die Organisation,
+   - das Ausstellungsdatum,
+   - den vollständigen Namen der Person (fett),
+   - den Code-128-Barcode.
+5. Klicke auf <b>Drucken</b>. Bei einem Bogenlayout erscheint
+   beim ersten Mal der Druckdialog zur Druckerauswahl; bei einem
+   Thermo-Etikettendrucker wird ohne Dialog direkt gedruckt. Sind
+   mehr Ausweise ausgewählt als Positionen, wählst du danach die
+   Positionen auf dem nächsten Bogen. Mit <b>Abbrechen</b> brichst
+   du den Druck ab.
+
+Ist auf der Auswahlseite <b>Rahmen anzeigen</b> aktiviert, wird um
+jeden Ausweis eine dünne Schnittlinie gedruckt.
+
+@image html 070_id_cards_print_01.jpg "Leihausweise drucken"
+@image latex 070_id_cards_print_01.jpg "Leihausweise drucken"
+@image html 071_id_cards_print_02.jpg "Leihausweise drucken: Layout und Positionen"
+@image latex 071_id_cards_print_02.jpg "Leihausweise drucken: Layout und Positionen"
+@image html 072_id_cards_print_recent.jpg "Ausweise drucken: nur zuletzt angelegte Benutzer"
+@image latex 072_id_cards_print_recent.jpg "Ausweise drucken: nur zuletzt angelegte Benutzer"
+
+
+@par Ausweislayout anlegen
+Ausweislayouts werden im <b>Ausweislayout-Editor</b> angelegt
+(Schaltfläche <b>Ausweislayout bearbeiten</b> auf der zentralen
+Navigationsseite). Dort wählst du oben Drucker und Etikettenformat
+und ordnest darunter die Zonen für Barcode, Text und Logo an: Ziehe
+eine Zone, um sie zu verschieben; ziehe einen der weißen Anfasser an
+Ecken und Kantenmitte, um sie zu vergrößern oder zu verkleinern. Ein
+<b>Doppelklick</b> dehnt eine Zone automatisch auf die größtmögliche
+Fläche aus, ohne die anderen zu überlappen. Drucker, Format und
+Anordnung bilden zusammen <b>ein</b> benanntes Layout, das du mit dem
+einen <b>Speichern</b>-Knopf unten rechts sicherst. So lassen sich
+mehrere Ausweislayouts anlegen (siehe @ref tutorial_label_layouts).
+
+@image html 021_id_card_layout.jpg "Ausweislayout-Editor"
+@image latex 021_id_card_layout.jpg "Ausweislayout-Editor"
+
+@tip
+Drucke die Ausweise auf Karton oder Etikettenpapier,
+damit sie haltbar sind. Alternativ kannst du sie
+laminieren.
+@endtip
+
+---
+
+@page tutorial_classes Klassenverwaltung
+
+Die Klassenverwaltung ermöglicht es, Schulklassen anzulegen,
+umzubenennen und zu löschen sowie Klassenübergänge zum neuen
+Schuljahr zu planen.  Die Klassenzugehörigkeit einer Person
+(eingetragen im Feld <b>Klasse</b> in der Personenverwaltung)
+wird in der Ansicht @ref tutorial_open_lendings "Offene Ausleihen"
+als Filter genutzt.
+
+@section tutorial_classes_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>Klassenverwaltung</b>.
+
+@section tutorial_classes_main Hauptseite: Klassen verwalten
+
+Die Hauptseite zeigt links die Liste aller vorhandenen Klassen
+sowie oben den eingestellten Bereich der <b>Klassenstufen</b>
+(z. B. 1 bis 4 an einer Grundschule, 5 bis 13 an einem
+Gymnasium).
+
+@image html 170_classes.jpg "Klassenverwaltung -- Hauptseite"
+@image latex 170_classes.jpg "Klassenverwaltung -- Hauptseite"
+
+Die verfügbaren Aktionen:
+
+- <b>Hinzufügen</b> -- Neue Klasse anlegen (Eingabefeld erscheint)
+- <b>Entfernen</b> -- Markierte Klasse löschen (nach Bestätigung)
+- <b>Umbenennen</b> -- Markierte Klasse umbenennen
+- <b>Speichern</b> -- Bereich der Klassenstufen speichern
+- <b>Neues Schuljahr</b> -- Schuljahresplanung starten (s. u.)
+
+@note Das Entfernen einer Klasse hebt nur den Klassenname auf;
+die zugeordneten Personen bleiben unverändert bestehen.
+
+@section tutorial_classes_new_year Neues Schuljahr planen
+
+Über <b>Neues Schuljahr</b> öffnet sich ein zweistufiger Assistent,
+der die Klassenübergänge automatisiert:
+
+<b>Seite 1 -- Übergänge festlegen</b>
+
+Für jede bestehende Klasse zeigt eine Tabelle den aktuellen
+Klassennamen und ein bearbeitbares Feld für den neuen Namen
+(z. B. "5a" → "6a"). Klassen, die aus dem Bereich der Klassenstufen
+herausfallen (Abschlussklassen), erhalten keinen neuen Namen und
+werden gelöscht.  In der letzten Zeile <b>(neue Klasse)</b> --
+weitere Zeilen erzeugt <b>Neue Klasse hinzufügen</b> -- trägst du
+frische Eingangsklassen ein (z. B. "1a" für die neuen
+Erstklässler).  Mit <b>Weiter</b> gelangst du zu Seite 2.
+
+@image html 171_new_school_year_01.jpg "Neues Schuljahr -- Seite 1: Übergänge festlegen"
+@image latex 171_new_school_year_01.jpg "Neues Schuljahr -- Seite 1: Übergänge festlegen"
+
+<b>Seite 2 -- Prüfen und ausführen</b>
+
+Eine Übersichtstabelle zeigt, nach Klassen gruppiert, jede
+Person mit ihrer aktuellen und ihrer neuen Klasse; Personen ohne
+neue Klasse (Abgänger) haben ein leeres Feld <b>Neue Klasse</b>.  Optional aktivierst du
+<b>Personen ohne neue Klasse löschen</b>, um ausgeschiedene
+Schülerinnen und Schüler automatisch aus der Datenbank zu
+entfernen.  Mit <b>Ausführen</b> werden alle Änderungen
+auf einmal angewendet.
+
+@image html 172_new_school_year_02.jpg "Neues Schuljahr -- Seite 2: Prüfen und ausführen"
+@image latex 172_new_school_year_02.jpg "Neues Schuljahr -- Seite 2: Prüfen und ausführen"
+
+@warning Das Ausführen des Schuljahreswechsels ist nicht
+rückgängig zu machen.  Erstelle vorher eine
+Sicherungskopie der `.col`-Datei.
+@endwarning
+
+---
+
+@page tutorial_login Einloggen
+
+Wenn du eine bestehende Sammlung öffnest, erscheint zunächst
+die Anmeldeseite.
+
+@section tutorial_login_selection Auswahl des Kontos
+
+Die Login-Auswahl zeigt bis zu drei Schaltflächen sowie ein
+Eingabefeld für den Barcode-Scanner:
+
+- <b>Administrator-Anmeldung</b> -- Anmeldung als Administrator mit
+  vollem Zugriff auf alle Verwaltungsfunktionen.
+- <b>Benutzer-Login</b> -- Anmeldung als regulärer Benutzer
+  mit eingeschränktem Zugriff.
+- <b>Sammlung schließen</b> -- kehrt zur Startseite zurück.
+- <b>oder Ausweis einscannen</b> -- Eingabefeld zum Einscannen
+  eines Benutzerausweises (Barcode-Scanner).
+
+<b>Benutzer-Login</b> erscheint nur, wenn es in der Sammlung neben
+dem Administrator weitere Personen gibt. Darunter kannst du mit
+<b>A-</b> und <b>A+</b> die Schriftgröße anpassen.
+
+@image html 012_login_selection.jpg "Login-Auswahl"
+@image latex 012_login_selection.jpg "Login-Auswahl"
+
+
+@section tutorial_login_admin Administrator-Anmeldung
+
+Per Schaltfläche:
+
+1. Klicke auf <b>Administrator-Anmeldung</b>.
+2. Gib das Administrator-Passwort ein.
+3. Klicke auf <b>Anmelden</b>.
+
+Per Barcode-Scanner: Scanne den Ausweis-Barcode des Administrators
+auf der Anmeldeseite -- die Administrator-Anmeldeseite öffnet sich
+sofort.
+
+Bei falschem Passwort erscheint <b>Falsches Passwort!</b> und
+die Eingabe wird für drei Sekunden gesperrt.
+
+
+@section tutorial_login_user Benutzer-Anmeldung
+
+Per Schaltfläche:
+
+1. Klicke auf <b>Benutzer-Login</b>.
+2. Gib deinen <b>Benutzernamen</b> oder scanne deinen
+   <b>Ausweis-Barcode</b> in das erste Feld ein.
+3. Gib dein <b>Passwort</b> ein.
+4. Klicke auf <b>Anmelden</b>.
+
+Per Barcode-Scanner auf der Anmeldeseite: Scanne den
+Ausweis-Barcode direkt auf der Login-Auswahlseite -- das
+Passwortfeld öffnet sich sofort mit vorausgefülltem
+Barcode-Feld und dem Fokus auf dem Passwort-Feld.
+
+Bei falschem Benutzernamen, Barcode oder Passwort erscheint
+eine Fehlermeldung und die Eingabe wird für drei Sekunden
+gesperrt.
+
+@note Benutzer brauchen ein Passwort, um sich einloggen zu
+können. Der Administrator vergibt es über die
+Personenverwaltung (siehe @ref tutorial_passwords). Für den
+Barcode-Login ist kein Benutzername erforderlich -- der
+Ausweis-Barcode genügt.
+
+@section tutorial_login_central Zentrale Navigationsseite
+
+Nach erfolgreicher Anmeldung erscheint die <b>zentrale
+Navigationsseite</b>. Sie ist das Herzstück von Colman und
+bietet Zugang zu allen Funktionen.
+
+Die Schaltflächen sind in vier Zeilen nach Aufgabenbereichen
+geordnet -- oben das, was am häufigsten gebraucht wird; innerhalb
+einer Zeile folgen sie dem üblichen Arbeitsablauf. Der Administrator
+sieht alle Schaltflächen außer <b>Meine Reservierungen</b>. Reguläre
+Benutzer sehen nur die Schaltflächen, für die sie die in Klammern
+genannte Berechtigung haben (siehe @ref tutorial_persons_permissions);
+ausgeblendete Schaltflächen hinterlassen keine Lücke, und Zeilen ohne
+sichtbare Schaltfläche entfallen ganz.
+
+<b>Zeile 1 -- Ausleihtheke</b>
+- <b>ausleihen</b> (<b>Ausleihen erfassen</b>); Benutzer, die nur
+  <b>Medien reservieren</b> dürfen, sehen hier <b>reservieren</b>
+- <b>Sammelausleihe</b> (<b>Ausleihen erfassen</b>) -- ein Exemplar
+  an jede Person einer Gruppe, z. B. einer Klasse (siehe
+  @ref tutorial_group_lending)
+- <b>zurückbringen</b> (<b>Rückgaben erfassen</b>)
+- <b>offene Ausleihen</b> (immer sichtbar; Benutzer ohne
+  <b>Personenlisten ansehen</b> sehen nur ihre eigenen Ausleihen)
+- <b>Meine Reservierungen</b> (nur Benutzer mit
+  <b>Medien reservieren</b>)
+- <b>Suche</b> (<b>Bestandslisten ansehen</b>)
+- <b>Barcodes</b> (immer sichtbar) -- Barcode mit der Kamera einlesen
+  (siehe @ref tutorial_barcode_dispatch); nur aktiv, wenn eine Kamera
+  angeschlossen ist
+
+<b>Zeile 2 -- Bestand</b>
+- <b>anschaffen</b> (<b>Anschaffungen erfassen</b>)
+- <b>aussortieren</b> (<b>Aussortierungen erfassen</b>)
+- <b>Etiketten drucken</b> (<b>Etiketten drucken</b>)
+- <b>Signaturen drucken</b> (<b>Signaturschilder drucken</b>)
+- <b>Verlauf</b> (<b>Historie ansehen</b>)
+
+<b>Zeile 3 -- Personen und eigenes Konto</b>
+- <b>Ausleihende verwalten</b> (<b>Personen bearbeiten</b>,
+  <b>Ausleiher anlegen</b> oder <b>Datenerfasser anlegen</b>)
+- <b>Ausweise drucken</b> (<b>Ausweise drucken</b>)
+- <b>Klassenverwaltung</b> (<b>Klassen verwalten</b>)
+- <b>Passwörter ändern</b> (nur Administrator) bzw.
+  <b>Passwort ändern</b> (Benutzer, für das eigene Konto)
+- <b>abmelden</b> (immer sichtbar)
+
+<b>Zeile 4 -- Einrichtung</b>
+- <b>Einstellungen</b> (immer sichtbar)
+- <b>Kategorien verwalten</b> (<b>Kategorien ändern</b>)
+- <b>Ausweislayout</b>, <b>Buchkarten-Layout</b> und
+  <b>Signatur-Layout</b> (jeweils <b>Ausweislayout bearbeiten</b>)
+- <b>Drucker kalibrieren</b> (nur Administrator)
+
+In der Statusleiste unten wird angezeigt, wer gerade
+angemeldet ist.
+
+@image html 009_central_page.jpg "Zentrale Navigationsseite (Administrator)"
+@image latex 009_central_page.jpg "Zentrale Navigationsseite (Administrator)"
+
+@image html 018_central_page_restricted.jpg "Zentrale Navigationsseite (Benutzer)"
+@image latex 018_central_page_restricted.jpg "Zentrale Navigationsseite (Benutzer)"
+
+
+---
+
+@page tutorial_logout Abmelden
+
+Wenn du deine Arbeit beendet hast oder ein anderer Benutzer
+sich anmelden soll, kannst du dich abmelden, ohne das
+Programm zu beenden.
+
+@section tutorial_logout_steps Vorgehensweise
+
+1. Klicke auf der zentralen Navigationsseite auf
+   <b>abmelden</b>.
+2. Es erscheint eine Sicherheitsabfrage: <b>Wirklich
+   abmelden?</b>
+3. Bestätige mit <b>Ja</b>. Mit <b>Nein</b> kehrst du
+   zur zentralen Navigationsseite zurück, ohne dich
+   abzumelden.
+
+Nach der Abmeldung erscheint die Login-Auswahlseite (siehe
+@ref tutorial_login_selection). Die Datenbank bleibt
+geöffnet, sodass sich sofort ein anderer Benutzer oder der
+Administrator anmelden kann.
+
+@image html 160_logout.jpg "Abmelden: Sicherheitsabfrage"
+@image latex 160_logout.jpg "Abmelden: Sicherheitsabfrage"
+
+
+@tip
+Melde dich ab, wenn du die Ausleihtheke verlässt
+oder eine Pause machst. So wird verhindert, dass jemand
+anderes unter deinem Namen Änderungen vornimmt.
+@endtip
+
+---
+
+@page tutorial_items Gegenstände (Medien) anlegen
+
+Gegenstände -- in der Regel Bücher -- werden über die
+Funktion <b>anschaffen</b> angelegt. Colman führt dich
+dabei in zwei Schritten durch den Vorgang: Zuerst wählst du
+einen vorhandenen Gegenstand aus oder erfasst einen neuen,
+danach gibst du die Anzahl der angeschafften Exemplare ein.
+
+@section tutorial_items_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>anschaffen</b>.
+
+@section tutorial_items_step1 Schritt 1: Gegenstand auswählen oder neu erfassen
+
+Die Seite <b>Schritt 1: Bitte wähle den Gegenstand!</b> ist
+zweigeteilt: Links steht die Liste der vorhandenen Medien des
+gewählten Medientyps, rechts die Daten des ausgewählten bzw.
+neu zu erfassenden Mediums.
+
+- Über das Auswahlfeld <b>Typ</b> legst du den Medientyp fest
+  (z. B. "Buch", "DVD", "Gesellschaftsspiel"). Voreingestellt ist
+  der Standard-Typ aus den Sammlungs-Einstellungen. Die Liste
+  links zeigt nur Medien dieses Typs, und rechts erscheinen die
+  zum Typ passenden Felder. Bereits eingegebene Daten bleiben
+  beim Wechsel des Typs erhalten.
+- Unterhalb der Liste wird die Anzahl der angezeigten Medien
+  genannt. Bei sehr großen Beständen erscheint <b>Mehr
+  laden...</b> -- ein Klick lädt weitere Medien nach.
+- <b>Felder leeren</b> hebt die Auswahl auf und leert die
+  Felder rechts.
+
+@image html 030_acquisition_01.jpg "anschaffen -- Schritt 1: Gegenstand auswählen"
+@image latex 030_acquisition_01.jpg "anschaffen -- Schritt 1: Gegenstand auswählen"
+
+<b>Vorhandenes Medium suchen (weitere Exemplare):</b>
+- Gib in das Feld <b>Name/Barcode</b> den Anfang des Namens,
+  den Colman-Barcode oder die ISBN ein, oder scanne den Barcode
+  ein. Die Suche startet, sobald du <b>Eingabe</b> drückst bzw.
+  das Feld verlässt; die Liste zeigt dann nur noch die
+  passenden Medien. Gibt es genau einen Treffer, wird er
+  automatisch ausgewählt.
+- Wähle das gewünschte Medium in der Liste aus. Seine Daten
+  erscheinen rechts (schreibgeschützt). Mit
+  <b>Weitere Exemplare anschaffen</b> geht es weiter zu
+  @ref tutorial_items_step2 "Schritt 2".
+
+@image html 031_acquisition_02.jpg "anschaffen -- Schritt 1: vorhandenes Medium gefunden"
+@image latex 031_acquisition_02.jpg "anschaffen -- Schritt 1: vorhandenes Medium gefunden"
+
+<b>Neues Medium anlegen:</b>
+- Fülle die Felder auf der rechten Seite aus (siehe unten).
+  Sobald ein Name eingetragen ist, erscheint die Schaltfläche
+  <b>Als neuer Gegenstand</b>; sie führt zu
+  @ref tutorial_items_step2 "Schritt 2".
+- Oder gib eine ISBN bzw. einen Produkt-Barcode (EAN/UPC) in
+  das Feld <b>Name/Barcode</b> ein: Findet Colman keinen
+  vorhandenen Eintrag, startet automatisch eine Internetsuche,
+  deren Ergebnis in die Felder rechts übernommen wird.
+- Oder gib einen <b>Titel als Freitext</b> ein: Findet Colman
+  keinen vorhandenen Eintrag, öffnet sich bei den Medientypen
+  Buch, CD, DVD und Blu-ray automatisch die
+  @ref tutorial_items_title_search "Titelsuche im Internet"
+  (bei Gesellschaftsspielen die BoardGameGeek-Suche, sofern sie
+  in den Programmeinstellungen aktiviert ist).
+
+<b>Mediendaten eingeben</b>
+
+Beim Anlegen eines neuen Mediums füllst du die Daten aus:
+
+- <b>Name/Titel</b> (Pflichtfeld) -- Titel des Buches, der DVD usw.
+- <b>Fach</b> und <b>Jahrgangsstufe</b> -- bei schulischen
+  Gegenständen.
+- <b>schulischer Gegenstand</b> -- Häkchen setzen, wenn es
+  sich um ein Schulbuch handelt.
+- <b>Signatur oben</b> / <b>Signatur unten</b> -- optionale
+  Beschriftung für das Rückenschildchen (z. B. Sachgebiet
+  oben, Autorkürzel unten).
+- <b>Beschreibung</b> -- Kurzbeschreibung oder Inhaltsangabe.
+- <b>Schlüsselwörter</b> -- thematische Stichworte.
+- Zusätzliche typspezifische Felder (je nach Medientyp).
+
+@tip
+Die Signaturen des zuletzt neu angeschafften Gegenstands werden
+bei der nächsten Anschaffung automatisch vorgeschlagen. Wenn du
+mehrere Bücher desselben Sachgebiets erfasst, musst du sie also
+nur einmal eintippen.
+@endtip
+
+<b>ISBN-Suche (empfohlen):</b>
+
+Gib die ISBN in das entsprechende Feld ein oder lies
+den ISBN-Barcode auf dem Buchrücken mit einem
+<b>Barcode-Scanner</b> ein. Ist die ISBN-Suche in den
+Programmeinstellungen aktiviert (siehe @ref tutorial_prefs),
+sucht Colman automatisch im Internet nach Buchtitel, Autor,
+Erscheinungsjahr und weiteren Angaben. In vielen Fällen
+musst du danach nichts mehr von Hand eingeben.
+
+Alternativ kannst du auf <b>Internet-Suche</b> klicken,
+um eine bereits eingegebene ISBN nachzuschlagen.
+
+@anchor tutorial_items_title_search
+<b>Titelsuche im Internet (Bücher, CDs, DVDs, Blu-rays):</b>
+
+Auch ohne ISBN oder Barcode kannst du Mediendaten aus dem
+Internet übernehmen. Klicke bei leerem ISBN- bzw. EAN-Feld
+auf <b>Internet-Suche</b> -- oder gib einen Titel als Freitext
+in das Feld <b>Name/Barcode</b> ein. Es öffnet sich die
+Seite <b>Titelsuche</b>:
+
+1. Der eingegebene Titel ist bereits in das Suchfeld
+   übernommen und die Suche startet automatisch; mit
+   <b>Suchen</b> kannst du einen geänderten Begriff erneut
+   suchen.
+2. Colman fragt alle passenden Dienste gleichzeitig ab --
+   je nach Medientyp:
+   - <b>Buch</b>: OpenLibrary, Google Books und die
+     konfigurierten Bibliothekskataloge (SRU-Server, z. B.
+     Deutsche Nationalbibliothek)
+   - <b>CD</b>: MusicBrainz und die SRU-Server
+   - <b>DVD / Blu-ray</b>: die SRU-Server
+3. Die Trefferliste zeigt zu jedem Eintrag Titel und --
+   sofern verfügbar -- den Autor bzw. Interpreten sowie
+   Erscheinungsjahr und Quelle, z. B.
+   „Der Hobbit — J. R. R. Tolkien (1937) — Open Library“.
+   So lassen sich gleichnamige Titel leichter unterscheiden.
+4. Wähle den passenden Treffer aus und klicke auf
+   <b>Übernehmen</b> (oder doppelklicke den Eintrag).
+   Die Felder des Mediums -- etwa Autor, Verlag,
+   Erscheinungsjahr, Regie oder Interpret -- werden
+   automatisch ausgefüllt.
+
+Welche Dienste abgefragt werden, legst du in den
+Programmeinstellungen fest (siehe @ref tutorial_prefs).
+
+@tip
+Die Suchergebnisse der Bibliothekskataloge werden nach dem
+gewählten Medientyp gefiltert: Bei einer DVD-Suche werden
+z. B. Bücher gleichen Titels automatisch aussortiert.
+Trotzdem lohnt ein Blick auf die Quellenangabe der Treffer --
+dieselbe Ausgabe kann von mehreren Diensten gemeldet werden.
+@endtip
+
+<!-- @image html 037_acquisition_title_search.jpg "anschaffen -- Titelsuche im Internet" -->
+<!-- @image latex 037_acquisition_title_search.jpg "anschaffen -- Titelsuche im Internet" -->
+<!-- @note Screenshot einfügen: Seite „Titelsuche“ mit gefülltem Suchfeld und Trefferliste (Titel, Autor, Jahr, Quelle), ein Treffer ausgewählt -->
+
+<b>Titelbild:</b>
+
+- Klicke auf <b>suchen</b> neben dem Feld
+  <b>Vorschaubild</b>, um ein Bild von der Festplatte zu
+  laden, oder auf <b>Scannen</b>, um es mit der Kamera
+  aufzunehmen. <b>Vergrößern</b> zeigt das Bild in voller
+  Größe.
+- Ist in den Programmeinstellungen der automatische
+  Thumbnail-Download aktiviert, wird das Titelbild bei der
+  ISBN-Suche automatisch heruntergeladen.
+- Mit <b>Entfernen</b> löst du ein gesetztes Titelbild wieder
+  vom Medium, etwa wenn die automatische Suche ein falsches
+  Bild geliefert hat.
+- <b>Amazon</b> holt ein Titelbild aus dem Internet: Hat die
+  ISBN-Suche eine Bildadresse gefunden, wird dieses Bild direkt
+  übernommen; andernfalls (oder wenn das Medium schon ein
+  Titelbild hat) öffnet sich in Colman eine Amazon.de-Suche nach
+  der ISBN/EAN bzw. dem Namen des Mediums. Ein Klick auf ein
+  Produktbild übernimmt es als Titelbild; <b>zurück</b> kehrt
+  ohne Änderung zurück.
+
+@anchor tutorial_cover_copyright
+<b>Welche Titelbilder darfst du verwenden?</b>
+
+Titelbilder sind urheberrechtlich geschützt. Die Rechte liegen
+meist beim Verlag, bei der Illustratorin bzw. dem Illustrator
+oder bei der Fotografin bzw. dem Fotografen -- nicht bei Amazon
+oder den anderen Diensten, von denen Colman die Bilder lädt.
+Amazon selbst räumt an den Inhalten seiner Seiten keine Rechte
+über die persönliche, nicht-kommerzielle Nutzung hinaus ein;
+das Sammeln, Speichern oder anderweitige Weiterverwenden der
+Inhalte ist von den
+<a href="https://www.amazon.de/gp/help/customer/display.html?nodeId=201909000">Nutzungsbedingungen</a>
+nicht gedeckt. Ob du ein Bild in deiner Sammlung speichern
+darfst, hängt deshalb allein vom Urheberrecht ab:
+
+- <b>Private Sammlung:</b> Kopien zum rein privaten Gebrauch
+  sind erlaubt (§ 53 UrhG), solange die Sammlung nicht anderen
+  zugänglich gemacht wird.
+- <b>Bibliothek:</b> Öffentlich zugängliche Bibliotheken ohne
+  kommerzielle Zwecke dürfen Werke aus ihrem eigenen Bestand
+  zur Indexierung und Katalogisierung vervielfältigen
+  (§ 60e Abs. 1 UrhG) und in ihrem Katalog zeigen. Das gilt nur
+  für Medien, die die Bibliothek tatsächlich besitzt.
+- <b>Veröffentlichung:</b> Wer die Bilder auf einer öffentlichen
+  Webseite, in einem Newsletter o. Ä. zeigen will, braucht die
+  Zustimmung der Rechteinhaber.
+
+Am sichersten ist es immer, das Cover des eigenen Exemplars zu
+fotografieren oder einzuscannen (<b>Scannen</b>). Diese Hinweise
+sind keine Rechtsberatung; frage im Zweifel beim Schulträger
+oder bei den Rechteinhabern nach.
+
+@tip
+Über der Amazon-Seite zeigt Colman einen kurzen Hinweis auf
+diese Regeln mit einem Link zu den Amazon-Nutzungsbedingungen.
+@endtip
+
+@image html 032_acquisition_03.jpg "anschaffen -- Mediendaten eingeben"
+@image latex 032_acquisition_03.jpg "anschaffen -- Mediendaten eingeben"
+
+@image html 033_acquisition_04.jpg "anschaffen -- Typspezifische Felder"
+@image latex 033_acquisition_04.jpg "anschaffen -- Typspezifische Felder"
+
+@section tutorial_items_step2 Schritt 2: Anzahl der Exemplare
+
+Die Seite <b>Schritt 2: Anschaffungs-Daten bearbeiten</b>
+zeigt den Namen des Gegenstands.
+
+1. Gib im Feld <b>Wieviele solche Gegenstände wurden
+   angeschafft?</b> die Anzahl der neuen Exemplare ein
+   (Standard: 1).
+2. Klicke auf <b>abschließen</b>. Die Anschaffung wird sofort
+   gespeichert; als Anschaffungszeitpunkt trägt Colman
+   automatisch das aktuelle Datum und die aktuelle Uhrzeit ein.
+
+Mit <b>zurück</b> kehrst du zu Schritt 1 zurück, ohne etwas zu
+speichern.
+
+@image html 034_acquisition_05.jpg "anschaffen -- Schritt 2: Anzahl der Exemplare"
+@image latex 034_acquisition_05.jpg "anschaffen -- Schritt 2: Anzahl der Exemplare"
+
+
+@section tutorial_items_done Abschluss
+
+Nach dem Speichern erscheint die Frage <b>Möchtest du
+weitere Anschaffungen erfassen?</b> mit folgenden
+Möglichkeiten:
+
+- <b>ja</b> -- weiteren Gegenstand erfassen (Rückkehr zu
+  Schritt 1).
+- <b>nein</b> -- zurück zur zentralen Navigationsseite.
+
+Direkt unterhalb befinden sich drei Druck-Schaltflächen für
+den neu erfassten Gegenstand:
+
+- <b>Buchkarte drucken</b> -- öffnet die Etiketten-Druckseite
+  mit dem neuen Gegenstand bereits ausgewählt.  Von dort
+  lässt sich das Buchetikett ausdrucken.
+  Mit <b>zurück</b> kehrst du wieder auf diese
+  Abschlussseite zurück, so dass du anschließend noch
+  Signatur-Etiketten drucken kannst.
+- <b>Signatur oben drucken</b> -- druckt ein Signatur-Etikett
+  mit der oberen Signatur des neuen Gegenstands.
+- <b>Signatur unten drucken</b> -- druckt ein Signatur-Etikett
+  mit der unteren Signatur des neuen Gegenstands.
+
+@image html 036_acquisition_07.jpg "anschaffen -- Abschluss mit Druckoptionen"
+@image latex 036_acquisition_07.jpg "anschaffen -- Abschluss mit Druckoptionen"
+
+@note Die Signatur-Druck-Schaltflächen verwenden das zuletzt
+benutzte Signaturlayout.  Ist es ein angeschlossener
+Thermo-Etikettendrucker, wird sofort gedruckt; andernfalls
+öffnet sich die Signatur-Druckseite zur Layout-Wahl.  Ist noch
+kein Signaturlayout angelegt, lässt sich nicht drucken.
+Einzelheiten zum Einrichten von Layouts findest du unter
+@ref tutorial_label_layouts "Label-Layouts bearbeiten".
+
+---
+
+@page tutorial_item_barcodes Etiketten für Gegenstände drucken
+
+Jeder Gegenstand erhält automatisch einen Barcode. Daraus
+lassen sich Etiketten drucken, die du auf den Gegenstand
+(z. B. Buchrücken) kleben kannst.
+
+@section tutorial_item_barcodes_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>Etiketten drucken</b>.
+
+@section tutorial_item_barcodes_select Gegenstände auswählen
+
+1. Suche den gewünschten Gegenstand im Suchfeld
+   (<b>Barcode/ISBN/Name</b>).
+2. Setze in der Liste das Häkchen vor jedem Gegenstand, für den
+   ein Etikett gedruckt werden soll, oder klicke
+   <b>Alle auswählen</b> (<b>Alle abwählen</b> entfernt alle
+   Häkchen). Ein Klick auf einen Eintrag zeigt rechts seine Daten.
+3. Klicke auf <b>Etiketten drucken</b>.
+
+Möchtest du nur die zuletzt angeschafften Medien sehen, aktiviere
+neben den Auswahlknöpfen das Kontrollkästchen <b>Nur die letzten …
+angeschafften Items</b> und stelle im Drehfeld daneben die gewünschte
+Anzahl ein. Die Tabelle zeigt dann nur noch die entsprechend zuletzt
+angeschafften Gegenstände. Standardmäßig ist diese Begrenzung
+ausgeschaltet und es werden alle Gegenstände angezeigt.
+
+Brauchst du stattdessen einen festen Zeitraum, aktiviere das
+Kontrollkästchen <b>Angeschafft zwischen</b> und stelle in den beiden
+Datumsfeldern daneben das Anfangs- und das Enddatum ein. Die Tabelle
+zeigt dann nur Gegenstände, die in diesem Zeitraum angeschafft wurden
+(beide Tage eingeschlossen). Die beiden Einschränkungen schließen sich
+gegenseitig aus: Aktivierst du die eine, wird die andere abgeschaltet.
+
+@tip
+Praktisch nach einer größeren Lieferung: Begrenze die Liste auf die
+letzten <i>n</i> Anschaffungen oder gib den Lieferzeitraum unter
+<b>Angeschafft zwischen</b> an und wähle mit <b>Alle auswählen</b>
+schnell genau die neu eingetroffenen Medien zum Beschriften aus.
+@endtip
+
+@image html 080_item_labels_print_01.jpg "Etiketten drucken: Gegenstände auswählen"
+@image latex 080_item_labels_print_01.jpg "Etiketten drucken: Gegenstände auswählen"
+
+
+@section tutorial_item_barcodes_layout Layout und Positionen
+
+Nach dem Klick auf <b>Etiketten drucken</b> öffnet sich die
+Druckseite:
+
+- Wähle aus dem Dropdown <b>Layout</b> das gewünschte
+  Buchkartenlayout. Angeboten werden nur die selbst angelegten,
+  benannten Buchkartenlayouts (siehe @ref tutorial_label_layouts);
+  voreingestellt ist das zuletzt benutzte. Einen Knopf zum
+  Bearbeiten der Layouts gibt es hier nicht – Layouts werden im
+  Buchkartenlayout-Editor angelegt.
+- Bei einem Bogenlayout zeigt die Vorschau die Positionen auf dem
+  Bogen. Klicke die Positionen an, auf die gedruckt werden soll
+  (höchstens so viele, wie Etiketten zu drucken sind) -- so lassen
+  sich auch teilweise genutzte Bögen verwenden. Der Zähler unten
+  rechts zeigt, wie viele Positionen gewählt sind; mit
+  <b>Alle abwählen</b> hebst du die Auswahl auf, mit
+  <b>Alle auswählen</b> wählst du ab der ersten Position so viele
+  Positionen, bis das Maximum erreicht ist. Bei einem
+  Thermo-Etikettendrucker entfällt die Positionsauswahl.
+
+Stelle im Drehfeld <b>Kopien</b> ein, wie viele gleiche
+Etiketten je ausgewähltem Gegenstand gedruckt werden sollen
+(Standard: 1). Bei einem Bogenlayout erhöht sich die Zahl der zu
+wählenden Positionen entsprechend; bei einem
+Thermo-Etikettendrucker werden je Gegenstand entsprechend viele
+Etiketten ausgegeben.
+
+Optional: Aktiviere <b>Rahmen anzeigen</b>, um um jedes Etikett
+eine dünne Schnittlinie zu drucken.
+
+@image html 081_item_labels_print_02.jpg "Etiketten drucken: Layout und Positionen"
+@image latex 081_item_labels_print_02.jpg "Etiketten drucken: Layout und Positionen"
+
+@section tutorial_item_barcodes_print Drucken
+
+Klicke auf <b>Drucken</b>. Bei einem Bogenlayout erscheint beim
+ersten Mal der Druckdialog zur Druckerauswahl; bei einem
+Thermo-Etikettendrucker wird ohne Dialog direkt gedruckt. Sind
+mehr Gegenstände ausgewählt als Positionen, wählst du danach die
+Positionen auf dem nächsten Bogen. Mit <b>Abbrechen</b> brichst
+du den Druck ab.
+
+Was auf einem Etikett steht, legt das Buchkartenlayout fest --
+z. B. Organisation, Titel, Autor, ISBN, Signatur und den
+Code-128-Barcode (siehe @ref tutorial_label_layouts).
+
+---
+
+@page tutorial_label_layouts Label-Layouts bearbeiten
+
+Colman druckt Etiketten in drei Kategorien, die jeweils einen eigenen
+visuellen Editor auf der zentralen Navigationsseite haben:
+
+- <b>Ausweise</b> (Leihausweise) – Editor <b>Ausweislayout bearbeiten</b>.
+- <b>Buchkarten</b> (Barcode-Etiketten für Gegenstände) – Editor
+  <b>Buchkartenlayout bearbeiten</b>.
+- <b>Signatur-Etiketten</b> (Rückenschilder) – Editor <b>Signatur-Layout</b>.
+
+@section tutorial_label_layouts_what Was ist ein Layout?
+
+Ein <b>Layout</b> fasst alles zusammen, was einen Druck ausmacht: den
+<b>Drucker</b>, die <b>Geometrie</b> (Etikettengröße bzw. Bogenformat mit
+Spalten, Zeilen, Rändern und Abständen) und die <b>Anordnung der Elemente</b>
+auf der Etikette (Barcode, Text, Logo bzw. Signaturtext). Jedes Layout
+bekommt einen <b>Namen</b> und gehört zu genau einer Kategorie – ein im
+Ausweis-Editor angelegtes Layout erscheint nur beim Ausweisdruck und kann
+nicht für Buchetiketten verwendet werden.
+
+Du kannst beliebig viele Layouts anlegen – etwa für verschiedene Drucker oder
+Etiketten, jedes mit seiner eigenen Element-Anordnung. Für gängige
+Etikettenbögen (z. B. Avery Zweckform, Herma) und für erkannte
+Thermo-Etikettendrucker (in CUPS eingetragen, z. B. Brother QL, Dymo
+LabelWriter) stehen Vorlagen als Ausgangspunkt bereit – allerdings nur in den
+Editoren, nicht im Druckdialog.
+
+@section tutorial_label_layouts_editing Ein Layout anlegen
+
+In allen drei Editoren ist der Ablauf gleich:
+
+1. Öffne den Editor über die zentrale Navigationsseite.
+2. Wähle oben im Feld <b>Layout</b> eine Vorlage oder ein eigenes Layout als
+   Ausgangspunkt, oder klicke <b>Neu</b> für einen leeren Anfang. Die Auswahl
+   lädt Geometrie <b>und</b> Anordnung sofort in die Vorschau.
+3. Lege oben <b>Drucker</b> und Geometrie fest (bei Thermodruckern die
+   Etikettengröße; bei Bögen Spalten, Zeilen, Maße, Ränder, Abstände). Bei
+   Thermodruckern kannst du das Feld <b>Drucker</b> auch bei einem bereits
+   gespeicherten Layout jederzeit auf einen anderen erkannten
+   Etikettendrucker umstellen, ohne Größe und Anordnung zu verlieren.
+4. Ordne darunter in der Vorschau die Zonen an: Ziehen verschiebt, die weißen
+   Anfasser skalieren, ein Doppelklick dehnt eine Zone maximal aus.
+5. Vergib einen <b>Namen</b> und klicke auf den einen <b>Speichern</b>-Knopf
+   unten rechts. Damit werden Drucker, Geometrie und Anordnung gemeinsam unter
+   diesem Namen gespeichert. Mit <b>Löschen</b> entfernst du ein eigenes
+   Layout (Vorlagen können nicht gelöscht werden).
+
+@image html 022_book_card_layout.jpg "Buchkartenlayout-Editor"
+@image latex 022_book_card_layout.jpg "Buchkartenlayout-Editor"
+@image html 023_signature_layout.jpg "Signaturlayout-Editor"
+@image latex 023_signature_layout.jpg "Signaturlayout-Editor"
+
+@note Beim Drucken (Ausweise, Buchetiketten, Signaturen) wählst du nur noch
+ein vorhandenes, benanntes Layout der jeweiligen Kategorie aus; voreingestellt
+ist das zuletzt benutzte. Einen Knopf zum Bearbeiten von Layouts gibt es im
+Druckdialog nicht mehr.
+
+@section tutorial_label_layouts_options Drucker-Feineinstellungen
+
+Im Editor stehen zusätzliche, je Layout gespeicherte Einstellungen bereit:
+
+- <b>Balkenbreiten-Reduktion</b> -- um wie viel jeder schwarze Barcode-Balken
+  beim Druck schmaler gezeichnet wird (für jeden Drucker getrennt).
+- <b>Druckschwärzung</b> (nur bei Thermodruckern) -- wie dunkel gedruckt wird;
+  höhere Werte drucken dunkler. Mit <b>Druckervorgabe</b> bleibt die
+  Einstellung des Druckers unverändert.
+- <b>Ausgabe um 180° drehen</b> (nur bei Thermodruckern) -- dreht den
+  gedruckten Inhalt um eine halbe Drehung, falls die Etiketten auf dem
+  Kopf stehend aus dem Drucker kommen.
+
+@tip Auf einem Thermodrucker laufen die erhitzten Punkte
+aus: schwarze Balken werden breiter, die weißen Lücken
+schmaler, und bei zu dunkler Einstellung verschmelzen
+schmale Balken zu einem dicken Strich -- der Barcode wird
+unlesbar. Stelle für ein Thermodrucker-Layout eine kleine
+<b>Balkenbreiten-Reduktion</b> ein (typisch 0,1--0,2 mm),
+damit die Balken nach dem Auslaufen wieder die richtige
+Breite haben. Für Laser- oder Tintenstrahldrucker bleibt
+der Wert auf 0.
+@endtip
+
+@tip Die richtige <b>Druckschwärzung</b> hängt vom
+eingelegten Thermopapier ab: Farbiges Papier braucht meist
+einen niedrigeren, weißes Papier einen höheren Wert. Lege
+dir am besten je ein Layout pro Papiersorte an (etwa
+"Thermo weiß" und "Thermo farbig") mit jeweils passender
+Schwärzung.
+@endtip
+
+@image html 024_bar_width_reduction.jpg "Balkenbreiten-Reduktion im Layout-Editor"
+@image latex 024_bar_width_reduction.jpg "Balkenbreiten-Reduktion im Layout-Editor"
+
+---
+
+@page tutorial_signature_print Signatur-Etiketten drucken
+
+Signatur-Etiketten sind schmale Rückenschildchen, die den
+Standort eines Mediums in der Bibliothek anzeigen (z. B.
+"Ek" für Erzählungen nach Autor, "Sach 500" für
+Sachbücher in der Dewey-Klasse 500).
+
+@section tutorial_signature_print_navigate Navigation
+
+Klicke auf der zentralen Navigationsseite auf
+<b>Signaturen drucken</b>.
+
+@section tutorial_signature_print_layout Seitenaufbau
+
+Die Signatur-Druckseite ist zweispaltig:
+
+<b>Linke Spalte -- Gegenstandsliste</b>
+
+Zeigt alle Gegenstände der Sammlung; das Feld darüber filtert
+die Liste nach dem Namen.  Klicke auf einen Gegenstand, um
+seine Signaturen in die Combo-Boxen rechts zu übernehmen.
+
+<b>Rechte Spalte -- Druck-Steuerung</b>
+
+- Gruppe <b>Signatur oben</b>:
+  - Combo-Box mit allen gespeicherten oberen
+    Signatur-Kategorien; freie Texteingabe möglich.
+  - Zähler für die gewünschte Anzahl an Etiketten.
+  - Schaltfläche <b>Signatur oben drucken</b>.
+- Gruppe <b>Signatur unten</b>:
+  - Combo-Box mit allen gespeicherten unteren
+    Signatur-Kategorien (unabhängig von der oberen
+    Signatur); freie Texteingabe möglich.
+  - Zähler für die gewünschte Anzahl an Etiketten.
+  - Schaltfläche <b>Signatur unten drucken</b>.
+
+Auf dieser ersten Seite wird noch kein Layout gewählt -- das geschieht
+erst nach dem Klick auf eine der Druck-Schaltflächen.
+
+@image html 090_signature_print_01.jpg "Signatur-Etiketten drucken"
+@image latex 090_signature_print_01.jpg "Signatur-Etiketten drucken"
+
+@section tutorial_signature_print_workflow Druckvorgang
+
+Nach einem Klick auf <b>Signatur oben drucken</b> bzw.
+<b>Signatur unten drucken</b> öffnet sich eine zweite Seite, auf der
+du zuerst das <b>Layout</b> wählst. Angeboten werden nur die selbst
+angelegten, benannten Signaturlayouts (siehe
+@ref tutorial_label_layouts); voreingestellt ist das zuletzt benutzte.
+Ist noch kein Signaturlayout angelegt, weist die Seite darauf hin und
+der Druck bleibt deaktiviert.
+
+<b>Thermo-Etikettendrucker</b>
+
+Ist das gewählte Layout ein Thermo-Drucker, druckt Colman die
+gewünschte Anzahl an Etiketten ohne weiteren Dialog direkt auf den
+Drucker.  Wenn der Drucker nicht erreichbar ist, erscheint eine Warnung
+mit der Aufforderung, den Drucker anzuschließen.  Meldet der Drucker
+eine leere Etikettenrolle, wirst du ebenfalls gewarnt: Lege eine neue
+Rolle ein und starte den Druck danach einfach erneut.  Geht die Rolle
+erst mitten im Stapel aus, weist dich Colman auch darauf hin -- der
+Drucker merkt sich den Rest des Auftrags und druckt nach dem Einlegen
+der neuen Rolle von allein weiter.  Nicht jedes Modell kann seinen
+Papierstatus melden; bei solchen Druckern (z. B. Munbyn RW403B)
+entfallen diese Warnungen.
+
+@tip Für gestochen scharfe Etiketten druckt Colman bevorzugt
+direkt über die USB-Verbindung zum Thermodrucker. Dafür muss
+dein Benutzerkonto unter Linux Mitglied der Gruppe `lp` sein
+(einmalig: `sudo usermod -aG lp benutzername`, danach neu
+anmelden). Ohne diese Berechtigung wird über das Drucksystem
+gedruckt und der Druck kann körniger ausfallen.
+@endtip
+
+<b>Normaler Seitendrucker</b>
+
+Bei einem Bogenlayout geht es auf derselben Seite weiter:
+
+1. Auf einer Vorschau des Etikettenbogens klicke
+   die gewünschten Positionen an (die ausgewählten Felder
+   zeigen eine Textvorschau).
+2. Klicke auf <b>Drucken</b>.  Beim ersten Mal
+   erscheint ein Druckdialog zur Druckerauswahl.
+3. Die gedruckte Anzahl wird von der Restzahl abgezogen.
+   Sind noch Etiketten übrig, kannst du weitere
+   Positionen auf dem nächsten Bogen auswählen.
+4. Wiederhole Schritt 1--3, bis alle Etiketten
+   gedruckt sind, oder klicke auf <b>Abbrechen</b>.
+
+@image html 091_signature_print_02.jpg "Signatur-Etiketten: Positions-Auswahl"
+@image latex 091_signature_print_02.jpg "Signatur-Etiketten: Positions-Auswahl"
+
+@note Signatur-Etiketten lassen sich auch direkt am Ende
+einer Anschaffung drucken -- siehe
+@ref tutorial_items_done "Abschluss".
+
+---
+
+@page tutorial_liquidation Gegenstände aussortieren (Abgang)
+
+Ein Abgang verringert den Bestand eines Mediums, z. B. bei
+Aussonderung, Verlust oder Beschädigung.
+
+@section tutorial_liquidation_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>aussortieren</b>.
+
+@section tutorial_liquidation_step1 Schritt 1: Medium auswählen
+
+1. Gib in das Suchfeld den Namen, Barcode oder die ISBN
+   ein.
+2. Die Tabelle zeigt nur Gegenstände mit verfügbarem Bestand
+   an.
+3. Wähle den gewünschten Gegenstand aus und klicke
+   <b>weiter</b>. Alternativ erkennt ein Barcode-Scanner den
+   Gegenstand automatisch.
+
+Unterhalb der Tabelle wird die Anzahl der geladenen Einträge
+angezeigt.  Bei sehr großen Beständen erscheint <b>Mehr
+laden...</b> — ein Klick lädt weitere Medien nach.
+
+@image html 040_liquidation_01.jpg "Aussortieren -- Schritt 1: Medium auswählen"
+@image latex 040_liquidation_01.jpg "Aussortieren -- Schritt 1: Medium auswählen"
+
+@section tutorial_liquidation_step2 Schritt 2: Anzahl
+
+1. Der Gegenstandsname und die Zahl der verfügbaren Exemplare
+   werden zur Bestätigung angezeigt.
+2. Gib im Feld <b>Wieviele Gegenstände wurden aussortiert?</b>
+   die Anzahl ein (maximal so viele, wie verfügbar sind).
+3. Klicke auf <b>abschließen</b>. Als Zeitpunkt des Abgangs
+   trägt Colman automatisch das aktuelle Datum und die aktuelle
+   Uhrzeit ein. Mit <b>zurück</b> kehrst du zu Schritt 1 zurück.
+
+@image html 041_liquidation_02.jpg "Aussortieren -- Schritt 2: Anzahl"
+@image latex 041_liquidation_02.jpg "Aussortieren -- Schritt 2: Anzahl"
+
+@section tutorial_liquidation_step3 Schritt 3: Abschluss
+
+- <b>ja</b> -- weiteren Gegenstand aussortieren.
+- <b>nein</b> -- zurück zur zentralen Navigationsseite.
+
+@image html 042_liquidation_03.jpg "Aussortieren -- Schritt 3: Abschluss"
+@image latex 042_liquidation_03.jpg "Aussortieren -- Schritt 3: Abschluss"
+
+---
+
+@page tutorial_barcode_dispatch Schnellzugang per Barcode-Scanner
+
+Die schnellste Art, einen Vorgang zu starten, ist das direkte Scannen
+eines Barcodes auf der zentralen Navigationsseite -- ohne
+vorher eine Schaltfläche zu klicken.
+
+@section tutorial_barcode_dispatch_how So funktioniert es
+
+Halte den Barcode-Scanner auf den Barcode des Mediums oder des
+Leihausweises und betätige den Scanner. Colman erkennt den
+Barcode-Typ automatisch und leitet dich zur richtigen Seite:
+
+<b>Medien-Barcode:</b>
+
+- Ist das Medium verfügbar und niemand hat es gerade ausgeliehen,
+  wechselt Colman direkt zur <b>Ausleihe-Seite</b>. Das Medium ist
+  bereits ausgewählt.
+- Sind alle Exemplare verliehen, wechselt Colman direkt zur
+  <b>Rückgabe-Seite</b>. Medium und Ausleihende sind bereits
+  vorausgewählt.
+- Gibt es sowohl verfügbare als auch verliehene Exemplare, erscheint
+  eine Auswahlseite (siehe unten).
+
+<b>ISBN-Barcode (Buchrücken):</b>
+
+- Ist das Buch noch nicht in der Sammlung, wechselt Colman direkt
+  zur <b>Anschaffungs-Seite</b>. Die ISBN ist bereits eingetragen.
+
+<b>Leihausweis-Barcode:</b>
+
+- Colman wechselt direkt zur <b>Ausleihe-Seite</b> und wählt die
+  Person automatisch aus.
+
+@section tutorial_barcode_dispatch_multi Auswahlseite bei mehreren Möglichkeiten
+
+Wenn derselbe Barcode mehrere Aktionen ermöglicht (z. B. ein Buch, von
+dem Exemplare sowohl verfügbar als auch verliehen sind), erscheint die
+Seite <b>Was möchtest du tun?</b>
+
+1. Die Seite zeigt für jede mögliche Aktion einen Eintrag mit
+   - dem Aktions-Icon (wie auf der zentralen Navigationsseite),
+   - dem Aktionstyp (<b>Ausleihe</b>, <b>Rückgabe</b> usw.) und
+   - einem kurzen Beschreibungstext (Mediumname, ggf. Autor, bei
+     Rückgabe außerdem Ausleihername und Ausleihdatum).
+2. Klicke auf den gewünschten Eintrag.
+3. Colman wechselt sofort zur passenden Seite mit vorausgefüllten
+   Feldern.
+
+Mit <b>zurück</b> gelangst du zurück zur zentralen Navigationsseite.
+
+@par Typischer Theken-Workflow
+Am Morgen nimmt ein Schüler ein Buch zurück und ein anderer möchte
+dasselbe ausleihen: Scanne das Buch zweimal -- beim ersten Scan
+erscheint die Auswahlseite (zurückbringen / ausleihen), beim zweiten
+Scan (nach der Rückgabe) wird das Buch direkt für die Ausleihe
+vorgesehen.
+
+@page tutorial_lending Ausleihe
+
+Die Ausleihe erfolgt in mehreren Schritten.
+Der Vorgang verknüpft eine Person mit einem Gegenstand und
+reduziert den verfügbaren Bestand.
+
+@section tutorial_lending_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>ausleihen</b>.
+
+@section tutorial_lending_step1 Schritt 1: Person auswählen
+
+1. Links erscheint eine durchsuchbare Personenliste. Gib
+   den Namen ein oder scanne den Barcode des
+   Leihausweises.
+2. Wähle die Person aus.
+3. Klicke <b>weiter</b>.
+
+@image html 050_lending_01.jpg "Ausleihe -- Schritt 1: Person auswählen"
+@image latex 050_lending_01.jpg "Ausleihe -- Schritt 1: Person auswählen"
+
+@section tutorial_lending_extend Frist verlängern
+
+Möchte eine Person ein Medium länger behalten, verlängerst du
+die Frist, ohne das Medium zurückzunehmen und neu auszuleihen:
+
+1. Wähle in Schritt 1 die Person aus.
+2. Klicke <b>Frist verlängern...</b> (links unten).
+3. Der Dialog zeigt alle offenen Ausleihen der Person mit
+   Rückgabedatum, Klasse, Anzahl und Name. Alle Ausleihen sind
+   vorausgewählt; mit Strg- bzw. Umschalt-Klick änderst du die
+   Auswahl.
+4. Prüfe das <b>neue Fälligkeitsdatum</b>. Der Vorschlag
+   verlängert immer: Er geht von der spätesten aktuellen Frist
+   der gewählten Ausleihen aus (bei bereits überzogenen
+   Ausleihen von heute) und addiert die Standard-Leihdauer aus
+   den Sammlungseinstellungen bzw. 14 Tage, falls keine
+   eingestellt ist. Ein früheres Datum kannst du von Hand
+   wählen, eines in der Vergangenheit nicht.
+5. Klicke <b>Verlängern</b>.
+
+Die Schaltfläche sehen nur Benutzer mit der Berechtigung
+<b>Ausleihen erfassen</b> (und der Administrator).
+
+Weitere Wege zum Verlängern:
+
+- <b>Offene Ausleihen</b> (@ref tutorial_open_lendings_extend):
+  Ausleihen in der Liste markieren -- auch von mehreren
+  Personen, z. B. einer ganzen Klasse -- und gemeinsam
+  verlängern.
+- <b>Rückgabe, Schritt 4</b> (@ref tutorial_return_step4):
+  verlängert genau die gerade gewählte Ausleihe.
+
+Wo die Ausleihen schon feststehen, fragt der Dialog nur noch
+nach dem neuen Fälligkeitsdatum.
+
+@image html 055_lending_extend.jpg "Ausleihe -- Frist verlängern"
+@image latex 055_lending_extend.jpg "Ausleihe -- Frist verlängern"
+
+@section tutorial_lending_step2 Schritt 2: Medium auswählen
+
+1. Gib im Suchfeld den Namen, Barcode oder die ISBN
+   ein. Medien, von denen kein Exemplar mehr verfügbar ist,
+   sind grau dargestellt und können nicht gewählt werden.
+2. Wähle das Medium aus.
+3. Klicke <b>weiter</b>.
+
+Unterhalb der Tabelle wird die Anzahl der geladenen Einträge
+angezeigt.  Bei sehr großen Beständen erscheint <b>Mehr
+laden...</b> — ein Klick lädt weitere Medien nach.
+
+@image html 051_lending_02.jpg "Ausleihe -- Schritt 2: Medium auswählen"
+@image latex 051_lending_02.jpg "Ausleihe -- Schritt 2: Medium auswählen"
+
+@section tutorial_lending_step3 Schritt 3: Ausleihe-Details
+
+Es werden der Personen- und der Gegenstandsname angezeigt.
+Prüfe oder ändere:
+
+- <b>Ausleihen</b> / <b>Reservieren</b> -- Radioschaltflächen;
+  sichtbar, wenn der Benutzer die Reserve-Berechtigung hat.
+  Standardmäßig ist <b>Ausleihen</b> gewählt.
+- <b>Anzahl</b> -- Wie viele Exemplare ausgeliehen werden
+  (Standard: 1; höchstens so viele, wie verfügbar und nicht
+  für andere reserviert sind).
+- <b>mit Rückgabedatum</b> -- Kontrollkästchen; nur wenn eine
+  Leihdauer konfiguriert ist. Bei aktiviertem Häkchen wird das
+  Rückgabedatum eingestellt.
+- <b>Bemerkungen</b> -- freies Textfeld.
+
+Als Ausleihzeitpunkt trägt Colman automatisch das aktuelle
+Datum und die aktuelle Uhrzeit ein. Klicke <b>weiter</b>.
+
+@image html 052_lending_03.jpg "Ausleihe -- Schritt 3: Details"
+@image latex 052_lending_03.jpg "Ausleihe -- Schritt 3: Details"
+
+@section tutorial_lending_step4 Schritt 4: Zusammenfassung
+
+Eine Zusammenfassung zeigt alle Angaben zur Kontrolle an:
+Person, Gegenstand, Anzahl, Rückgabedatum und Bemerkungen.
+
+Klicke auf <b>abschließen</b>, um die Ausleihe zu
+speichern.
+
+@image html 053_lending_04.jpg "Ausleihe -- Schritt 4: Zusammenfassung"
+@image latex 053_lending_04.jpg "Ausleihe -- Schritt 4: Zusammenfassung"
+
+@section tutorial_lending_step5 Schritt 5: Abschluss
+
+- <b>ja</b> -- weiteres Medium ausleihen (Rückkehr zu
+  Schritt 2: Medium auswählen).
+- <b>nein</b> -- zurück zur zentralen Navigationsseite.
+
+@image html 054_lending_05.jpg "Ausleihe -- Schritt 5: Abschluss"
+@image latex 054_lending_05.jpg "Ausleihe -- Schritt 5: Abschluss"
+
+@par Barcode-Scanner-Workflow
+Der schnellste Weg: Scanne den Leihausweis der Person
+(Schritt 1), scanne das Barcode-Etikett des Buches
+(Schritt 2) und bestätige (Schritte 3-4). In vielen
+Fällen ist die gesamte Ausleihe in wenigen Sekunden erledigt.
+
+---
+
+@page tutorial_group_lending Sammelausleihe
+
+Mit der <b>Sammelausleihe</b> bekommt jede Person einer Gruppe --
+typischerweise einer Klasse -- ein Exemplar desselben Gegenstands,
+etwa einen Klassensatz Arbeitshefte. Statt die Ausleihe für jede
+Person einzeln zu erfassen, wählst du zuerst den Gegenstand und
+hakst dann alle Ausleihenden in einer Liste an.
+
+Die Schaltfläche sehen nur Benutzer mit der Berechtigung
+<b>Ausleihen erfassen</b> (und der Administrator).
+
+@section tutorial_group_lending_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>Sammelausleihe</b>.
+
+@section tutorial_group_lending_step1 Schritt 1: Gegenstand auswählen
+
+1. Gib im Suchfeld den Namen, Barcode oder die ISBN ein oder
+   scanne das Etikett eines Exemplars. Gegenstände, von denen kein
+   Exemplar mehr verfügbar ist, sind grau dargestellt.
+2. Wähle den Gegenstand aus.
+3. Klicke <b>weiter</b>. Ein gescannter Barcode führt direkt zu
+   Schritt 2.
+
+@image html 056_group_lending_01.jpg "Sammelausleihe -- Schritt 1: Gegenstand auswählen"
+@image latex 056_group_lending_01.jpg "Sammelausleihe -- Schritt 1: Gegenstand auswählen"
+
+@section tutorial_group_lending_step2 Schritt 2: Ausleihende anhaken
+
+Über der Liste steht der gewählte Gegenstand. Jede angehakte
+Person bekommt <b>ein</b> Exemplar.
+
+- <b>Klasse</b> -- schränkt die Liste auf eine Klasse ein.
+- <b>Name/Barcode</b> -- filtert die Liste nach Nach- oder
+  Vorname. Scannst du hier einen <b>Leihausweis</b>, wird die
+  Person direkt angehakt; so kannst du beim Austeilen im
+  Klassenzimmer einfach alle Ausweise nacheinander scannen.
+- <b>Alle auswählen</b> / <b>Alle abwählen</b> -- wirken nur auf
+  die gerade sichtbaren Personen. Angehakte Personen bleiben
+  angehakt, wenn du die Klasse wechselst; so lassen sich mehrere
+  Klassen kombinieren.
+
+Unten links zeigt Colman, wie viele Personen ausgewählt sind und
+wie viele Exemplare noch übrig sind. Es lassen sich höchstens so
+viele Personen anhaken, wie Exemplare verfügbar und nicht für
+andere reserviert sind. Reicht der Bestand bei <b>Alle
+auswählen</b> nicht für alle, werden die Personen von oben nach
+unten angehakt, bis kein Exemplar mehr übrig ist.
+
+In der Spalte <b>Hinweis</b> steht:
+
+- <b>hat diesen Gegenstand bereits</b> -- die Person hat noch ein
+  Exemplar ausgeliehen; sie ist grau dargestellt und kann nicht
+  angehakt werden. So wird nichts doppelt ausgegeben.
+- <b>hat ... Exemplar(e) reserviert</b> -- die Person bekommt ihr
+  reserviertes Exemplar; die Reservierung wird entsprechend
+  verringert.
+
+Klicke <b>weiter</b>.
+
+@image html 057_group_lending_02.jpg "Sammelausleihe -- Schritt 2: Ausleihende anhaken"
+@image latex 057_group_lending_02.jpg "Sammelausleihe -- Schritt 2: Ausleihende anhaken"
+
+@section tutorial_group_lending_step3 Schritt 3: Details
+
+Wie bei der einzelnen Ausleihe legst du das
+<b>Rückgabedatum</b> fest (Vorschlag aus der Standard-Leihdauer
+der Sammlung) und kannst <b>Bemerkungen</b> eingeben. Beides gilt
+für alle Ausleihen der Gruppe. Klicke <b>weiter</b>.
+
+@section tutorial_group_lending_step4 Schritt 4: Zusammenfassung
+
+Die Zusammenfassung zeigt Gegenstand, Anzahl, Rückgabedatum,
+Bemerkungen und die Namen aller Ausleihenden. Klicke auf
+<b>abschließen</b>.
+
+Colman speichert alle Ausleihen auf einmal -- entweder alle oder
+keine. Hat inzwischen jemand an einem anderen Arbeitsplatz
+Exemplare ausgeliehen, sodass sie nicht mehr reichen, erscheint
+ein Hinweis und du kehrst zu Schritt 2 zurück.
+
+@image html 058_group_lending_03.jpg "Sammelausleihe -- Schritt 4: Zusammenfassung"
+@image latex 058_group_lending_03.jpg "Sammelausleihe -- Schritt 4: Zusammenfassung"
+
+@section tutorial_group_lending_done Abschluss und Ausgabeliste
+
+- <b>Ausgabeliste drucken...</b> -- druckt eine Liste mit
+  Nummer, Name, Klasse und einer Spalte für die Unterschrift
+  jeder Person, z. B. zum Abzeichnen beim Austeilen.
+- <b>Weitere Sammelausleihe</b> -- beginnt wieder mit Schritt 1.
+- <b>fertig</b> -- zurück zur zentralen Navigationsseite.
+
+Jede Person erhält eine eigene Ausleihe. Sie erscheint einzeln im
+Verlauf und in den offenen Ausleihen und wird wie jede andere
+Ausleihe zurückgegeben -- für die ganze Gruppe auf einmal mit der
+Sammelrückgabe (siehe @ref tutorial_return_group).
+
+@image html 059_group_lending_04.jpg "Sammelausleihe -- Abschluss"
+@image latex 059_group_lending_04.jpg "Sammelausleihe -- Abschluss"
+
+---
+
+@page tutorial_reservations Reservierungen
+
+Eine <b>Reservierung</b> sichert einer Person das Recht,
+ein Medium als nächstes auszuleihen. Reservierte Exemplare
+werden bei der Berechnung der verfügbaren Stückzahl für
+andere Nutzer abgezogen.
+
+@section tutorial_reservations_permission Voraussetzung
+
+Reservierungen sind nur möglich, wenn der Benutzer die
+Berechtigung <b>Medien reservieren</b> hat. Der Administrator vergibt
+diese Berechtigung in der Personenverwaltung
+(@ref tutorial_persons_permissions).
+
+@section tutorial_reservations_create Reservierung anlegen
+
+Das Anlegen einer Reservierung erfolgt im gleichen Ablauf
+wie eine Ausleihe:
+
+1. Klicke auf der zentralen Navigationsseite auf
+   <b>ausleihen</b>.
+2. Wähle in Schritt 1 die Person aus.
+3. Wähle in Schritt 2 das Medium aus.
+4. Wähle in Schritt 3 die Radioschaltfläche
+   <b>Reservieren</b> statt <b>Ausleihen</b>.
+5. Stelle optional ein Ablaufdatum ein
+   (<b>mit Rückgabedatum</b>).
+6. Schließe den Vorgang ab.
+
+@section tutorial_reservations_view Reservierungen einsehen
+
+Aktive Reservierungen eines Gegenstands sind in der
+Detailansicht der Suchseite (@ref tutorial_search) unter
+<b>Aktive Reservierungen</b> sichtbar, ebenso in der
+Detailansicht der Anschaffungsseite.
+
+@section tutorial_reservations_cancel Eigene Reservierung stornieren
+
+Benutzer können ihre eigenen Reservierungen jederzeit über
+die zentrale Navigationsseite stornieren:
+
+1. Klicke auf der zentralen Navigationsseite auf
+   <b>Meine Reservierungen</b>.
+2. Die Seite zeigt alle aktiven eigenen Reservierungen
+   mit Medienname und Ablaufdatum.
+3. Klicke in der gewünschten Zeile auf
+   <b>Reservierung stornieren</b>, um die Reservierung
+   sofort zu löschen.
+
+@tip Die Schaltfläche <b>Meine Reservierungen</b> ist nur
+für Benutzer mit der Berechtigung <b>Medien reservieren</b>
+sichtbar. Administratoren (Berechtigung
+<b>Reservierungen bearbeiten</b>) verwalten Reservierungen
+über die Suchseite.
+@endtip
+
+@section tutorial_reservations_item_settings Reservierungseinstellungen pro Medium
+
+Ob reserviert werden darf und wie lange eine Reservierung gilt,
+legst du für die ganze Sammlung in den Einstellungen fest
+(siehe @ref tutorial_settings_collection). Für einzelne Medien
+lässt sich das abweichend regeln: Wer die Berechtigung
+<b>Item-Einstellungen bearbeiten</b> besitzt (standardmäßig nur
+der Administrator), sieht beim Bearbeiten eines Mediums die
+Gruppe <b>Reservierungseinstellungen</b>:
+
+- <b>Reservierungen erlauben:</b> <b>Standard
+  (Sammlungseinstellung)</b>, <b>Erlaubt</b> oder <b>Nicht
+  erlaubt</b>. Bei <b>Nicht erlaubt</b> kann das Medium nicht
+  reserviert werden.
+- <b>Dauer überschreiben:</b> eine eigene Gültigkeitsdauer in
+  Tagen für Reservierungen dieses Mediums.
+
+---
+
+@page tutorial_return Rückgabe
+
+Die Rückgabe schließt eine bestehende Ausleihe ab und erhöht
+den verfügbaren Bestand.
+
+@section tutorial_return_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>zurückbringen</b>.
+
+@section tutorial_return_step1 Schritt 1: Medium auswählen
+
+1. Gib im Suchfeld den Barcode, den Namen oder die ISBN
+   des zurückzugebenden Gegenstands ein. Die Tabelle zeigt
+   nur aktuell verliehene Gegenstände an.
+2. Wähle den Gegenstand aus und klicke
+   <b>weiter</b>. Bei Barcode-Scan erfolgt die Auswahl
+   automatisch.
+
+@image html 060_return_01.jpg "Rückgabe -- Schritt 1: Medium auswählen"
+@image latex 060_return_01.jpg "Rückgabe -- Schritt 1: Medium auswählen"
+
+@section tutorial_return_step2 Schritt 2: Person(en) anhaken
+
+1. Die Liste zeigt nur Personen, die den gewählten Gegenstand
+   aktuell ausgeliehen haben, mit ihrer <b>Klasse</b>. Ein Klick
+   auf eine Spaltenüberschrift sortiert, z. B. nach Klasse. Hat
+   eine Person mehrere Exemplare, steht deren Anzahl in der
+   Spalte <b>Hinweis</b>.
+2. Hake die Person an, die zurückgibt, und klicke <b>weiter</b>.
+
+Hat nur eine Person den Gegenstand ausgeliehen, ist sie bereits
+angehakt und der Schritt wird automatisch übersprungen.
+
+@image html 061_return_02.jpg "Rückgabe -- Schritt 2: Person anhaken"
+@image latex 061_return_02.jpg "Rückgabe -- Schritt 2: Person anhaken"
+
+@subsection tutorial_return_group Mehrere Personen auf einmal (Sammelrückgabe)
+
+Gibt eine Gruppe ihre Exemplare zurück -- etwa eine Klasse ihren
+Klassensatz (siehe @ref tutorial_group_lending) --, hakst du in
+Schritt 2 einfach mehrere Personen an:
+
+- <b>Klasse</b> -- schränkt die Liste auf eine Klasse ein.
+- <b>Alle auswählen</b> / <b>Alle abwählen</b> -- wirken auf die
+  gerade sichtbaren Personen. Fehlt jemand, wählst du zuerst alle
+  aus und nimmst dann bei den Fehlenden das Häkchen weg.
+- <b>Name/Barcode</b> -- filtert nach Namen; ein gescannter
+  <b>Leihausweis</b> hakt die Person direkt an.
+
+Unten links steht, wie viele Personen ausgewählt sind. Sind
+mehrere angehakt, nimmt Colman <b>alle noch ausgeliehenen
+Exemplare</b> dieser Personen zurück: Schritt 3 entfällt, in
+Schritt 4 gibst du nur noch Bemerkungen ein, und die
+Zusammenfassung listet alle Personen und die Gesamtzahl der
+Exemplare auf. Gespeichert wird alles auf einmal -- entweder für
+alle Personen oder für keine. Teilrückgaben oder eine
+Fristverlängerung sind nur bei einer einzelnen Person möglich.
+
+@image html 065_return_06.jpg "Sammelrückgabe -- Schritt 2: mehrere Personen anhaken"
+@image latex 065_return_06.jpg "Sammelrückgabe -- Schritt 2: mehrere Personen anhaken"
+
+@image html 066_return_07.jpg "Sammelrückgabe -- Zusammenfassung"
+@image latex 066_return_07.jpg "Sammelrückgabe -- Zusammenfassung"
+
+@section tutorial_return_step3 Schritt 3: Ausleihe auswählen
+
+Falls die Person das Medium mehrfach ausgeliehen hat (z. B.
+zu verschiedenen Zeitpunkten), zeigt die Tabelle alle
+offenen Ausleihen an. Wähle die passende aus.
+
+Bei nur einer offenen Ausleihe wird dieser Schritt
+automatisch übersprungen.
+
+@image html 062_return_03.jpg "Rückgabe -- Schritt 3: Ausleihe auswählen"
+@image latex 062_return_03.jpg "Rückgabe -- Schritt 3: Ausleihe auswählen"
+
+@section tutorial_return_step4 Schritt 4: Rückgabe-Details
+
+Es werden angezeigt: Person, Gegenstand, ausgeliehene Menge,
+bereits zurückgegebene Menge und verbleibende Menge.
+
+Prüfe oder ändere:
+
+- <b>Anzahl</b> -- wie viele Exemplare zurückgegeben werden
+  (Bereich: 1 bis verbleibend).
+- <b>Bemerkungen</b> -- freies Textfeld.
+
+Als Rückgabezeitpunkt trägt Colman automatisch das aktuelle
+Datum und die aktuelle Uhrzeit ein. Klicke <b>weiter</b>.
+
+@tip
+Bringt die Person das Medium nur vorbei, um es länger zu
+behalten, klicke stattdessen <b>Frist verlängern...</b>. Der Dialog
+fragt nur noch nach dem neuen Fälligkeitsdatum für genau diese
+Ausleihe (siehe @ref tutorial_lending_extend). Nach dem Verlängern
+kannst du die Rückgabe mit <b>zurück</b> abbrechen.
+@endtip
+
+@image html 063_return_04.jpg "Rückgabe -- Schritt 4: Details"
+@image latex 063_return_04.jpg "Rückgabe -- Schritt 4: Details"
+
+@section tutorial_return_step5 Schritt 5: Zusammenfassung und Abschluss
+
+Eine Zusammenfassung zeigt Person, Gegenstand, Anzahl, Datum
+und Bemerkungen. Klicke <b>abschließen</b>.
+
+Danach folgt die Abschlussseite:
+
+- <b>ja</b> -- weiteres Medium zurücknehmen.
+- <b>nein</b> -- zurück zur zentralen Navigationsseite.
+
+@image html 064_return_05.jpg "Rückgabe -- Schritt 5: Abschluss"
+@image latex 064_return_05.jpg "Rückgabe -- Schritt 5: Abschluss"
+
+---
+
+@page tutorial_search Suche
+
+Die Suchseite ermöglicht eine gezielte Volltextsuche über
+alle Gegenstände der Sammlung. Zu jedem Treffer lässt sich
+eine Detailansicht mit den aktiven Ausleihen und
+Reservierungen öffnen.
+
+@section tutorial_search_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>Suche</b>.
+
+@section tutorial_search_layout Seitenaufbau
+
+Die Suchseite ist zweispaltig:
+
+<b>Linke Spalte -- Suchfelder</b>
+
+- <b>Typ</b> -- schränkt die Suche auf einen Medientyp ein;
+  <b>Alle Typen</b> durchsucht die ganze Sammlung.
+- <b>Suche (alle Felder)</b> -- durchsucht alle Textfelder
+  gleichzeitig. Mehrere Suchbegriffe werden mit Leerzeichen
+  getrennt und als UND verknüpft.
+- <b>Name/Titel</b> -- filtert nur nach dem Titel des Mediums.
+- <b>Fach</b> -- filtert nach dem Fach (bei schulischen Gegenständen).
+- <b>Beschreibung</b> -- filtert nach der Inhaltsbeschreibung.
+- <b>Schlüsselwörter</b> -- filtert nach den Stichworten.
+- <b>Jahrgangsstufe</b> -- zwei Auswahlfelder für den Bereich
+  der Jahrgangsstufen (<b>alle</b> = keine Einschränkung).
+- Darunter folgen Gruppen mit den typspezifischen Feldern
+  (z. B. Verlag, Erscheinungsjahr, Regie). Ist ein Typ gewählt,
+  wird nur dessen Gruppe angezeigt.
+
+Alle Suchfelder wirken gleichzeitig: Je mehr Felder
+ausgefüllt sind, desto enger ist die Treffermenge. Die
+Trefferliste aktualisiert sich bereits während der Eingabe.
+
+<b>Rechte Spalte -- Ergebnisliste</b>
+
+Die Tabelle zeigt alle Treffer mit Name/Titel, Typ,
+verfügbarer Stückzahl, Anzahl Ausgeliehen und Reserviert.
+Unter der Tabelle stehen -- je nach Berechtigung -- diese
+Schaltflächen zur Verfügung:
+
+- <b>Drucken...</b> und <b>CSV-Export...</b> -- siehe
+  @ref tutorial_search_print.
+- <b>Reservieren</b> bzw. <b>Reservierung stornieren</b> --
+  für den markierten Gegenstand (siehe @ref tutorial_reservations).
+- <b>Ausleihen</b> -- startet die @ref tutorial_lending "Ausleihe"
+  mit dem markierten Gegenstand.
+- <b>Gegenstand bearbeiten</b> -- siehe @ref tutorial_search_edit.
+- <b>Gegenstand löschen</b> -- entfernt einen Gegenstand, von dem
+  keine Exemplare mehr im Bestand sind (nach Rückfrage).
+
+@image html 110_search.jpg "Suchseite mit Trefferliste"
+@image latex 110_search.jpg "Suchseite mit Trefferliste"
+
+<b>Detailansicht</b>
+
+Ein <b>Doppelklick</b> auf einen Treffer öffnet die
+Detailansicht des Mediums mit:
+
+- dem Titelbild (mit <b>Vergrößern</b>),
+- den <b>Gegenstandsinformationen</b>: Typ, Colman-Barcode,
+  Standort, Beschreibung, bei schulischen Gegenständen Fach und
+  Jahrgangsstufe sowie die typspezifischen Attribute (z. B.
+  Autor, Verlag, Erscheinungsjahr),
+- den <b>Aktiven Ausleihen</b> (Ausleiher, Anzahl verliehen
+  und zurückgegeben),
+- den <b>Aktiven Reservierungen</b>, sofern vorhanden.
+
+@image html 111_search_detail.jpg "Detailansicht eines Mediums"
+@image latex 111_search_detail.jpg "Detailansicht eines Mediums"
+
+Über die Schaltfläche <b>Etikett drucken</b> oben rechts in der
+Detailansicht kannst du das Buchetikett des Mediums jederzeit
+nachdrucken -- etwa als Ersatz für ein beschädigtes Etikett.
+Colman öffnet dazu die Etikettendruckseite mit bereits angehaktem
+Medium; dort wählst du das Layout und bei Bedarf die Anzahl der
+Kopien. Mit <b>zurück</b> gelangst du anschließend wieder zur
+Detailansicht und von dort zur Trefferliste.
+
+@section tutorial_search_load_more Viele Treffer: Mehr laden
+
+Bei großen Sammlungen lädt Colman zunächst nur einen Teil der
+Suchergebnisse.  Unterhalb der Tabelle wird die Anzahl der
+aktuell geladenen Einträge angezeigt (z. B. <em>150 Medien
+angezeigt</em>).  Erscheint die Schaltfläche <b>Mehr laden...</b>,
+gibt es weitere Treffer, die noch nicht sichtbar sind.  Ein Klick
+darauf hängt die nächste Treffermenge an die Liste an, ohne
+die bisherigen Ergebnisse zu verwerfen.
+
+Sind alle Suchfelder leer und die Sammlung sehr groß, bleibt
+die Liste leer, bis mindestens ein Suchbegriff eingegeben wird.
+
+@tip
+Gib einen oder mehrere Suchbegriffe ein, um die Treffermenge
+zu verkleinern und schneller das gesuchte Medium zu finden.
+@endtip
+
+@section tutorial_search_edit Gegenstand bearbeiten
+
+Administratoren können einen Gegenstand direkt aus der Suchseite heraus
+bearbeiten:
+
+1. Medium in der Ergebnisliste auswählen.
+2. Auf <b>Gegenstand bearbeiten</b> klicken.
+3. Auf der Bearbeitungsseite die gewünschten Felder anpassen.
+4. Mit <b>Speichern</b> übernehmen. Die Ergebnisliste wird anschließend
+   aktualisiert.
+
+@tip Die Schaltfläche <b>Gegenstand bearbeiten</b> ist nur für Benutzer
+mit der Berechtigung <b>Anschaffungen erfassen</b> sichtbar.
+@endtip
+
+@section tutorial_search_print Drucken und CSV-Export
+
+Unterhalb der Ergebnistabelle stehen zwei Schaltflächen zur Verfügung.
+
+<b>Schritt 1 – Auswahl treffen (optional)</b>
+
+Mit <b>Strg+Klick</b> oder <b>Umschalt+Klick</b> kannst du mehrere
+Zeilen markieren. Ohne Markierung werden beim Export alle Treffer
+verwendet.
+
+<b>Schritt 2 – Auswahlseite öffnen</b>
+
+Klicke auf <b>Drucken...</b> oder <b>CSV-Export...</b>.
+Auf der Seite wählst du:
+
+- <em>Alle Gegenstände</em> oder <em>Ausgewählte Gegenstände</em>.
+- Welche Felder in der Liste erscheinen sollen (alle vorausgewählt).
+- Beim Drucken: ob Titelbilder mit ausgegeben werden.
+
+<b>Schritt 3a – Drucken</b>
+
+Klicke auf der Seite auf <b>Drucken...</b>. Es öffnet sich die
+Qt-Druckvorschau, aus der du den Ausdruck starten kannst.
+
+<b>Schritt 3b – CSV exportieren</b>
+
+Klicke auf <b>CSV-Export...</b>. Wähle einen Speicherort.
+Die erzeugte Datei enthält MARC21-Spaltenköpfe (z. B. <tt>245$a</tt>,
+<tt>100$a</tt>) und ist direkt in Koha importierbar.
+
+@tip
+Der CSV-Export eignet sich auch zum Import in LibreOffice Calc, um
+Bestandslisten zu erstellen oder weiterzuverarbeiten.
+@endtip
+
+---
+
+@page tutorial_open_lendings Offene Ausleihen
+
+Die Seite <b>offene Ausleihen</b> listet alle aktuell noch
+nicht vollständig zurückgegebenen Ausleihen und ermöglicht
+einen Ausdruck -- z. B. für die Mahnung oder als
+Tagesübersicht an der Ausleihtheke.
+
+@section tutorial_open_lendings_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>offene Ausleihen</b>.
+
+@section tutorial_open_lendings_layout Seitenaufbau
+
+Die Tabelle zeigt alle offenen Ausleihen mit Rückgabedatum,
+Ausleihernamen, Klasse, Anzahl und Gegenstandsnamen. Über zwei
+Filterfelder lässt sich die Anzeige einschränken:
+
+- <b>Person</b> -- zeigt nur Ausleihen einer bestimmten
+  Person.
+- <b>Klasse</b> -- zeigt nur Ausleihen einer bestimmten
+  Klasse (sofern hinterlegt).
+
+Die Schaltfläche <b>Drucken</b> öffnet eine Druckvorschau
+der gefilterten Liste. Ist <b>Einträge nummerieren</b>
+aktiviert, erhält jede Zeile des Ausdrucks eine laufende
+Nummer.
+
+@image html 120_open_lendings.jpg "Offene Ausleihen"
+@image latex 120_open_lendings.jpg "Offene Ausleihen"
+
+@image html 121_open_lendings_preview.jpg "Offene Ausleihen: Druckvorschau"
+@image latex 121_open_lendings_preview.jpg "Offene Ausleihen: Druckvorschau"
+
+@tip
+Nutze den Personenfilter, um beim Schuljahresende
+schnell alle offenen Ausleihen eines Schülers zu prüfen.
+@endtip
+
+@section tutorial_open_lendings_extend Fristen verlängern
+
+1. Grenze die Liste bei Bedarf mit <b>Person</b> oder
+   <b>Klasse</b> ein.
+2. Markiere die Ausleihen, deren Frist verlängert werden soll
+   (Strg-Klick für einzelne Zeilen, Umschalt-Klick für einen
+   Bereich, Strg+A für alle angezeigten).
+3. Klicke <b>Frist verlängern...</b> (links unten).
+4. Der Dialog zeigt die markierten Ausleihen zur Kontrolle.
+   Prüfe das <b>neue Fälligkeitsdatum</b> (Vorschlag: späteste
+   aktuelle Frist plus Standard-Leihdauer bzw. 14 Tage, siehe
+   @ref tutorial_lending_extend) und klicke <b>Verlängern</b>.
+
+Die Tabelle zeigt danach die neuen Fristen, die verlängerten
+Ausleihen bleiben markiert. Ein Doppelklick auf eine Zeile
+öffnet wie bisher die Rückgabe.
+
+@image html 122_open_lendings_extend.jpg "Offene Ausleihen: Fristen verlängern"
+@image latex 122_open_lendings_extend.jpg "Offene Ausleihen: Fristen verlängern"
+
+@tip
+Vor den Ferien kannst du so alle Ausleihen einer Klasse in
+einem Schritt auf das Ende der Ferien verlängern.
+@endtip
+
+---
+
+@page tutorial_history Verlauf (Transaktionshistorie)
+
+Der Verlauf zeigt alle erfassten Transaktionen in
+einer gemeinsamen, chronologisch sortierten Tabelle.
+
+@section tutorial_history_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>Verlauf</b>.
+
+@section tutorial_history_table Tabelle
+
+Die Tabelle enthält alle Aktionen (Anschaffungen,
+Aussortierungen, Ausleihen, Rückgaben) in einer einzigen
+Ansicht mit den Spalten Datum/Zeit, Aktion, Name des
+Gegenstands, Anzahl, Ausleihende(r) sowie -- für den
+Administrator -- Erfasser.
+
+Über die Felder <b>Von</b> und <b>Bis</b> kann der
+Zeitraum eingegrenzt werden; <b>Anwenden</b> lädt die Tabelle
+für diesen Zeitraum neu. Ist <b>Alle zeigen</b> aktiviert,
+werden alle Aktionen unabhängig vom Datum angezeigt. Mit der
+Auswahlliste rechts daneben schränkst du die Tabelle auf einen
+Aktionstyp ein,
+z. B. nur <b>Ausleihen</b>; <b>alle Aktionen</b> hebt die
+Einschränkung wieder auf. Die Tabelle ist nach jeder
+Spalte sortierbar (Klick auf die Spaltenüberschrift).
+
+Unterhalb der Tabelle zeigt ein Label die Anzahl der
+aktuell geladenen Aktionen an (z. B. <em>350 Aktionen
+angezeigt</em>).  Bei sehr vielen Einträgen erscheint
+<b>Mehr laden...</b> — ein Klick hängt weitere Aktionen
+an die Tabelle an, ohne bereits geladene Einträge zu
+verwerfen.
+
+@image html 100_history.jpg "Verlaufsübersicht"
+@image latex 100_history.jpg "Verlaufsübersicht"
+
+<b>Details anzeigen</b> (oder ein Doppelklick auf eine Zeile)
+öffnet ein Fenster mit allen Angaben zur gewählten Aktion.
+
+@par Aktionen löschen
+Mit der Berechtigung <b>Aktionen ändern und löschen</b> lassen
+sich Einträge dauerhaft aus dem Verlauf entfernen. Dazu
+wählst du den Eintrag aus und klickst auf <b>Löschen</b>. Bei Aktionen, die voneinander abhängen
+(z. B. Rückgabe zu einer Ausleihe), zeigt Colman alle
+betroffenen Einträge zur Bestätigung an, bevor sie
+gemeinsam gelöscht werden.
+
+Mit Strg-Klick bzw. Umschalt-Klick markierst du mehrere Einträge
+oder einen ganzen Bereich, z. B. alle Ausleihen einer irrtümlichen
+Sammelausleihe; <b>Löschen</b> entfernt dann alle markierten
+Einträge samt abhängiger Aktionen in einem Schritt. <b>Details
+anzeigen</b> und <b>Ändern</b> erscheinen nur, wenn genau ein
+Eintrag markiert ist.
+
+@image html 101_history_delete.jpg "Verlauf: Einträge löschen"
+@image latex 101_history_delete.jpg "Verlauf: Einträge löschen"
+
+@warning Das Löschen von Verlaufseinträgen ist unwiderruflich.
+@endwarning
+
+@par Aktionen ändern
+Mit derselben Berechtigung lassen sich einzelne Verlaufseinträge
+nachträglich korrigieren -- z. B. ein falsch eingetragenes Datum. Wähle
+den Eintrag aus und klicke auf <b>Ändern</b>. Ein Dialog
+zeigt die bearbeitbaren Felder des Eintrags. Änderungen, die
+den logischen Ablauf verletzen würden (z. B. ein Rückgabedatum
+vor dem Ausleihdatum), werden von Colman abgewiesen und mit
+einer Erklärung der Konflikte angezeigt.
+
+@image html 102_history_change.jpg "Verlauf: Eintrag ändern"
+@image latex 102_history_change.jpg "Verlauf: Eintrag ändern"
+
+Über die Schaltfläche <b>zurück</b> gelangst du zurück zur
+zentralen Navigationsseite.
+
+---
+
+@page tutorial_settings Einstellungen
+
+Die Einstellungsseite ist in vier Reiter unterteilt. Welche
+Reiter du siehst, hängt von deinen Berechtigungen ab:
+
+- <b>Sammlungs-Einstellungen</b> – Berechtigung <b>Einstellungen
+  ändern</b>
+- <b>Programm-Einstellungen</b> – Berechtigung
+  <b>Programm-Einstellungen bearbeiten</b>
+- <b>Barrierefreiheit</b> – für alle
+- <b>Verschlüsselung</b> – nur Administrator
+
+@section tutorial_settings_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>Einstellungen</b>.
+
+@section tutorial_settings_collection Reiter: Sammlungs-Einstellungen
+
+Hier werden die Grunddaten der Sammlung verwaltet, die beim
+Erstellen im Assistenten festgelegt wurden:
+
+- <b>Sammlungs-Name</b> -- Wird auf Leihausweisen und Barcodes angezeigt
+- <b>Organisation</b> -- Schule oder Institution
+- <b>verantwortlich</b> -- Ansprechpartner
+- <b>Logo</b> -- Bilddatei, die auf Leihausweisen erscheint; über <b>suchen</b> wählbar
+- <b>Ausleihdauer</b> -- Standard-Ausleihfrist in Jahren, Monaten und Tagen
+- <b>Reservierungen erlauben</b> -- ob Medien reserviert werden dürfen und
+  wie viele Tage eine Reservierung gilt
+- <b>Standard-Typ für neue Gegenstände</b> -- Vorausgewählter Medientyp beim Erfassen
+- <b>standardmäßig sind Gegenstände schulisch</b> -- Neue Gegenstände erhalten automatisch Schulfelder
+- <b>Signatur Oberkategorien</b> -- Vorschlagsliste für die obere Signatur
+  (z. B. Sachgebiete); mit <b>hinzufügen</b> und <b>entfernen</b> pflegst du
+  die Liste
+- <b>Signatur Unterkategorien (für ausgewählte Oberkategorie)</b> --
+  Vorschläge für die untere Signatur, jeweils zur oben markierten
+  Oberkategorie
+
+@image html 130_settings_01.jpg "Einstellungen: Sammlungs-Einstellungen"
+@image latex 130_settings_01.jpg "Einstellungen: Sammlungs-Einstellungen"
+
+@section tutorial_settings_program Reiter: Programm-Einstellungen
+
+Diese Einstellungen gelten für alle Sammlungen.
+
+<b>Verzeichnis für Vorschaubilder</b>
+
+Das lokale Verzeichnis, in dem Titelbilder für Gegenstände
+abgelegt werden; über <b>suchen</b> wählbar.
+
+<b>ISBN-Suche</b>
+
+Colman kann bei der Neuerfassung eines Mediums automatisch im
+Internet nach Buchdaten suchen. Zum Schutz deiner Privatsphäre
+verbindet sich Colman nur mit den Diensten, die du hier
+ausdrücklich einschaltest:
+
+- <b>ISBN-Suche auf openlibrary.org</b> -- kostenloser Dienst,
+  kein API-Schlüssel nötig
+- <b>ISBN-Suche auf www.googleapis.com</b> -- Google Books;
+  optional mit eigenem <b>Google Books API-Schlüssel</b>
+  (weiter unten auf dem Reiter)
+
+Zusätzlich fragt Colman die aktiven SRU-Bibliothekskataloge ab
+(siehe unten). Aktiviere mindestens einen Dienst, um die
+ISBN-Suche nutzen zu können.
+
+<b>SRU-Server (Bibliothekskataloge)</b>
+
+In der Tabelle sind öffentliche Bibliothekskataloge
+eingetragen, die Colman per SRU abfragt -- vorkonfiguriert
+sind u. a. die Deutsche Nationalbibliothek (DNB) und
+K10plus. Jede Zeile lässt sich über das Häkchen in der
+Spalte <b>Aktiv</b> ein- oder ausschalten. Die Spalten
+<b>ISBN-Feld</b>, <b>EAN-Feld</b> und <b>Titelfeld</b>
+enthalten die Suchindizes des jeweiligen Katalogs:
+
+- <b>ISBN-Feld</b> / <b>EAN-Feld</b> -- für die Barcode-Suche
+- <b>Titelfeld</b> -- für die
+  @ref tutorial_items_title_search "Titelsuche im Internet";
+  ist das Feld leer, wird der Server bei der Titelsuche
+  übersprungen
+
+<b>Dienste für die Titelsuche</b>
+
+Neben den SRU-Servern nutzen die Titelsuche und die
+EAN-Suche folgende Dienste:
+
+- <b>Produkt-Barcode auf MusicBrainz suchen</b> -- CDs;
+  kostenloser Dienst, kein API-Schlüssel nötig
+- <b>Gesellschaftsspiele auf boardgamegeek.com suchen</b> --
+  erfordert ein <b>boardgamegeek.com API-Token</b>
+- <b>EAN auf opengtindb.org nachschlagen</b> -- Spiele, DVDs,
+  Blu-rays u. a.; erfordert eine <b>opengtindb.org-Benutzer-ID</b>
+
+Weiter unten auf dem Reiter folgen:
+
+- <b>Proxy-Benutzername</b> und <b>Proxy-Passwort</b> -- nur
+  nötig, wenn der Internetzugang über einen Proxy mit
+  Anmeldung läuft
+- <b>Vorschaubilder im Internet suchen</b> -- Titelbilder bei
+  der Internetsuche automatisch herunterladen
+- <b>Zeitbeschränkung für Internetsuche</b> -- maximale
+  Wartezeit für eine Abfrage in Sekunden
+- <b>Suchschwellenwert</b> -- wie viele Medien Listen zunächst
+  laden, bevor <b>Mehr laden...</b> erscheint (0 = immer alle)
+
+@tip
+Für Schulbibliotheken im deutschsprachigen Raum genügen in
+der Regel die voreingestellten Kataloge DNB und K10plus.
+Die DNB katalogisiert auch DVDs und Blu-rays als konkrete
+Veröffentlichungen -- mit Vertrieb, Laufzeit, Sprachfassungen
+und FSK-Angabe.
+@endtip
+
+<b>Barcode-Strichbreite</b>
+
+Die Breite des schmalsten Strichs (X-Dimension) der gedruckten
+Code128-Barcodes. Der Standardwert von 0,33&nbsp;mm ist der für
+zuverlässiges Scannen empfohlene Wert.
+
+@tip
+Verringere diesen Wert nur, wenn die Barcodes auf sehr kleine
+Etiketten passen müssen -- und teste vorher, ob dein Scanner die
+feineren Striche noch sicher liest.
+@endtip
+
+@image html 131_settings_02.jpg "Einstellungen: Programm-Einstellungen"
+@image latex 131_settings_02.jpg "Einstellungen: Programm-Einstellungen"
+
+
+@section tutorial_accessibility Reiter: Barrierefreiheit
+
+Hier kann die <b>Schriftgröße</b> der gesamten Anwendung
+angepasst werden. Stelle den gewünschten Wert über das
+Zahlenfeld ein -- eine Vorschau zeigt sofort die Wirkung.
+
+Alternativ lässt sich die Schriftgröße jederzeit – auch vor
+dem Login – ändern:
+
+- auf der Startseite über die Schaltflächen <b>A+</b> und <b>A-</b>,
+- mit den Tastaturkürzeln <b>Strg++</b> und <b>Strg+-</b>;
+  <b>Strg+0</b> setzt auf 12 Punkt zurück,
+- mit <b>Strg + Mausrad</b>.
+
+Erlaubt sind 8 bis 24 Punkt. Die Einstellung gilt für das
+ganze Programm und bleibt beim nächsten Start erhalten.
+
+@image html 132_settings_03.jpg "Einstellungen: Barrierefreiheit"
+@image latex 132_settings_03.jpg "Einstellungen: Barrierefreiheit"
+
+@section tutorial_encryption Reiter: Verschlüsselung
+
+Die Verschlüsselung ist <b>optional</b> und standardmäßig
+deaktiviert. Wenn deine Sammlung personenbezogene Daten
+enthält (Namen von Schülerinnen und Schülern, Ausleih-
+historie), empfiehlt es sich, die `.col`-Datei zu
+verschlüsseln, damit unbefugte Dritte beim direkten Zugriff
+auf die Datei keine Daten lesen können.
+
+Colman verschlüsselt die gesamte Datenbankdatei mit einem
+eigenen Passwort. Der aktuelle Status
+(<b>verschlüsselt</b> oder <b>nicht verschlüsselt</b>) wird
+oben im Reiter angezeigt. Ist die Sammlung verschlüsselt,
+erscheint beim Öffnen der Datei die Seite
+<b>Datenbank-Passwort</b> (siehe @ref tutorial_open_encrypted).
+
+<b>Verschlüsselung aktivieren</b>
+(nur sichtbar, wenn die Sammlung noch nicht verschlüsselt ist)
+
+1. Klicke auf <b>Verschlüsselung aktivieren</b>.
+2. Gib ein Passwort ein und bestätige es.
+   Ein Stärke-Indikator zeigt die Qualität des Passworts an.
+3. Klicke <b>OK</b>. Die Datei wird ab sofort beim
+   Öffnen nach dem Passwort gefragt.
+
+<b>Verschlüsselungs-Passwort ändern</b>
+(nur sichtbar, wenn die Sammlung bereits verschlüsselt ist)
+
+1. Klicke auf <b>Passwort ändern</b>.
+2. Gib das aktuelle und das neue Passwort ein.
+3. Klicke <b>OK</b>.
+
+<b>Verschlüsselung deaktivieren</b>
+(nur sichtbar, wenn die Sammlung bereits verschlüsselt ist)
+
+1. Klicke auf <b>Verschlüsselung deaktivieren</b>.
+2. Bestätige mit dem aktuellen Passwort.
+
+@image html 133_settings_04.jpg "Einstellungen: Verschlüsselung"
+@image latex 133_settings_04.jpg "Einstellungen: Verschlüsselung"
+
+@warning Das Passwort für die Datei-Verschlüsselung ist
+unabhängig vom Administrator-Passwort. Vergisst du das
+Datei-Passwort, kann die `.col`-Datei nicht mehr geöffnet
+werden -- auch nicht von Colman selbst.
+@endwarning
+
+@section tutorial_settings_save Änderungen speichern
+
+- <b>anwenden</b> -- speichert die Änderungen des aktiven
+  Reiters.
+- <b>zurücksetzen</b> -- verwirft die Änderungen und stellt
+  die gespeicherten Werte wieder her.
+- <b>zurück</b> -- verlässt die Seite. Falls ungespeicherte
+  Änderungen vorliegen, wirst du gefragt, ob du diese
+  übernehmen möchtest.
+
+---
+
+@page tutorial_prefs Programmeinstellungen (auf der Einstellungen-Seite)
+
+Die Programmeinstellungen -- ISBN-Suche, Vorschaubild-Verzeichnis
+und weitere -- sind unter
+@ref tutorial_settings_program "Einstellungen → Programm-Einstellungen"
+beschrieben.
+
+---
+
+@page tutorial_printer_calibration Drucker kalibrieren (nur Administrator)
+
+Wenn die gedruckten Etiketten oder Leihausweise geringfügig
+versetzt oder verzerrt erscheinen, lässt sich das mit der
+Drucker-Kalibrierung korrigieren. Colman speichert für jeden
+Drucker eine eigene Kalibrierung, die beim nächsten
+Druckvorgang automatisch angewendet wird.
+
+@section tutorial_printer_calibration_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>Drucker kalibrieren</b>.
+
+@image html 020_printer_calibration.jpg "Drucker kalibrieren"
+@image latex 020_printer_calibration.jpg "Drucker kalibrieren"
+
+@section tutorial_printer_calibration_steps Kalibrierungsablauf
+
+Wähle zuerst oben im Feld <b>Drucker</b> den zu kalibrierenden
+Drucker aus. Sind für ihn bereits Kalibrierungswerte gespeichert,
+werden sie in Schritt&nbsp;3 angezeigt.
+
+<b>Schritt 1 -- Kalibrierblatt drucken</b>
+
+1. Lege ein Blatt Normalpapier in den Drucker.
+2. Klicke auf <b>Kalibrierblatt drucken</b> und bestätige den
+   Druckdialog mit den Standardeinstellungen (keine Seitenränder
+   oder Skalierung einstellen). Das Blatt enthält drei
+   Fadenkreuze an fest definierten Positionen:
+   - <b>A</b> bei (50&nbsp;mm | 50&nbsp;mm) vom Papierrand
+   - <b>B</b> bei (150&nbsp;mm | 50&nbsp;mm) -- 100&nbsp;mm
+     rechts von A
+   - <b>C</b> bei (50&nbsp;mm | 150&nbsp;mm) -- 100&nbsp;mm
+     unterhalb von A
+
+Die Vorschau rechts zeigt das Kalibrierblatt.
+
+<b>Schritt 2 -- Messen und Versatz berechnen</b>
+
+1. Miss mit einem Lineal die tatsächlichen Abstände der
+   Fadenkreuzmittelpunkte vom linken bzw. oberen Papierrand
+   und trage die vier Werte ein:
+   - <b>Kreuz A -- X-Abstand</b> -- horizontaler Abstand von
+     Kreuz A zum linken Rand
+   - <b>Kreuz A -- Y-Abstand</b> -- vertikaler Abstand von
+     Kreuz A zum oberen Rand
+   - <b>Kreuz B -- X-Abstand</b> -- horizontaler Abstand von
+     Kreuz B zum linken Rand
+   - <b>Kreuz C -- Y-Abstand</b> -- vertikaler Abstand von
+     Kreuz C zum oberen Rand
+2. Klicke auf <b>Versatz berechnen</b>. Colman errechnet
+   daraus die nötigen Korrekturwerte für Versatz und
+   Skalierung.
+
+<b>Schritt 3 -- Kalibrierung prüfen und speichern</b>
+
+In diesem Bereich werden die berechneten Korrekturwerte
+angezeigt:
+
+- <b>X-Versatz</b> -- Horizontale Verschiebung in mm
+- <b>Y-Versatz</b> -- Vertikale Verschiebung in mm
+- <b>X-Skalierung</b> -- Horizontaler Skalierungsfaktor (1,0 = keine Korrektur)
+- <b>Y-Skalierung</b> -- Vertikaler Skalierungsfaktor (1,0 = keine Korrektur)
+
+- Klicke auf <b>Speichern</b>, um die Werte dauerhaft
+  für diesen Drucker zu übernehmen.
+- Klicke auf <b>Zurücksetzen</b>, um die zuletzt
+  gespeicherten Werte wieder herzustellen.
+- Klicke auf <b>zurück</b>, um ohne Speichern zur
+  zentralen Navigationsseite zurückzukehren.
+
+@note Die Kalibrierung wird druckerspezifisch gespeichert.
+Wenn du denselben Drucker unter verschiedenen
+Betriebssystem-Namen betreibst (z.&nbsp;B. nach einem
+Druckertreiber-Update), musst du die Kalibrierung erneut
+durchführen.
+
+@section tutorial_printer_calibration_effect Wirkung der Kalibrierung
+
+Nach dem Speichern wird die Kalibrierung automatisch bei
+allen Druckaufträgen über diesen Drucker angewendet --
+sowohl beim Etikettendruck (@ref tutorial_item_barcodes) als
+auch beim Druck von Leihausweisen
+(@ref tutorial_person_barcodes). Eine erneute Kalibrierung
+ist nur nötig, wenn der Drucker ausgetauscht oder der
+Druckertreiber neu installiert wird.
+
+---
+
+@page tutorial_passwords Zugangsdaten verwalten
+
+@section tutorial_passwords_admin Zugangsdatenverwaltung (Administrator)
+
+Der Administrator kann für alle Personen Benutzernamen und Passwörter
+setzen oder löschen.
+
+1. Auf der zentralen Navigationsseite klicke auf
+   <b>Passwörter ändern</b>.
+2. Links erscheint eine Tabelle mit allen Personen
+   (Nachname, Vorname, Titel, Benutzername) sowie dem Administrator.
+3. Wähle die gewünschte Person aus.
+
+<b>Benutzernamen verwalten:</b>
+
+4. Gib im Feld <b>Benutzername</b> einen eindeutigen Namen ein.
+5. Klicke auf <b>Benutzernamen setzen</b>.  Ist der Name bereits
+   vergeben, erscheint eine Fehlermeldung.
+6. Um einen Benutzernamen zu entfernen, klicke auf
+   <b>Benutzernamen entfernen</b> (Bestätigung erforderlich).
+
+<b>Passwörter verwalten:</b>
+
+7. Gib in die Felder <b>Neues Passwort</b> und
+   <b>Bestätigung</b> das Passwort ein.
+8. Klicke auf <b>Passwort ändern</b>.
+9. Um ein Passwort zu löschen (z. B. bei ausgeschiedenen
+   Schülern), klicke auf <b>Passwort löschen</b>.
+
+@image html 150_passwords.jpg "Zugangsdatenverwaltung (Administrator)"
+@image latex 150_passwords.jpg "Zugangsdatenverwaltung (Administrator)"
+
+@section tutorial_passwords_user Passwort ändern (Benutzer)
+
+Reguläre Benutzer können ihr eigenes Passwort ändern:
+
+1. Auf der zentralen Navigationsseite klicke auf
+   <b>Passwort ändern</b>.
+2. Gib dein <b>Aktuelles Passwort</b> ein.
+3. Gib dein <b>Neues Passwort</b> und die
+   <b>Bestätigung</b> ein.
+4. Klicke <b>OK</b>.
+
+@note Passwörter werden mit dem Algorithmus Argon2 gehasht.
+
+---
+
+@page tutorial_backup Automatisches Backup
+
+Colman erstellt automatisch Sicherungskopien der `.col`-Datei
+im selben Verzeichnis. Die Backup-Dateien erhalten eine
+laufende Nummer als Suffix, z. B.:
+
+    meine_sammlung.col.~1~
+    meine_sammlung.col.~2~
+    meine_sammlung.col.~3~
+
+Ein Backup wird beim ersten Speichervorgang einer Sitzung und
+danach automatisch nach jeweils 16 Änderungen erstellt. Sobald mehr als 20 Backup-Dateien
+vorhanden sind, fragt Colman, ob ältere gelöscht werden sollen
+(dabei werden mindestens die 10 neuesten behalten).
+
+Im Fehlerfall kannst du die Backup-Datei mit der höchsten
+Nummer in die Originaldatei umbenennen (Suffix entfernen) und
+so den letzten gesicherten Zustand wiederherstellen.
+
+---
+
+@page tutorial_types Medientypen verwalten
+
+Medientypen (z. B. "Buch", "DVD", "Zeitschrift") definieren,
+welche Felder ein Gegenstand hat. Medientypen verwalten darf, wer
+die Berechtigung <b>Kategorien ändern</b> besitzt.  Beim Anlegen einer neuen
+Datenbank sind bereits sechs Typen vorgegeben; eigene Typen
+können jederzeit ergänzt werden.
+
+@section tutorial_types_navigate Navigation
+
+Auf der zentralen Navigationsseite klicke auf
+<b>Kategorien verwalten</b>.
+
+@section tutorial_types_overview Seitenaufbau
+
+Links: Liste der vorhandenen Medientypen (<b>bekannte
+Kategorien</b>). Rechts: <b>Kategorie-Name</b>,
+<b>Suchkategorie</b> und die Tabelle <b>Kategorie-Felder</b>
+des gewählten Typs.
+
+Die angezeigten Namen der vorgegebenen Typen und Felder gibt es auf
+Deutsch und Englisch; Colman zeigt sie in der Sprache der Oberfläche.
+
+Die <b>Suchkategorie</b> legt fest, welche Internetdienste bei
+der Erfassung eines Mediums dieses Typs befragt werden (Buch,
+CD, DVD, Blu-ray, Gesellschaftsspiel oder <b>keine</b>). Sie ist
+unabhängig vom angezeigten Namen des Typs.
+
+Unter der Tabelle ordnen <b>Feld hinzufügen</b>,
+<b>Feld entfernen</b>, <b>alle Felder entfernen</b>,
+<b>Nach oben</b> und <b>Nach unten</b> die Felder; die
+Schaltflächen darunter (<b>Neue Kategorie</b>,
+<b>Kategorie ändern</b>, <b>Kategorie löschen</b>,
+<b>zurücksetzen</b>) speichern oder verwerfen die Änderungen.
+
+@image html 140_item_types.jpg "Medientypen-Verwaltung"
+@image latex 140_item_types.jpg "Medientypen-Verwaltung"
+
+@section tutorial_types_predefined Vorgegebene Medientypen
+
+Jede neu angelegte Datenbank enthält automatisch sechs
+Medientypen:
+
+- <b>Buch</b>: Autoren, Ausgabe, Erscheinungsdatum, Verlag, Seiten,
+  ISBN-10, ISBN-13, DDC
+- <b>Zeitschrift</b>: ISSN, Verlag, Erscheinungsjahr, Umfang, Anmerkung
+- <b>CD</b>: Interpret, Verlagsnummer, Verlag, Erscheinungsjahr, Sprache,
+  Umfang, Inhaltstyp, Medientyp, Datenträgertyp, EAN
+- <b>DVD</b>: Regie/Darsteller, Verlag, Erscheinungsjahr, Sprache,
+  Umfang, Inhaltstyp, Medientyp, Datenträgertyp, Mitwirkende,
+  Zielgruppe, EAN
+- <b>Blu-ray</b>: (identisch mit DVD)
+- <b>Gesellschaftsspiel</b>: Spieldesigner, Illustrator, Verlag, Erscheinungsjahr, Min. Spieler, Max. Spieler, Mindestalter, Spielzeit (Min.), Sprache, Genre, EAN
+
+Diese Typen können geändert oder gelöscht werden wie
+selbst angelegte Typen.
+
+@section tutorial_types_common Fest vorgegebene Felder
+
+Zusätzlich zu den typspezifischen Feldern hat jeder Gegenstand
+unabhängig vom Typ immer folgende fest vorgegebene Felder:
+
+- <b>Titel</b> (MARC21: 245$a) — Name oder Titel des Gegenstands
+- <b>Colman-Barcode</b> — der automatisch vergebene Barcode
+- <b>Vorschaubild</b> — Titelbild
+- <b>Schulbuch</b> — Kennzeichnung als schulischer Gegenstand
+  (mit Fach, Jahrgangsstufe und Art)
+- <b>Standort</b> — Aufstellungsort
+- <b>Signatur oben</b> / <b>Signatur unten</b> — Beschriftung
+  des Rückenschildchens
+- <b>Beschreibung</b> (MARC21: 520$a) — Kurzbeschreibung oder Inhaltsangabe
+- <b>Schlagwörter</b> (MARC21: 650$a) — Thematische Stichworte
+
+Diese Felder erscheinen in der Tabelle <b>Kategorie-Felder</b>
+ausgegraut und können nicht entfernt, wohl aber mit
+<b>Nach oben</b> / <b>Nach unten</b> verschoben werden. Die
+Reihenfolge bestimmt die Anordnung im Gegenstandsformular.
+
+@section tutorial_types_add Neuen Medientyp anlegen
+
+1. Gib im Feld <b>Kategorie-Name</b> den Namen ein.
+2. Klicke auf <b>Feld hinzufügen</b>, um typspezifische
+   Attribute hinzuzufügen.
+3. Lege für jedes Feld den Datentyp fest (s. Tabelle
+   unten).
+4. Optional: Ordne jedem Feld einen MARC21-Tag zu
+   (s. @ref tutorial_types_marc21).
+5. Optional: Nutze die MARC21-Vorlage, um ein
+   vollständiges Feldset auf einmal einzufügen
+   (s. @ref tutorial_types_template).
+6. Die Reihenfolge der Felder änderst du mit
+   <b>Nach oben</b> und <b>Nach unten</b>.
+7. Klicke auf <b>Neue Kategorie</b>.
+
+Verfügbare Feldtypen:
+
+- <b>kurzer Text</b> -- Einzeilige Texteingabe (z. B. Autor, Verlag)
+- <b>langer Text</b> -- Mehrzeilige Texteingabe (z. B. Zusammenfassung)
+- <b>ganze Zahl</b> -- Ganzzahl, optional mit Min/Max (z. B. Seitenanzahl)
+- <b>Gleitkommazahl</b> -- Dezimalzahl, optional mit Min/Max (z. B. Preis)
+- <b>Datum</b> -- Datumsfeld (z. B. Erscheinungsdatum)
+- <b>Zeit</b> -- Uhrzeitfeld
+- <b>Dauer</b> -- Zeitdauer im Format HH:MM (z. B. Filmlänge)
+- <b>Bereiche ganzer Zahlen</b> -- Bereich von Ganzzahlen (z. B. Jahrgang 5-10)
+- <b>Tabelle</b> -- Verschachtelte Tabelle (z. B. Exemplarliste)
+
+@section tutorial_types_marc21 MARC21-Felder zuordnen
+
+Das Bibliotheksformat MARC21 definiert standardisierte
+Bezeichner für bibliografische Felder (z. B. steht 245$a für
+den Titel, 100$a für den Hauptautor).  Colman kann jedem
+typspezifischen Feld einen solchen MARC21-Tag zuordnen.
+
+In der Spalte <b>Feldname</b> der Attributtabelle befindet sich
+eine Auswahlliste mit gruppierten MARC21-Feldern.  So gehst du
+vor:
+
+1. Klicke in das Auswahlfeld der Spalte <b>Feldname</b>.
+2. Wähle das passende MARC21-Feld aus der Auswahlliste, z. B. Autor (100$a) aus der Gruppe Haupteintrag.
+3. Colman setzt den Datentyp automatisch auf den empfohlenen Typ.
+4. Alternativ tippst du einen eigenen Namen ein; dann wird kein MARC21-Tag gespeichert.
+
+Der MARC21-Tag wird im Gegenstandsformular nicht angezeigt;
+er dient der einheitlichen Benennung und einer möglichen
+späteren Datenübernahme.
+
+@section tutorial_types_template MARC21-Vorlage verwenden
+
+Anstatt Felder einzeln hinzuzufügen, kannst du eine fertige
+Feldauswahl für gängige Medientypen übernehmen:
+
+1. Klicke auf den Button <b>MARC21-Vorlage</b>.
+2. Wähle eine der Vorlagen aus dem Menü und bestätige.
+
+Verfügbare Vorlagen:
+
+- <b>Buch</b>: Autor, ISBN, Auflage, Verlag, Erscheinungsjahr, Seiten, DDC, Genre
+- <b>CD / Audio</b>: Künstler, Verlagsnummer, Verlag, Erscheinungsjahr, Sprache, Umfang, Inhaltstyp, Medientyp, Datenträger
+- <b>DVD / Video</b>: Regisseur, Erscheinungsjahr, Sprache, Umfang, Inhaltstyp, Medientyp, Datenträger, Mitwirkende, Zielgruppe
+- <b>Zeitschrift</b>: ISSN, Verlag, Erscheinungsjahr, Umfang, Notiz
+
+Die Vorlage fügt nur Felder ein, die noch nicht durch ein fest
+vorgegebenes Feld abgedeckt sind.  „Titel“ und „Beschreibung“
+werden daher nicht noch einmal eingefügt, da sie bereits als
+feste Felder vorhanden sind.
+
+@note Bereits vorhandene typspezifische Felder werden nicht
+gelöscht.  Die Vorlage ergänzt nur neue Felder am Ende der
+Liste.
+
+@section tutorial_types_repeatable Wiederholbare Felder
+
+Manche Felder können bei einem Gegenstand mehrfach auftreten,
+zum Beispiel wenn ein Buch mehrere Autoren hat.  Solche Felder
+sind als <b>wiederholbar</b> markiert.
+
+Im Gegenstandsformular erkennst du wiederholbare Felder daran,
+dass sie mit einem <b>+</b>-Button ausgestattet sind.  Klicke
+darauf, um einen weiteren Eintrag hinzuzufügen.  Mit dem
+<b>-</b>-Button entfernst du einen Eintrag wieder.
+
+Bei den vorgegebenen Typen sind folgende Felder wiederholbar
+vordefiniert:
+
+- <b>Buch</b>: Autoren (100$a), ISBN-10 / ISBN-13 (020$a), DDC (082$a)
+- <b>CD</b>: Interpret (100$a)
+- <b>DVD</b> und <b>Blu-ray</b>: Regie/Darsteller (700$a)
+- <b>Gesellschaftsspiel</b>: Spieldesigner und Illustrator (700$a),
+  Sprache (546$a), Genre (655$a)
+
+Beim Anlegen eigener Felder kannst du die Wiederholbarkeit
+über die Checkbox <b>wiederholbar</b> in der Attributzeile
+aktivieren.
+
+@section tutorial_types_change Medientyp ändern
+
+1. Wähle den Typ in der Liste links aus.
+2. Ändere Name oder Attribute.
+3. Klicke auf <b>Kategorie ändern</b>.
+
+@warning Beim Ändern eines Medientyps können Daten verloren
+gehen. Erwäge, stattdessen einen neuen Typ anzulegen
+und vorher eine Sicherungskopie zu erstellen.
+@endwarning
+
+@section tutorial_types_remove Medientyp löschen
+
+1. Wähle den Typ in der Liste.
+2. Klicke auf <b>Kategorie löschen</b>.
+3. Bestätige die Sicherheitsabfrage.
+
+@warning Das Löschen eines Typs entfernt auch alle
+zugehörigen Gegenstände, Anschaffungen, Aussortierungen,
+Ausleihen und Rückgaben -- unwiderruflich!
+@endwarning
+
+---
+
+@page tutorial_permissions Berechtigungen im Überblick
+
+@tableofcontents
+
+Jede Person besitzt einen Satz von Berechtigungen. Sie legen fest,
+welche Kacheln auf der zentralen Navigationsseite erscheinen und
+was die Person tun darf. Der Administrator besitzt immer alle
+Berechtigungen. Wie du die Berechtigungen einer Person änderst,
+steht in @ref tutorial_persons_permissions.
+
+@section tutorial_permissions_list Verfügbare Berechtigungen
+
+| Berechtigung | Erlaubt |
+|---|---|
+| Personen bearbeiten | Personen anlegen, ändern und löschen und ihnen eigene Rechte geben |
+| Ausleiher anlegen | Nur Ausleiher anlegen und bearbeiten (Medien ansehen und reservieren) |
+| Datenerfasser anlegen | Nur Personen anlegen und bearbeiten, die Anschaffungen oder Aussortierungen erfassen |
+| Ausleihen erfassen | Medien ausleihen |
+| Rückgaben erfassen | Rückgaben erfassen |
+| Anschaffungen erfassen | Medien anschaffen (Zugang) |
+| Aussortierungen erfassen | Medien aussortieren (Abgang) |
+| Historie ansehen | Den Verlauf ansehen |
+| Personenlisten ansehen | Personenlisten und Filter, Hinweis auf fällige Rückgaben |
+| Bestandslisten ansehen | Die Suche nach Medien |
+| Einstellungen ändern | Den Reiter Sammlungs-Einstellungen |
+| Ausweise drucken | Leserausweise drucken |
+| Etiketten drucken | Etiketten für Medien drucken |
+| Kategorien ändern | Medientypen und Signaturkategorien verwalten |
+| Persönliche Daten einsehen | Die eigenen Daten und Ausleihen einsehen |
+| Etikettenlayouts verwalten | Etikettenblatt-Layouts anlegen und löschen |
+| Drucker kalibrieren | Die Drucker-Kalibrierung bearbeiten |
+| Ausweislayout bearbeiten | Ausweis-, Buchkarten- und Signatur-Layout bearbeiten |
+| Signaturschilder drucken | Signaturschilder (Rückenschilder) drucken |
+| Aktionen ändern und löschen | Einträge im Verlauf nachträglich ändern oder löschen |
+| Programm-Einstellungen bearbeiten | Den Reiter Programm-Einstellungen |
+| Klassen verwalten | Die Klassenverwaltung und den Schuljahreswechsel |
+| Medien reservieren | Medien für sich selbst reservieren (Standard: ja) |
+| Reservierungen bearbeiten | Reservierungen für andere anlegen, ändern und löschen (Standard: nein) |
+| Item-Einstellungen bearbeiten | Reservierungseinstellungen einzelner Medien (Standard: nein) |
+
+@section tutorial_permissions_tiles Kacheln der zentralen Seite
+
+Eine Kachel erscheint nur, wenn die angemeldete Person die
+passende Berechtigung besitzt:
+
+| Kachel | Erforderliche Berechtigung |
+|---|---|
+| Ausleihende verwalten | Personen bearbeiten, Ausleiher anlegen oder Datenerfasser anlegen |
+| anschaffen | Anschaffungen erfassen |
+| ausleihen | Ausleihen erfassen (wer nur <b>Medien reservieren</b> darf, sieht stattdessen <b>reservieren</b>) |
+| zurückbringen | Rückgaben erfassen |
+| aussortieren | Aussortierungen erfassen |
+| Suche | Bestandslisten ansehen |
+| Verlauf | Historie ansehen |
+| Ausweise drucken | Ausweise drucken |
+| Etiketten drucken | Etiketten drucken |
+| Signaturen drucken | Signaturschilder drucken |
+| Ausweislayout, Buchkarten-Layout, Signatur-Layout | Ausweislayout bearbeiten |
+| Kategorien verwalten | Kategorien ändern |
+| Klassenverwaltung | Klassen verwalten |
+| Meine Reservierungen | Medien reservieren |
+| Einstellungen, offene Ausleihen | für alle sichtbar; die Inhalte richten sich nach den Berechtigungen |
+| Drucker kalibrieren | nur Administrator |
+
+@section tutorial_permissions_rules Regeln beim Vergeben
+
+- <b>Man kann nur Rechte vergeben, die man selbst besitzt.</b>
+  Berechtigungen, die du nicht vergeben darfst, sind ausgegraut.
+  So kann sich niemand über ein zweites Konto zusätzliche Rechte
+  verschaffen.
+- Wer nur <b>Ausleiher anlegen</b> oder <b>Datenerfasser
+  anlegen</b> darf, kann nur Personen bearbeiten, deren Rechte
+  vollständig im eigenen Rahmen liegen – also keine Konten von
+  Mitarbeitern oder des Administrators.
+- Neue Personen dürfen standardmäßig nur <b>Medien reservieren</b>
+  und ihre <b>Persönlichen Daten einsehen</b>.
+
+---
+
+@page tutorial_multi_user Mehrplatzbetrieb: Server und Clients
+
+@tableofcontents
+
+Sollen mehrere Arbeitsplätze gleichzeitig mit derselben Sammlung
+arbeiten, liegt die Datenbank auf einem Server-Rechner (zum
+Beispiel einem Raspberry Pi). Der Server `colman_rest_server`
+stellt die Sammlung im Netzwerk bereit; an den Arbeitsplätzen
+läuft `colman_rest_client` mit derselben Oberfläche wie die
+Einzelplatz-Version. Auch die Colman-App für Android verbindet
+sich mit diesem Server.
+
+@section tutorial_multi_user_server Server starten
+
+Beim ersten Start mit einer noch nicht vorhandenen
+Datenbankdatei legt der Server die Sammlung an und fragt nach
+dem Administrator-Passwort:
+
+@code
+colman_rest_server --db /srv/colman/schule.col --port 8080
+@endcode
+
+Bei allen weiteren Starts öffnet derselbe Aufruf die vorhandene
+Sammlung. Eine verschlüsselte Sammlung braucht zusätzlich das
+Datenbankpasswort (`--key-file` oder Umgebungsvariable
+`COLMAN_DB_KEY`).
+
+@warning Außerhalb eines vertrauenswürdigen lokalen Netzes muss
+der Server mit TLS laufen (`--cert` und `--key`), sonst werden
+Passwörter unverschlüsselt übertragen.
+@endwarning
+
+@section tutorial_multi_user_client Am Arbeitsplatz anmelden
+
+Starte `colman_rest_client`. Die Anmeldeseite bietet Server im
+lokalen Netz automatisch an; andernfalls gibst du die
+Server-Adresse (z. B. `http://server:8080`) von Hand ein. Melde
+dich mit deinem Benutzernamen und Passwort an – beim ersten Mal
+als `admin` mit dem beim Serverstart gewählten Passwort. Die
+Server-Adresse wird für den nächsten Start gespeichert.
+
+@section tutorial_multi_user_refresh Gleichzeitiges Arbeiten
+
+Jeder Arbeitsplatz fragt den Server regelmäßig nach Änderungen
+anderer Arbeitsplätze und aktualisiert die Listen automatisch.
+Das Abfrageintervall stellst du in den Programm-Einstellungen
+unter <b>Abfrageintervall (REST-Client)</b> ein (Standard:
+10 Sekunden). Leiht ein anderer Arbeitsplatz währenddessen ein
+Medium aus, sinkt die angezeigte verfügbare Anzahl entsprechend.
+
+@tip Für zentral verwaltete Benutzerkonten kann der Server Anmeldungen
+über einen OpenID-Connect-Anbieter (z. B. Authentik) annehmen.
+Einrichtung und alle Server-Optionen beschreibt das README des
+Projekts.
+@endtip
+
+---
+
+*/
+
+/**
+
+@page tutorial_appendix_errors Anhang: Fehleranzeige
+
+@tableofcontents
+
+Wenn Colman auf einen Fehler stößt -- zum Beispiel beim
+Verbindungsaufbau zum Server -- zeigt das Programm eine
+verständliche Fehlermeldung an.  Zusätzlich erscheint ein
+Button <b>Details...</b>, über den technische Informationen
+abgerufen werden können.
+
+@section tutorial_appendix_errors_message Fehlermeldung
+
+Schlägt eine Aktion fehl, erscheint ein roter Text mit einer
+kurzen Erklärung.  Typische Meldungen sind:
+
+- <b>Falscher Benutzername oder Passwort.</b> -- Die
+  Anmeldedaten sind nicht korrekt.
+- <b>Keine Verbindung zum Server möglich. Bitte Server-URL
+  prüfen.</b> -- Der Server ist nicht erreichbar oder die
+  eingetragene Adresse ist falsch.
+- <b>Server-Fehler (Status …).</b> -- Der Server hat eine
+  unerwartete Fehlernummer zurückgegeben.
+
+<!-- @image html 200_error_display.jpg "Fehlermeldung mit Details-Button" -->
+<!-- @image latex 200_error_display.jpg "Fehlermeldung mit Details-Button" -->
+<!-- @note Screenshot einfügen: Anmeldeseite mit rotem Fehlertext und
+     sichtbarem "Details..."-Button darunter -->
+
+@section tutorial_appendix_errors_details Technische Details anzeigen
+
+Klicke auf <b>Details...</b>, um ein Dialogfenster mit der
+genauen technischen Fehlerbeschreibung zu öffnen.  Das
+Fenster trägt den Titel <b>Fehlerdetails</b> und zeigt:
+
+- den HTTP-Statuscode (z. B. <b>HTTP 401</b>), und
+- die vom Server zurückgegebene Fehlermeldung, sofern
+  vorhanden (z. B. eine JSON-Beschreibung).
+
+<!-- @image html 201_error_details.jpg "Details-Dialog mit HTTP-Statuscode" -->
+<!-- @image latex 201_error_details.jpg "Details-Dialog mit HTTP-Statuscode" -->
+<!-- @note Screenshot einfügen: geöffneter "Fehlerdetails"-Dialog mit
+     Statuscode und Serverantwort -->
+
+@section tutorial_appendix_errors_copy Fehlermeldung kopieren
+
+Der angezeigte Fehlertext lässt sich markieren und in die
+Zwischenablage kopieren.  So kannst du die Meldung an den
+Administrator weitergeben oder in einem Fehlerbericht
+einfügen:
+
+1. Klicke in den Fehlertext im Detailfenster.
+2. Markiere den gewünschten Text (z. B. mit der Maus oder
+   mit <b>Strg+A</b> für alles).
+3. Kopiere ihn mit <b>Strg+C</b> in die Zwischenablage.
+
+@tip
+Wenn du einen Fehler meldest, kopiere bitte immer den
+vollständigen Inhalt des Detailfensters.  Das erleichtert
+die Analyse erheblich.
+@endtip
+
+---
+
+*/

@@ -1,0 +1,1247 @@
+/**
+
+@page page_rest_api Colman REST API
+
+@tableofcontents
+
+This page documents the HTTP REST API exposed by the colman server and
+consumed by the colman REST client (`RestQueries`).
+
+@section rest_overview Overview
+
+All endpoints are prefixed with `/api`.  Requests and responses use
+JSON (`Content-Type: application/json`).  Every request must carry an
+`Authorization` header, **except** `GET /api/version` which is public.
+See @ref rest_auth for the supported authentication schemes.
+
+@subsection rest_tls Transport Security (HTTPS)
+
+When the server is reachable from outside a private network, running
+without TLS is insecure because credentials are transmitted in plain
+text.  The server accepts `--cert` and `--key` (PEM files)
+to enable HTTPS.
+
+```
+colman-rest-server --db library.col --port 443 \
+    --cert /etc/ssl/certs/colman.pem \
+    --key  /etc/ssl/private/colman.key
+```
+
+Both arguments are PEM files.  The private key must be an RSA key.
+TLS 1.2 or later is required.
+
+For a publicly reachable server, use a certificate issued by a trusted
+CA (e.g. Let's Encrypt via `certbot`).  For a LAN-only server, a
+self-signed certificate is sufficient; users must add a browser
+exception once.
+
+If neither `--cert` nor `--key` is given, the server starts in plain
+HTTP mode and logs a warning.  Plain HTTP is acceptable only for
+local-loopback testing.
+
+@subsection rest_db_encryption Database encryption
+
+A `.col` database can be encrypted with SQLite3 Multiple Ciphers.
+Encrypted databases protect the data not only against offline theft of the
+file (e.g. from a backup), but also against accidentally opening the wrong
+collection: a server started with the wrong key or no key at all will refuse
+to open the database and exit with an error.
+
+To supply the passphrase to the server without exposing it in the process
+list, use one of two methods:
+
+**Key file** (recommended for systemd services):
+
+```
+colman-rest-server --db library.col --key-file /path/to/library.key
+```
+
+The file must contain the passphrase as plain text.  Store it next to the
+database so each instance has its own key file without needing to touch
+system directories.  Restrict access so only the service account can read it:
+
+```bash
+openssl rand -base64 32 > /var/lib/colman/library.key
+chmod 400 /var/lib/colman/library.key
+```
+
+**Environment variable** (alternative, e.g. for container deployments):
+
+```bash
+export COLMAN_DB_KEY="your-passphrase-here"
+colman-rest-server --db library.col
+```
+
+`--key-file` takes precedence over `COLMAN_DB_KEY` when both are set.
+
+If neither is provided, the server opens the database without a
+passphrase.  Opening an encrypted database without a key fails with
+an error at startup.
+
+Versioned resources (Item, Person, Lending, Return, Acquisition,
+Liquidation) support optimistic concurrency.  Update requests carry the
+expected version in the `If-Match` header; the server responds with
+`412 Precondition Failed` when the stored version differs.
+
+HTTP status codes used throughout:
+
+| Code | Meaning                                              |
+|------|------------------------------------------------------|
+| 200  | OK — request succeeded                               |
+| 201  | Created — POST succeeded; body contains `{"id":N}`  |
+| 204  | No Content — DELETE succeeded                        |
+| 400  | Bad Request — malformed JSON or missing fields       |
+| 401  | Unauthorized — missing or invalid bearer token       |
+| 404  | Not Found — resource does not exist                  |
+| 412  | Precondition Failed — `If-Match` version mismatch   |
+| 500  | Internal Server Error                                |
+
+---
+
+@section rest_auth Authentication
+
+Three authentication schemes are supported.  They are evaluated in the
+order listed below; the first matching scheme wins.
+
+@subsection rest_auth_basic HTTP Basic Auth — local username/password
+
+```
+Authorization: Basic base64(<username>:<password>)
+```
+
+The username and Argon2 password hash are stored in the `credentials`
+table.  Returns HTTP 401 on wrong credentials.
+
+@subsection rest_auth_barcode HTTP Basic Auth — barcode login (password-less)
+
+```
+Authorization: Basic base64(<barcode>:)
+```
+
+Enabled only when the server is started with `--allow-barcode-login`.
+The username field carries the person's library ID-card barcode; the
+password field is left **empty**.
+
+Access is granted only when the person's permission set is restricted to
+at most the following three flags: `view_personal_data`, `reserve`,
+`view_items`.  Any additional permission causes the attempt to be
+rejected with HTTP 401.
+
+This scheme is intended for pupils who use the self-service reservation
+feature.
+
+@subsection rest_auth_jwt Bearer JWT (Authentik / OIDC)
+
+```
+Authorization: Bearer <jwt>
+```
+
+Enabled only when the server is started with `--jwks-uri` and
+`--issuer`.  The JWT is an RS256-signed token issued by the configured
+OIDC provider.  The `sub` claim is resolved to a colman person via the
+`external_id` column in the `credentials` table.  Returns HTTP 401 for
+expired or malformed tokens; HTTP 403 when the `sub` is unknown.
+
+---
+
+@section rest_versioning API Versioning
+
+@subsection rest_version_get GET /api/version
+
+Returns the server's REST API version.  **No authentication required.**
+
+Response body:
+
+| Field   | Type   | Description                        |
+|---------|--------|------------------------------------|
+| `major` | int    | Major version                      |
+| `minor` | int    | Minor version                      |
+| `name`  | string | Server display name (since 1.1)    |
+
+Both the desktop client and the Flutter client check compatibility before
+authenticating, using the rule:
+- `server.major == client.major` AND `server.minor >= client.minor`
+
+The desktop client shares `colman_rest_api_version.hpp` with the server; the
+Flutter client carries its own copy of the required version in
+`flutter/lib/api/api_version.dart`.  An incompatible server is reported to the
+user instead of failing later through missing endpoints or fields.
+
+Minor is incremented for backwards-compatible additions; major is
+incremented for breaking changes.  The current API version is **2.6**
+(see `colman_rest_api_version.hpp`).  Since 2.6, the open copies of an
+item held by several persons can be returned in a single request
+(@ref rest_returns_batch, group return) and the rows of
+`POST /api/persons/lending-query` carry `school_class`.  Since 2.5, several persons can
+borrow one copy of an item each in a single request
+(@ref rest_lendings_batch, group lending).  Since 2.4, the rows of
+`GET /api/lendings/due` carry the borrower's `school_class` separately
+(@ref rest_lendings_due).  Since 2.3, lending periods can be
+extended (@ref rest_lendings_extend) and `GET /api/history` accepts an
+`action` filter (@ref rest_history_get); the Flutter client uses both
+and therefore requires minor 3.  Since 2.2, the server generates and
+parses barcode format 2 (see @ref sec_barcode_formats); it still parses
+legacy format 1 barcodes, and the Flutter client requires minor 2 because it
+computes format 2 person barcodes locally.  Since 2.1, `GET /api/table-versions`
+also tracks the `types`, `classes` and `collection` tables, so clients can
+detect category, class and collection-setting changes (see
+@ref rest_table_versions).  Version 2.0 was a breaking change:
+card and label layouts are no longer persisted on the server.  Each client
+keeps its own card/label layouts locally (clients may drive different
+printers).  The former layout endpoints — `PUT /api/collection/id-card-layout`,
+`PUT /api/collection/item-card-layout`, `PUT /api/collection/sig-label-layout`,
+`PUT /api/collection/id-label-layout-name` and
+`PUT /api/collection/item-card-label-layout-name` — were removed, as were the
+corresponding `item_card_layout`, `sig_label_layout`, `id_label_layout_name`
+and `item_card_label_layout_name` fields of `GET /api/collection`.  The
+person `id_card_layout` object is still returned by `GET /api/collection`
+read-only, so a freshly installed client can seed its local copy once.  Since
+1.20, items can be queried by
+acquisition time span (see @ref rest_items_acquired_between).  Since 1.19,
+the item-search endpoint accepts the optional `grade_min` / `grade_max`
+grade-level span filter (see @ref rest_items_search).  Since 1.14,
+person-management
+endpoints accept the delegated `create_lenders` / `create_data_collectors`
+permissions and enforce the anti-escalation and containment rules described
+in @ref rest_persons.  Since 1.13, item types carry a `media_kind` search
+category (see @ref rest_types).
+
+@subsection rest_table_versions GET /api/table-versions
+
+Returns per-table change counters used by the REST client to detect
+data modifications without re-fetching full result sets.
+**Requires authentication.**
+
+Response body (JSON object): one key per tracked table, value is the
+current change counter (monotonically increasing integer, starts at 0,
+incremented on every INSERT / UPDATE / DELETE in that table):
+
+| Key             | Description                          |
+|-----------------|--------------------------------------|
+| `items`         | Change counter for the items table   |
+| `persons`       | Change counter for persons           |
+| `lendings`      | Change counter for lendings          |
+| `returns`       | Change counter for returns           |
+| `acquisitions`  | Change counter for acquisitions      |
+| `liquidations`  | Change counter for liquidations      |
+| `reservations`  | Change counter for reservations      |
+| `types`         | Change counter for item types (categories) — since 2.1 |
+| `classes`       | Change counter for school classes — since 2.1 |
+| `collection`    | Change counter for collection settings — since 2.1 |
+
+Both clients poll this endpoint on a configurable interval (default 10 s,
+adjustable 5–300 s in the preferences) and refresh only the data the
+current page depends on when a *relevant* counter has advanced since the
+last poll.  The desktop client scopes the poll to the current page in
+`DbChangePoller` and calls the appropriate `refresh_*_pages()` function; the
+Flutter client uses the `tableVersionsProvider` poller together with the
+`watchTables()` helper, by which each screen reloads itself when the tables
+it shows change.  When a poll fails to reach the server, both clients flag
+the data as possibly stale (a warning dialog on the desktop, a persistent
+banner in the Flutter client).
+
+@subsection rest_me GET /api/me
+
+Returns identity and permission flags for the authenticated caller.
+Requires permission `reserve`.
+
+Response body:
+
+| Field              | Type | Description                                        |
+|--------------------|------|----------------------------------------------------|
+| `person_id`        | int  | Person ID of the caller (0 for the admin account) |
+| `edit_reservations`| bool | Whether the caller has the `edit_reservations` permission |
+
+This endpoint is used by clients to determine whether to show the
+full reservation management UI (person search, all reservations) or the
+self-service view (own reservations only).
+
+---
+
+@section rest_collection Collection
+
+@subsection rest_collection_get GET /api/collection
+
+Returns the collection metadata.
+
+**Response body** (JSON object):
+
+| Field             | Type   | Description                       |
+|-------------------|--------|-----------------------------------|
+| `name`            | string | Collection name                   |
+| `prefix`          | string | Barcode prefix                    |
+| `school`          | string | School name                       |
+| `address`         | string | School address                    |
+| `num_items_digits`| int    | Number of digits in item barcodes |
+
+@subsection rest_collection_put PUT /api/collection
+
+Saves collection metadata.  Request body has the same shape as the
+GET response.
+
+---
+
+@section rest_types Item Types
+
+Localized display names (`locale`, attribute labels) are returned in the
+language requested by the `Accept-Language` header (two-letter code, e.g.
+`de` or `en`); without the header, the server's system language is used.
+The predefined types carry German and English names.  The desktop REST
+client sends the language of its user interface, i.e. the first
+`LANGUAGE`/`LANG` entry for which colman has a translation, else `en`.
+
+@subsection rest_types_list GET /api/types
+
+Returns a JSON array of all item types:
+
+| Field        | Type   | Description                  |
+|--------------|--------|------------------------------|
+| `id`         | int    | Type ID                      |
+| `name`       | string | Internal name                |
+| `locale`     | string | Localized display name       |
+| `media_kind` | int    | Search category (see below)  |
+| `attributes` | object | Map of attribute key → label |
+
+`media_kind` maps the type to an internet search category, independently
+of its (possibly localized) name: 0 = none, 1 = book, 2 = CD, 3 = DVD,
+4 = Blu-ray, 5 = board game.  It drives which title/barcode search
+services a client offers for items of this type.  Added in API 1.13;
+absent or 0 means "no search category".
+
+@subsection rest_types_get GET /api/types/{id}
+
+Returns the type with the given ID, including its `media_kind`.
+
+@subsection rest_types_byname GET /api/types/by-name/{name}
+
+Returns the type with the given internal name.
+
+@subsection rest_types_locale GET /api/types/locale
+
+Returns a JSON array of `{"id": N, "locale": "..."}` pairs for all
+types.
+
+@subsection rest_types_names GET /api/types/names
+
+Returns a JSON array of `{"id": N, "name": "..."}` pairs for all
+types.
+
+@subsection rest_types_post POST /api/types
+
+Creates a new item type.  Request body:
+
+| Field        | Type   | Required | Description                       |
+|--------------|--------|----------|-----------------------------------|
+| `name`       | string | yes      | Internal name                     |
+| `locale`     | string | yes      | Localized label                   |
+| `media_kind` | int    | no       | Search category (default 0, none) |
+
+Response body: `{"id": N}`.
+
+@subsection rest_types_put PUT /api/types/{id}
+
+Updates an existing type.  Accepts the same `media_kind` field as
+@ref rest_types_post.
+
+@subsection rest_types_delete DELETE /api/types/{id}
+
+Deletes the type.
+
+@subsection rest_types_attributes GET /api/types/{id}/attributes
+
+Returns a JSON object mapping attribute key → localized label for the
+given type.
+
+@subsection rest_types_attr_set PUT /api/types/{id}/attributes
+
+Saves the attribute map.  Request body: JSON object of key → label.
+
+@subsection rest_types_thumbnail GET /api/types/{id}/thumbnail
+
+Returns the thumbnail for items of the given type.  Response is a JSON
+array of objects:
+
+| Field       | Type   | Description       |
+|-------------|--------|-------------------|
+| `item_id`   | int    | Item ID           |
+| `item_name` | string | Item name         |
+| `type_name` | string | Type name         |
+| `thumb_id`  | int    | Thumbnail blob ID |
+
+@subsection rest_types_restrict POST /api/types/{id}/restrict
+
+Restricts an item type to a given item.
+
+---
+
+@section rest_signatures Signature Labels
+
+@subsection rest_sig_top GET /api/signatures/top
+
+Returns the current top-line signature template as a JSON object.
+
+@subsection rest_sig_top_put PUT /api/signatures/top
+
+Saves the top-line signature template.
+
+@subsection rest_sig_type GET /api/signatures/top/{type_id}
+
+Returns the signature template for the given type.
+
+@subsection rest_sig_type_put PUT /api/signatures/top/{type_id}
+
+Saves the signature template for the given type.
+
+@subsection rest_sig_type_delete DELETE /api/signatures/top/{type_id}
+
+Deletes the per-type signature template (falls back to default).
+
+@subsection rest_sig_type_name GET /api/signatures/top/by-name/{type_name}
+
+Returns the signature template for the type identified by its internal
+name.
+
+@subsection rest_sig_bottom_all GET /api/signatures/bottom
+
+Returns a JSON array with the names of all bottom-line signature
+categories, regardless of their associated top category.  Use
+@c GET /api/signatures/top/{top}/bottom to filter by a specific top
+category instead.
+
+---
+
+@section rest_items Items
+
+@subsection rest_items_list GET /api/items?id={id}&id={id}...
+
+Returns a JSON array of item-list rows for the given item IDs (query
+parameters may be repeated).  Each element:
+
+| Field             | Type   | Description               |
+|-------------------|--------|---------------------------|
+| `id`              | int    | Item ID                   |
+| `name`            | string | Item name                 |
+| `count`           | int    | Total stock count         |
+| `available`       | int    | Currently available count |
+| `type_translated` | string | Localized type label      |
+| `type_name`       | string | Internal type name        |
+| `collector`       | string | Data-collector name       |
+
+@subsection rest_items_get GET /api/items/{id}
+
+Returns the full `Item` object as a JSON object.  See
+@ref rest_item_json for the schema.
+
+@subsection rest_items_post POST /api/items
+
+Creates a new item.  Request body: `Item` JSON.  Response: `{"id":N}`.
+
+The `academic_year` field is an array of `[first, second]` grade-level
+ranges.  Each range must be well-formed (`first <= second`); otherwise the
+server responds with `400 Bad Request` and
+`{"error": "Invalid academic year range"}`.
+
+@subsection rest_items_put PUT /api/items/{id}
+
+Updates an item.  Requires `If-Match: {version}`.  The same
+`academic_year` range validation as for @ref rest_items_post applies.
+
+@subsection rest_items_delete DELETE /api/items/{id}
+
+Deletes the item.
+
+@subsection rest_items_count GET /api/items/{id}/count
+
+Returns `{"value": N}` with the stock count.
+
+@subsection rest_items_available GET /api/items/available?id={id}&search={s}&limit={n}&offset={n}
+
+Returns a JSON array of item-list rows for available items (same shape
+as `/api/items`).  Optional query parameters:
+- `id=N` — filter by item ID
+- `search=<string>` — filter by search string
+- `limit=N` — maximum number of rows to return (0 = unlimited)
+- `offset=N` — skip the first N matching rows (pagination)
+
+@subsection rest_items_acquired GET /api/items/acquired?id={id}&search={s}&limit={n}&offset={n}
+
+Returns a JSON array of item-list rows for acquired items (same shape
+as `/api/items`).  Optional query parameters:
+- `id=N` — filter by item ID
+- `search=<string>` — filter by search string
+- `limit=N` — maximum number of rows to return (0 = unlimited)
+- `offset=N` — skip the first N matching rows (pagination)
+
+@subsection rest_items_recently_acquired GET /api/items/recently-acquired?count={n}
+
+Returns a JSON array of `{"id": N}` objects for the most recently acquired
+items, ordered newest acquisition first.  Items without any acquisition
+record are omitted.
+- `count=N` — maximum number of item ids to return
+
+@subsection rest_items_acquired_between GET /api/items/acquired-between?from={iso}&to={iso}
+
+Returns a JSON array of `{"id": N}` objects for the items acquired within
+the inclusive time span `[from, to]`, ordered by id.  Items without any
+matching acquisition record are omitted.  Added in API version 1.20.
+- `from=ISO` — start of the time span (inclusive), ISO 8601 date/time
+- `to=ISO` — end of the time span (inclusive), ISO 8601 date/time
+
+@subsection rest_items_byisbn GET /api/items/by-isbn/{isbn}
+
+Returns the full `Item` object matching the given ISBN, or 404.
+
+@subsection rest_items_byean GET /api/items/by-ean/{ean}
+
+Returns the full `Item` object matching the given EAN, or 404.
+
+@subsection rest_items_barcode_gen GET /api/items/barcode?type_id={id}&count={N}
+
+Returns `{"value": "..."}` containing a newly generated barcode string
+for the given type.
+
+@subsection rest_items_barcode_parse POST /api/items/barcode/parse
+
+Parses a barcode string.  Request body: `{"barcode":"..."}`.  Response:
+`{"id":N}` (the item ID encoded in the barcode).
+
+@subsection rest_items_barcode_check GET /api/items/barcode/check?barcode={b}
+
+Returns `{"value": N}` where N is the item ID if the barcode is valid,
+or -1.
+
+@subsection rest_items_lentquery POST /api/items/lent-query
+
+Returns the lent count for a given item/lending pair.  Request body:
+`{"item_id":N, "lending_id":M}`.  Response: `{"value":K}`.
+
+@subsection rest_items_withtype GET /api/items/with-type?type_id={id}&search={s}&limit={n}&offset={n}
+
+Returns a JSON array of item-list rows for items of the given type.
+Optional query parameters:
+- `search=<string>` — filter by search string
+- `limit=N` — maximum number of rows to return (0 = unlimited)
+- `offset=N` — skip the first N matching rows (pagination)
+
+@subsection rest_items_search POST /api/items/search
+
+Searches items.  Request body:
+
+| Field         | Type   | Description                           |
+|---------------|--------|---------------------------------------|
+| `general`     | string | Full-text search across all fields    |
+| `name`        | string | Filter by item name                   |
+| `subject`     | string | Filter by subject field               |
+| `description` | string | Filter by description field           |
+| `keywords`    | string | Filter by keywords                    |
+| `type_id`     | int    | Filter by type (-1 for all)           |
+| `type_fields` | array  | Per-type attribute filters (see below)|
+| `grade_min`   | int    | Lowest wanted grade level (0 = none)  |
+| `grade_max`   | int    | Highest wanted grade level (0 = none) |
+| `limit`       | int    | Maximum number of rows (0 = unlimited)|
+| `offset`      | int    | Pagination offset                     |
+
+Each element of `type_fields` is an object with `column` (string) and
+`value` (string) fields.
+
+`grade_min` / `grade_max` (since 1.19) restrict school items to those
+whose stored grade-level range overlaps the span `[grade_min, grade_max]`.
+A bound of 0 leaves that side open.  When either bound is set, items
+without a grade level are excluded from the results.
+
+Response: JSON array of search-result rows:
+
+| Field         | Type   | Description               |
+|---------------|--------|---------------------------|
+| `id`          | int    | Item ID                   |
+| `name`        | string | Item name                 |
+| `type_locale` | string | Localized type label      |
+| `count`       | int    | Stock count               |
+| `available`   | int    | Available count           |
+| `type_id`     | int    | Type ID                   |
+
+@subsection rest_items_completions GET /api/items/completions/{prefix}
+
+Returns a JSON array of name-completion strings for items whose name
+starts with `prefix`.
+
+@subsection rest_items_school_completions GET /api/items/school-completions/{prefix}
+
+Returns school-level completions for the given prefix.
+
+@subsection rest_items_thumbnail GET /api/items/{id}/thumbnail
+
+Returns the item thumbnail as PNG bytes (`Content-Type: image/png`),
+or 404.
+
+@subsection rest_items_thumbnail_put PUT /api/items/{id}/thumbnail
+
+Stores a thumbnail.  Request body: raw PNG bytes
+(`Content-Type: image/png`).
+
+---
+
+@section rest_persons Persons
+
+@par Person-management authorization
+
+Creating, editing or deleting persons and changing their permissions,
+credentials, username, class or external ID requires one of the
+person-management permissions: `edit_persons`, `create_lenders` or
+`create_data_collectors`.  Two rules are enforced on every such request:
+
+- <b>Anti-escalation:</b> a caller may only grant a permission they hold
+  themselves (the administrator holds all).  `edit_persons` is no exception.
+- <b>Containment:</b> a caller may only manage a target whose current
+  permission set lies within their own scope — `edit_persons` grants any
+  target whose rights are a subset of the caller's; `create_lenders` only
+  borrower-profile targets (`view_items`, `reserve`); `create_data_collectors`
+  only data-collector-profile targets (`collect_acquisitions`,
+  `collect_liquidations`, `view_items`).
+
+Requests that violate either rule return `403 Forbidden`.
+
+@subsection rest_persons_list GET /api/persons?id={id}&id={id}...
+
+Returns a JSON array of person-list rows.  Each element:
+
+| Field       | Type   | Description            |
+|-------------|--------|------------------------|
+| `id`        | int    | Person ID              |
+| `lastname`  | string | Last name              |
+| `firstname` | string | First name             |
+| `title`     | string | Title / class          |
+| `has_password` | bool | Password is set     |
+
+@subsection rest_persons_get GET /api/persons/{id}
+
+Returns the full `Person` object.  See @ref rest_person_json.
+Requires permission `view_persons` unless the caller requests their
+own record (since 1.11).
+
+@subsection rest_persons_post POST /api/persons
+
+Creates a new person.  Request body: `Person` JSON.  Response:
+`{"id":N}`.
+
+@subsection rest_persons_put PUT /api/persons/{id}
+
+Updates a person.  Requires `If-Match: {version}`.
+
+@subsection rest_persons_delete DELETE /api/persons/{id}
+
+Deletes the person.
+
+@subsection rest_persons_startpage GET /api/persons/start-page?search={s}
+
+Returns a JSON array of start-page person rows matching the search
+string.
+
+@subsection rest_persons_bybarcode GET /api/persons/by-barcode/{barcode}
+
+Returns the full `Person` object matching the barcode.
+
+@subsection rest_persons_known GET /api/persons/known?lastname={l}&firstname={f}&title={t}
+
+Returns `{"value":N}` with the person ID if a person with the given
+name is known, else -1.
+
+@subsection rest_persons_recently_created GET /api/persons/recently-created?count={n}
+
+Returns a JSON array of `{"id": N}` objects for the most recently created
+persons, ordered newest first.  As the persons table carries no creation
+timestamp, the person id is used as the creation-order proxy; the
+Administrator (id 0) is excluded.
+- `count=N` — maximum number of person ids to return
+
+@subsection rest_persons_byextid GET /api/persons/by-external-id/{external_id}
+
+Returns the full `Person` matching the external ID, or 404.
+
+@subsection rest_persons_completions GET /api/persons/completions/{prefix}
+
+Returns a JSON array of name-completion strings.
+
+@subsection rest_persons_extid_set PUT /api/persons/{id}/external-id
+
+Links the person to an OIDC identity.
+Request body: `{"sub":"<subject>"}`.
+
+@subsection rest_persons_barcode GET /api/persons/{id}/barcode
+
+Returns `{"value": "..."}` containing the person's Code128 barcode
+string (collection prefix, person marker, ID, check digit).  Requires
+the `view_persons` permission.
+
+@subsection rest_permissions_list GET /api/permissions
+
+Returns a JSON array of permission column name strings (the canonical
+list used as index positions in per-person permission arrays).
+
+@subsection rest_persons_permissions_get GET /api/persons/{id}/permissions
+
+Returns a JSON array of booleans, one per permission column, in the
+same order as `GET /api/permissions`.
+
+@subsection rest_persons_permissions_defaults POST /api/persons/{id}/permissions/defaults
+
+Inserts a default (all-false) permission row for the person.
+
+@subsection rest_persons_permissions_set PUT /api/persons/{id}/permissions/{column}
+
+Sets a single permission column.
+Request body: `{"value":true}` or `{"value":false}`.
+
+@subsection rest_persons_permissions_delete DELETE /api/persons/{id}/permissions
+
+Removes all permission entries for the person.
+
+@subsection rest_persons_password_set POST /api/persons/{id}/password
+
+Sets the person's REST login credentials (username + password hash).
+Request body: `{"username":"<name>","password":"<argon2-hash>"}`.
+Both fields are required; returns HTTP 400 if either is missing.
+
+@subsection rest_persons_password_delete DELETE /api/persons/{id}/password
+
+Removes the person's password hash only.  The username entry is kept.
+
+@subsection rest_persons_username_get GET /api/persons/{id}/username
+
+Returns the person's username: `{"username":"<name>"}` or
+`{"username":null}` when no username has been assigned.
+
+@subsection rest_persons_username_set PUT /api/persons/{id}/username
+
+Assigns or changes the person's username.
+Request body: `{"username":"<name>"}`.
+Returns HTTP 409 Conflict if the name is already taken.
+
+@subsection rest_persons_username_delete DELETE /api/persons/{id}/username
+
+Clears the person's username (sets it to NULL).  Returns HTTP 204.
+
+@subsection rest_persons_change_passwords GET /api/persons/change-passwords
+
+Returns a JSON array of all persons (including the Administrator) for
+the password-management page.  Each element:
+
+| Field       | Type   | Description                          |
+|-------------|--------|--------------------------------------|
+| `id`        | int    | Person ID (0 = Administrator)        |
+| `lastname`  | string | Last name                            |
+| `firstname` | string | First name                           |
+| `title`     | string | Title                                |
+| `username`  | string | Username, or empty string if not set |
+
+@subsection rest_persons_class_get GET /api/persons/{id}/class
+
+Returns `{"value":"..."}` with the person's class string.
+
+@subsection rest_persons_class_set PUT /api/persons/{id}/class
+
+Sets the class.  Request body: `{"value":"..."}`.
+
+@subsection rest_persons_thumbnail GET /api/persons/{id}/thumbnail
+
+Returns the person photo as PNG bytes, or 404.
+
+@subsection rest_persons_thumbnail_put PUT /api/persons/{id}/thumbnail
+
+Stores a person photo.  Request body: raw PNG bytes.
+
+---
+
+@section rest_lendings Lendings
+
+@subsection rest_lendings_list GET /api/lendings?id={id}&id={id}...
+
+Returns a JSON array of open-lending rows.  Each element:
+
+| Field            | Type   | Description               |
+|------------------|--------|---------------------------|
+| `id`             | int    | Lending ID                |
+| `lent_count`     | int    | Number lent               |
+| `returned_count` | int    | Number returned so far    |
+| `datetime`       | string | ISO 8601 lending datetime |
+| `duedate`        | string | ISO 8601 due date         |
+| `remarks`        | string | Remarks                   |
+| `person_name`    | string | Borrower display name     |
+
+@subsection rest_lendings_get GET /api/lendings/{id}
+
+Returns the full `Lending` object.
+
+@subsection rest_lendings_post POST /api/lendings
+
+Creates a new lending.  Request body: `Lending` JSON.  Response:
+`{"id":N}`.
+
+If copies are blocked by another user's reservation, returns HTTP 409
+with `{"error":"reserved","not_reserved_count":N}` where `N` is the
+number of unreserved copies that could still be lent.
+
+If no (or not enough) copies are available — e.g. the item has meanwhile
+been lent out by someone else — returns HTTP 409 with
+`{"error":"not_available","available_count":N}` where `N` is the number of
+copies still available.  The server never reports an unavailable lending as
+success.  `POST /api/returns`, `/api/acquisitions` and `/api/liquidations`
+likewise return HTTP 409 when the requested operation is rejected (e.g.
+returning more copies than are outstanding).
+
+@subsection rest_lendings_put PUT /api/lendings/{id}
+
+Updates a lending.  Requires `If-Match: {version}`.
+
+@subsection rest_lendings_delete DELETE /api/lendings/{id}
+
+Deletes the lending.
+
+@subsection rest_lendings_balance GET /api/lendings/{id}/balance
+
+Returns `{"value":N}` with the outstanding (lent - returned) count.
+
+@subsection rest_lendings_person GET /api/lendings/person/{person_id}
+
+Returns a JSON array of `LendingPersonInfo` objects for the given
+person:
+
+| Field               | Type   | Description            |
+|---------------------|--------|------------------------|
+| `lending_id`        | int    | Lending ID             |
+| `person_last_name`  | string | Person last name       |
+| `person_first_name` | string | Person first name      |
+| `person_title`      | string | Person title / class   |
+
+@subsection rest_lendings_info GET /api/lendings/{id}/info
+
+Returns a `LendingInfo` object:
+
+| Field           | Type   | Description      |
+|-----------------|--------|------------------|
+| `lending_id`    | int    | Lending ID       |
+| `lending_count` | int    | Lent count       |
+| `item_name`     | string | Item name        |
+
+@subsection rest_lendings_due GET /api/lendings/due?from={date}
+
+Returns a JSON array of due-lending rows for lendings due on or before
+`from` (ISO 8601 date).  Allowed with `view_history`, `collect_returns`
+or `collect_lendings` (needed to extend a person's lendings), or for the
+caller's own lendings (`person_id` = own id):
+
+| Field              | Type   | Description            |
+|--------------------|--------|------------------------|
+| `lending_id`       | int    | Lending ID             |
+| `item_id`          | int    | Item ID                |
+| `person_id`        | int    | Person ID              |
+| `duedate`          | string | Due date               |
+| `person_name`      | string | Borrower display name: "lastname, firstname", followed by " (class)" if the borrower has a school class |
+| `school_class`     | string | Borrower's school class, empty if none (since 2.4) |
+| `outstanding_count`| int    | Unreturned count       |
+| `item_name`        | string | Item name              |
+
+`person_name` keeps the class suffix for clients older than 2.4; the
+desktop client strips it and shows `school_class` in a column of its own.
+
+@subsection rest_lendings_extend POST /api/lendings/extend
+
+Sets a new due date for several lendings at once ("extend lending
+period").  Requires `collect_lendings`.  Since API 2.3.
+
+Request body:
+
+| Field         | Type      | Description                              |
+|---------------|-----------|------------------------------------------|
+| `lending_ids` | int array | Lendings to change (must not be empty)   |
+| `duedate`     | string    | New due date (ISO 8601); empty = none    |
+
+All lendings are changed in one transaction and their version is
+incremented.  Response: `204 No Content`; `400 Bad Request` for an empty
+id list; `404 Not Found` if a lending does not exist (nothing is changed).
+
+@subsection rest_lendings_batch POST /api/lendings/batch
+
+Group lending: lends one copy of an item to each of several persons.
+Requires `collect_lendings`.  Since API 2.5.
+
+Request body:
+
+| Field        | Type      | Description                                   |
+|--------------|-----------|-----------------------------------------------|
+| `lending`    | object    | `Lending` template: item, datetime, duedate, remarks, data collector; person and count are ignored |
+| `person_ids` | int array | Borrowers (must not be empty)                 |
+
+All lendings are inserted in one transaction -- either every person
+gets a lending with count 1 or nothing is changed.  A borrower's own
+reservation of the item is consumed like with @ref rest_lendings_post.
+Response: `{"ids":[N,...]}` with the new lending ids in the order of
+`person_ids`.
+
+Errors:
+- `400 Bad Request` for a missing template or an empty person list.
+- `409 Conflict` with `{"error":"not_available","available_count":N}`
+  if the copies do not suffice; `N` is the number of copies that can
+  be lent to this group (available copies minus those still reserved
+  for others).
+- `409 Conflict` with `{"error":"already_lent","person_id":P}` if
+  person `P` still holds an open lending of the item.
+
+---
+
+@section rest_returns Returns
+
+@subsection rest_returns_post POST /api/returns
+
+Creates a new return.  Request body: `Return` JSON.  Response:
+`{"id":N}`.
+
+@subsection rest_returns_batch POST /api/returns/batch
+
+Group return: returns all copies of an item still on loan to several
+persons.  Requires `collect_returns`.  Since API 2.6.
+
+Request body:
+
+| Field        | Type      | Description                                   |
+|--------------|-----------|-----------------------------------------------|
+| `item_id`    | int       | The item                                      |
+| `person_ids` | int array | Returning persons (must not be empty)         |
+| `return`     | object    | `Return` template: date_time, remarks, data collector; lending_id and count are ignored |
+
+All returns are inserted in one transaction: one return per open
+lending of the item held by one of the persons, covering its remaining
+count -- or nothing is changed.  Response: `{"ids":[N,...],"count":C}`
+with the new return ids and the total number of returned copies.
+
+Errors:
+- `400 Bad Request` for a missing template, item or person list.
+- `409 Conflict` with `{"error":"not_lent","person_id":P}` if person
+  `P` holds no open lending of the item.
+
+@subsection rest_returns_get GET /api/returns/{id}
+
+Returns the full `Return` object.
+
+@subsection rest_returns_put PUT /api/returns/{id}
+
+Updates a return.  Requires `If-Match: {version}`.
+
+@subsection rest_returns_delete DELETE /api/returns/{id}
+
+Deletes the return.
+
+---
+
+@section rest_acquisitions Acquisitions
+
+@subsection rest_acq_post POST /api/acquisitions
+
+Creates a new acquisition.  Request body: `Acquisition` JSON.
+Response: `{"id":N}`.
+
+@subsection rest_acq_get GET /api/acquisitions/{id}
+
+Returns the full `Acquisition` object.
+
+@subsection rest_acq_put PUT /api/acquisitions/{id}
+
+Updates an acquisition.  Requires `If-Match: {version}`.
+
+@subsection rest_acq_delete DELETE /api/acquisitions/{id}
+
+Deletes the acquisition.
+
+---
+
+@section rest_liquidations Liquidations
+
+@subsection rest_liq_post POST /api/liquidations
+
+Creates a new liquidation.  Request body: `Liquidation` JSON.
+Response: `{"id":N}`.
+
+@subsection rest_liq_get GET /api/liquidations/{id}
+
+Returns the full `Liquidation` object.
+
+@subsection rest_liq_put PUT /api/liquidations/{id}
+
+Updates a liquidation.  Requires `If-Match: {version}`.
+
+@subsection rest_liq_delete DELETE /api/liquidations/{id}
+
+Deletes the liquidation.
+
+---
+
+@section rest_thumbnails Thumbnails
+
+@subsection rest_thumb_post POST /api/thumbnails
+
+Uploads a new thumbnail.  Request body: raw PNG bytes
+(`Content-Type: image/png`).  Response: `{"id":N}`.
+
+@subsection rest_thumb_get GET /api/thumbnails/{id}
+
+Returns the thumbnail PNG bytes, or 404.
+
+---
+
+@section rest_history History
+
+@subsection rest_history_get GET /api/history?is_admin={true|false}&from={date}&to={date}&show_all={true|false}&limit={n}&offset={n}&action={type}
+
+Returns a JSON array of history rows.  Optional query parameters:
+- `is_admin=true` — include admin-only actions
+- `from=<ISO-date>` — filter from date (inclusive)
+- `to=<ISO-date>` — filter to date (inclusive)
+- `show_all=true` — show all records regardless of user
+- `limit=N` — maximum number of rows to return (0 = unlimited)
+- `offset=N` — skip the first N matching rows (pagination)
+- `action=<type>` — only rows of this action type (`acquisition`,
+  `liquidation`, `lending`, `return`, `reservation`); empty or missing =
+  all types (since 2.3)
+
+Row schema:
+
+| Field          | Type   | Description                            |
+|----------------|--------|----------------------------------------|
+| `id`           | int    | Record ID                              |
+| `datetime`     | string | ISO 8601 timestamp                     |
+| `action`       | string | Action type (`lend`, `return`, etc.)   |
+| `item_name`    | string | Item name                              |
+| `count`        | int    | Count                                  |
+| `user_name`    | string | Logged-in user name                    |
+| `collector`    | string | Data collector name                    |
+| `item_id`      | int    | Item ID                                |
+| `person_id`    | int    | Person ID                              |
+| `remarks`      | string | Remarks                                |
+| `collector_id` | int    | Collector ID                           |
+| `duedate`      | string | Due date (lendings only)               |
+
+@subsection rest_history_conflicts GET /api/history/conflicts
+
+Returns a JSON array of history rows that have unresolved conflicts.
+
+@subsection rest_history_change_conflicts GET /api/history/change-conflicts
+
+Returns a JSON array of recently changed history rows with conflicts.
+
+@subsection rest_history_put PUT /api/history/{id}
+
+Overwrites a history record (admin undo/redo).  Request body: history
+row JSON.
+
+@subsection rest_history_delete DELETE /api/history
+
+Deletes all history records.
+
+---
+
+@section rest_classes Class Management
+
+@subsection rest_classes_list GET /api/classes
+
+Returns a JSON array of class name strings.
+
+@subsection rest_classes_post POST /api/classes
+
+Creates a new class.  Request body: `{"name":"..."}`.
+
+@subsection rest_classes_put PUT /api/classes/{name}
+
+Renames a class.  Request body: `{"name":"..."}` (new name).
+
+@subsection rest_classes_delete DELETE /api/classes/{name}
+
+Deletes a class.
+
+@subsection rest_classes_affected GET /api/classes/affected-persons
+
+Returns a JSON array of `AffectedPerson` objects for persons whose
+class is about to change:
+
+| Field         | Type   | Description         |
+|---------------|--------|---------------------|
+| `person_id`   | int    | Person ID           |
+| `display_name`| string | Display name        |
+| `old_class`   | string | Current class       |
+| `new_class`   | string | Proposed new class  |
+
+@subsection rest_classes_yearchanges POST /api/classes/year-changes
+
+Applies the pending year-level class changes.
+
+---
+
+@section rest_reservations Reservations
+
+Requires permission `reserve` for all endpoints.
+
+@subsection rest_reservations_list GET /api/reservations
+
+Returns active reservations.  Optional query parameters:
+- `person_id=N` — filter by person
+- `item_id=N` — filter by item (same as `/api/items/{id}/reservations`)
+
+**Ownership rule:** callers without `edit_reservations` always receive only
+their own reservations, regardless of the `person_id` query parameter.
+Callers with `edit_reservations` receive all reservations (or the filtered
+subset if `person_id` is given).
+
+@subsection rest_item_reservations GET /api/items/{id}/reservations
+
+Returns all active (non-expired) reservations for item `{id}`.
+
+@subsection rest_reservations_post POST /api/reservations
+
+Creates a reservation.  Request body: `Reservation` JSON (required:
+`item_id`, `person_id`, `count`, `expires_at`).  Response: `{"id":N}`.
+
+Since 1.12, if the person already has an active reservation for the
+item, its count is increased by `count` instead (the existing expiry
+date is kept) and the response carries the id of that reservation;
+earlier versions returned HTTP 409 in this case.
+
+- HTTP 422 if not enough unreserved copies remain.
+- HTTP 403 if reservations are disabled for the item or collection.
+
+**Ownership rule:** callers without `edit_reservations` (and without
+`collect_lendings`) have `person_id` forced to their own person ID,
+regardless of what is supplied in the request body.
+
+@subsection rest_reservations_delete DELETE /api/reservations/{id}
+
+Deletes the reservation.  Callers with `edit_reservations` may delete
+any reservation; other users may only delete their own reservation and
+receive HTTP 403 if they attempt to delete another person's reservation.
+
+---
+
+@section rest_undo Undo / Redo
+
+The server supports undo and redo for all six entity types.
+
+@subsection rest_undo_get GET /api/{entity}/{id}
+
+Used during undo to retrieve the previous state of a record.
+
+@subsection rest_undo_put PUT /api/{entity}/{id}
+
+Used during undo/redo to write back a previous or next state.
+
+Where `{entity}` is one of `items`, `persons`, `lendings`, `returns`,
+`acquisitions`, `liquidations`.
+
+---
+
+@section rest_item_json Item JSON Schema
+
+| Field               | Type    | Description                          |
+|---------------------|---------|--------------------------------------|
+| `id`                | int     | Item ID (0 for new)                  |
+| `type_id`           | int     | Item type ID (required)              |
+| `name`              | string  | Item name                            |
+| `barcode`           | string  | Barcode string                       |
+| `isbn`              | string  | ISBN                                 |
+| `ean`               | string  | EAN                                  |
+| `remarks`           | string  | Remarks                              |
+| `collector`         | string  | Data-collector name                  |
+| `keywords`          | array   | Array of keyword strings             |
+| `values`            | object  | Map of attribute key → string value  |
+| `list_values`       | object  | Map of attribute key → string list   |
+| `academic_year`     | string  | Academic year string                 |
+| `version`           | int     | Optimistic-concurrency version       |
+
+---
+
+@section rest_person_json Person JSON Schema
+
+| Field          | Type   | Description                        |
+|----------------|--------|------------------------------------|
+| `id`           | int    | Person ID (0 for new)              |
+| `lastname`     | string | Last name                          |
+| `firstname`    | string | First name                         |
+| `title`        | string | Title / class                      |
+| `barcode`      | string | Person barcode                     |
+| `external_id`  | string | External identifier                |
+| `remarks`      | string | Remarks                            |
+| `collector`    | string | Data-collector name                |
+| `has_password` | bool   | Whether a password is set          |
+| `version`      | int    | Optimistic-concurrency version     |
+
+---
+
+@section rest_lending_json Lending JSON Schema
+
+| Field       | Type   | Required | Description                     |
+|-------------|--------|----------|---------------------------------|
+| `id`        | int    | no       | Lending ID (0 for new)          |
+| `item_id`   | int    | yes      | Item ID                         |
+| `person_id` | int    | yes      | Borrower person ID              |
+| `count`     | int    | yes      | Number lent                     |
+| `datetime`  | string | no       | ISO 8601 lending timestamp      |
+| `duedate`   | string | no       | ISO 8601 due date               |
+| `remarks`   | string | no       | Remarks                         |
+| `collector` | string | no       | Data-collector name             |
+| `version`   | int    | no       | Optimistic-concurrency version  |
+
+---
+
+@section rest_return_json Return JSON Schema
+
+| Field        | Type   | Required | Description                    |
+|--------------|--------|----------|--------------------------------|
+| `id`         | int    | no       | Return ID (0 for new)          |
+| `lending_id` | int    | yes      | Associated lending ID          |
+| `count`      | int    | yes      | Number returned                |
+| `datetime`   | string | no       | ISO 8601 return timestamp      |
+| `remarks`    | string | no       | Remarks                        |
+| `collector`  | string | no       | Data-collector name            |
+| `version`    | int    | no       | Optimistic-concurrency version |
+
+---
+
+@section rest_acquisition_json Acquisition JSON Schema
+
+| Field       | Type   | Required | Description                    |
+|-------------|--------|----------|--------------------------------|
+| `id`        | int    | no       | Acquisition ID (0 for new)     |
+| `item_id`   | int    | yes      | Item ID                        |
+| `count`     | int    | yes      | Number acquired                |
+| `datetime`  | string | no       | ISO 8601 timestamp             |
+| `remarks`   | string | no       | Remarks                        |
+| `collector` | string | no       | Data-collector name            |
+| `version`   | int    | no       | Optimistic-concurrency version |
+
+---
+
+@section rest_liquidation_json Liquidation JSON Schema
+
+| Field       | Type   | Required | Description                    |
+|-------------|--------|----------|--------------------------------|
+| `id`        | int    | no       | Liquidation ID (0 for new)     |
+| `item_id`   | int    | yes      | Item ID                        |
+| `count`     | int    | yes      | Number liquidated              |
+| `datetime`  | string | no       | ISO 8601 timestamp             |
+| `remarks`   | string | no       | Remarks                        |
+| `collector` | string | no       | Data-collector name            |
+| `version`   | int    | no       | Optimistic-concurrency version |
+
+---
+
+@section rest_reservation_json Reservation JSON Schema
+
+| Field        | Type   | Required | Description                         |
+|--------------|--------|----------|-------------------------------------|
+| `id`         | int    | no       | Reservation ID (0 for new)          |
+| `item_id`    | int    | yes      | Item ID                             |
+| `person_id`  | int    | yes      | Person ID (forced to own for non-admin callers) |
+| `count`      | int    | yes      | Number of copies reserved           |
+| `expires_at` | string | yes      | ISO 8601 expiry timestamp           |
+| `collector`  | string | no       | Data-collector name                 |
+
+*/
+
+/* EOF */

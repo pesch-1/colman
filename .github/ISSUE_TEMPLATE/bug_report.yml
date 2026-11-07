@@ -1,0 +1,75 @@
+name: Bug report
+description: Something in colman does not work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug!  Please search the existing issues
+        first.
+
+        **Security problems must not be reported here** — see
+        [SECURITY.md](https://github.com/pesch-1/colman/blob/main/SECURITY.md).
+
+        **Never attach real library databases (`.col` files) or screenshots
+        containing personal data of pupils or staff.**  Reproduce the problem
+        with a test database instead (see
+        [CONTRIBUTING.md](https://github.com/pesch-1/colman/blob/main/CONTRIBUTING.md)).
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Where does the problem occur?
+      options:
+        - Desktop application (single-machine mode)
+        - colman_rest_client (REST mode)
+        - colman_rest_server
+        - Flutter client (Android / other)
+        - Build / installation
+        - Documentation / tutorial
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: colman version or commit
+      placeholder: e.g. 2.0.0 or a1b2c3d
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operating system and Qt version
+      placeholder: e.g. Debian 13, Qt 6.8.2 / Raspberry Pi OS bookworm, Qt 6.4.2 / Android 14
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the problem.  Include error messages verbatim.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a test database
+        2. Go to ...
+        3. Click ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log output
+      description: Console output, if any.  Remove personal data first.
+      render: text
