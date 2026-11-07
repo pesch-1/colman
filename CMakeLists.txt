@@ -947,6 +947,7 @@ set(COLMAN_DIST_FILES
   CMakeLists.txt
   .github/workflows/ci.yml
   .github/workflows/tutorial.yml
+  .github/workflows/release.yml
   .github/ISSUE_TEMPLATE/bug_report.yml
   .github/ISSUE_TEMPLATE/feature_request.yml
   .github/ISSUE_TEMPLATE/config.yml

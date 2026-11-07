@@ -1,0 +1,243 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) Christoph Pesch 2026
+#
+# Builds the release files for a version tag and attaches them to a GitHub
+# release:
+#
+#   - colman-<version>.tar.gz               source distribution
+#   - colman-<version>-linux-x86_64.tar.gz  self-contained Linux bundle
+#   - colman-<version>.apk                  Flutter client for Android
+#                                           (only if the signing secrets
+#                                           are configured)
+#
+# Pushing a tag v<version> creates a *draft* release with the notes from
+# doc/release_notes/<version>.md; review it and publish it on GitHub.  If
+# the release already exists, the files are uploaded to it, replacing files
+# with the same name.
+#
+# Run manually (Actions → Release → Run workflow) to rebuild the files of an
+# existing tag; with "dry run" checked (the default) they are only kept as
+# workflow artifacts and nothing is uploaded to the release.
+#
+# Android signing secrets (Settings → Secrets and variables → Actions):
+#   ANDROID_KEYSTORE_BASE64   base64 of the release keystore (.jks)
+#   ANDROID_KEYSTORE_PASSWORD keystore password
+#   ANDROID_KEY_ALIAS         key alias
+#   ANDROID_KEY_PASSWORD      key password
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build, e.g. v2.0.0
+        required: true
+      dry_run:
+        description: Only build, do not upload to the release
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  check:
+    name: Check version
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Compare tag, CMake and Flutter versions
+        id: version
+        run: |
+          version="${TAG#v}"
+          cmake_version=$(sed -n \
+            's/^project(colman VERSION \([0-9.]*\) .*/\1/p' CMakeLists.txt)
+          flutter_version=$(sed -n \
+            's/^version: \([0-9.]*\)+.*/\1/p' flutter/pubspec.yaml)
+          status=0
+          if [ "$cmake_version" != "$version" ]; then
+            echo "::error::CMakeLists.txt has version $cmake_version, tag is $TAG"
+            status=1
+          fi
+          if [ "$flutter_version" != "$version" ]; then
+            echo "::error::flutter/pubspec.yaml has version $flutter_version, tag is $TAG"
+            status=1
+          fi
+          if [ ! -f "doc/release_notes/$version.md" ]; then
+            echo "::error::doc/release_notes/$version.md is missing"
+            status=1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          exit $status
+
+  linux:
+    name: Linux tarballs (Ubuntu 24.04)
+    needs: check
+    # Ubuntu 24.04 ships Qt 6.4.2; its glibc keeps the bundle runnable on
+    # current distributions.
+    runs-on: ubuntu-24.04
+    env:
+      QT_QPA_PLATFORM: offscreen
+      # The linuxdeploy AppImages cannot use FUSE on the runner.
+      APPIMAGE_EXTRACT_AND_RUN: 1
+      VERSION: ${{ needs.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake pkg-config file \
+            libsqlite3-dev libargon2-dev libssl-dev libzxing-dev \
+            libgl-dev libvulkan-dev libxkbcommon-dev \
+            qt6-base-dev qt6-base-dev-tools qt6-svg-dev qt6-tools-dev \
+            qt6-l10n-tools \
+            qt6-httpserver-dev qt6-websockets-dev qt6-multimedia-dev \
+            qt6-webengine-dev qt6-webchannel-dev libqt6sql6-sqlite
+
+      - name: Download linuxdeploy
+        run: |
+          base=https://github.com/linuxdeploy
+          wget -q -P tools \
+            $base/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage \
+            $base/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x tools/linuxdeploy*.AppImage
+
+      - name: Configure
+        run: cmake -B bld -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build bld -j"$(nproc)"
+
+      - name: Test
+        run: ctest --test-dir bld --output-on-failure
+
+      - name: Source tarball
+        run: cmake --build bld --target dist
+
+      - name: Linux bundle
+        run: |
+          cmake --build bld --target deploy
+          tar tzf "bld/colman-$VERSION-linux-x86_64.tar.gz" | grep -qx './AppRun'
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: linux
+          path: |
+            bld/colman-${{ env.VERSION }}.tar.gz
+            bld/colman-${{ env.VERSION }}-linux-x86_64.tar.gz
+          if-no-files-found: error
+
+  android:
+    name: Android APK
+    needs: check
+    runs-on: ubuntu-24.04
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+      KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+    defaults:
+      run:
+        working-directory: flutter
+    steps:
+      - name: Skip without signing secrets
+        if: env.KEYSTORE_BASE64 == ''
+        working-directory: .
+        run: |
+          echo "::notice::Android signing secrets are not set; no APK is built."
+
+      - uses: actions/checkout@v7
+        if: env.KEYSTORE_BASE64 != ''
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-java@v6
+        if: env.KEYSTORE_BASE64 != ''
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: subosito/flutter-action@v2
+        if: env.KEYSTORE_BASE64 != ''
+        with:
+          channel: stable
+          flutter-version: 3.44.4
+          cache: true
+
+      - name: Set up release signing
+        if: env.KEYSTORE_BASE64 != ''
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/colman-release.jks
+          {
+            echo "storeFile=colman-release.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > android/key.properties
+
+      - name: Build APK
+        if: env.KEYSTORE_BASE64 != ''
+        run: |
+          flutter pub get
+          flutter build apk --release
+          mv build/app/outputs/flutter-apk/app-release.apk \
+            "colman-$VERSION.apk"
+
+      - uses: actions/upload-artifact@v7
+        if: env.KEYSTORE_BASE64 != ''
+        with:
+          name: android
+          path: flutter/colman-${{ env.VERSION }}.apk
+          if-no-files-found: error
+
+  publish:
+    name: Upload to GitHub release
+    needs: [check, linux, android]
+    if: github.event_name == 'push' || !inputs.dry_run
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create or update release
+        run: |
+          ls -l dist
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --draft --verify-tag \
+              --title "colman $VERSION" \
+              --notes-file "doc/release_notes/$VERSION.md"
+          fi

@@ -56,6 +56,26 @@ Every push and pull request runs the GitHub Actions workflow
 - `flutter analyze` and `flutter test`, plus a check that the generated
   Flutter localizations are up to date.
 
+## Releases
+
+Releases are built by `.github/workflows/release.yml`:
+
+1. Set the new version in `CMakeLists.txt` (`project(colman VERSION …)`)
+   and `flutter/pubspec.yaml` (`version: <version>+<build>`; always
+   increase the build number), and write the release notes in
+   `doc/release_notes/<version>.md` (add it to `COLMAN_DIST_FILES`).
+2. Commit, then tag and push: `git tag -a v<version> -m "colman <version>"`
+   and `git push origin v<version>`.
+3. The workflow checks that the tag matches both versions, builds the
+   source tarball, the self-contained Linux bundle and — if the Android
+   signing secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
+   `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD` are set — the signed APK,
+   and creates a **draft** release with these files.
+4. Test the files, then publish the draft on GitHub.
+
+Running the workflow manually rebuilds the files of an existing tag; unless
+"dry run" is unchecked, they are only kept as workflow artifacts.
+
 ## Pull / merge requests
 
 - Keep changes focused: one feature or fix per request.
