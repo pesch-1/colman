@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=colman
+GenericName=Library and Collection Manager
+GenericName[de]=Bibliotheks- und Sammlungsverwaltung
+Comment=Manage a school library or a private collection
+Comment[de]=Schulbibliothek oder private Sammlung verwalten
+Exec=colman %f
+Icon=colman
+Terminal=false
+Categories=Office;

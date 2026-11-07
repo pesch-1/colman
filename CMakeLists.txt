@@ -1257,6 +1257,9 @@ set(COLMAN_DIST_FILES
   doc/colman_admin_tools.dox
   doc/raspberry_pi.md
   doc/sru_servers.md
+  doc/release_notes/2.0.0.md
+  packaging/linux/colman.desktop
+  packaging/linux/colman.png
   # Core library sources
   ${COLMAN_CORE_SOURCES}
   src/colman_iqueries.hpp
@@ -1367,6 +1370,8 @@ if(LINUXDEPLOY AND LINUXDEPLOY_PLUGIN_QT)
       ${LINUXDEPLOY}
         --appdir "${_deploy_dir}"
         --executable $<TARGET_FILE:colman>
+        --desktop-file "${CMAKE_SOURCE_DIR}/packaging/linux/colman.desktop"
+        --icon-file "${CMAKE_SOURCE_DIR}/packaging/linux/colman.png"
         --plugin qt
     COMMAND tar czf "${_deploy_tarball}" -C "${_deploy_dir}" .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"

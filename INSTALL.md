@@ -202,7 +202,8 @@ Both tools are available under the [MIT License](https://opensource.org/licenses
 cmake -B bld && cmake --build bld -j4 --target deploy
 ```
 
-This produces `bld/colman-2.0.0-linux-x86_64.tar.gz`.
+This produces `bld/colman-2.0.0-linux-x86_64.tar.gz`.  The desktop entry
+and icon for the bundle are taken from `packaging/linux/`.
 
 ### Run on the target machine
 
