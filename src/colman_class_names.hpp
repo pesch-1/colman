@@ -32,6 +32,10 @@
 #    include <vector>
 #    define SYSTEM_VECTOR
 #  endif
+#  ifndef SYSTEM_QLOCALE
+#    include <QLocale>
+#    define SYSTEM_QLOCALE
+#  endif
 #  ifndef SYSTEM_QCOLLATOR
 #    include <QCollator>
 #    define SYSTEM_QCOLLATOR
@@ -124,7 +128,11 @@ namespace colman
         }
       }
     }
-    QCollator collator;
+    // The C locale ignores numeric mode, so fall back to English there.
+    QLocale const locale = QLocale::C == QLocale().language()
+                               ? QLocale(QLocale::English)
+                               : QLocale();
+    QCollator collator(locale);
     collator.setNumericMode(true);
     std::sort(result.begin(), result.end(),
               [&collator](QString const& a, QString const& b) {

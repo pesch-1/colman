@@ -2023,7 +2023,7 @@ namespace
       QVERIFY(id > 0);
 
       // vector version
-      auto locales = q_->get_type_locale();
+      auto locales = q_->get_type_locale(QLocale::German);
       QVERIFY(!locales.empty());
       bool found_buch = false;
       for(auto const& p : locales) {
@@ -2034,10 +2034,11 @@ namespace
       QVERIFY2(found_buch, "Expected type 'book' to be translated to 'Buch'");
 
       // by-id version
-      QCOMPARE(q_->get_type_locale(id), QString("Buch"));
+      QCOMPARE(q_->get_type_locale(id, QLocale::German), QString("Buch"));
 
       // by-name version
-      QCOMPARE(q_->get_type_locale(QString("book")), QString("Buch"));
+      QCOMPARE(q_->get_type_locale(QString("book"), QLocale::German),
+               QString("Buch"));
 
       teardown_db();
     }
@@ -2057,8 +2058,8 @@ namespace
       QVERIFY(id1 != id2);
       q_->add_translation("types", "book", QLocale::German, "Buch");
       q_->add_translation("types", "cd", QLocale::German, "CD");
-      QCOMPARE(q_->get_type_locale(id1), QString("Buch"));
-      QCOMPARE(q_->get_type_locale(id2), QString("CD"));
+      QCOMPARE(q_->get_type_locale(id1, QLocale::German), QString("Buch"));
+      QCOMPARE(q_->get_type_locale(id2, QLocale::German), QString("CD"));
       teardown_db();
     }
 
