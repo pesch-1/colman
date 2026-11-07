@@ -943,8 +943,8 @@ void colman::setup_history_page(QApplication& app, AppData& data)
               [&data]() {
                 reset_history_query(data);
               });
-  app.connect(data.mw_.history_show_all_, &QCheckBox::checkStateChanged,
-              [&data](Qt::CheckState) {
+  app.connect(data.mw_.history_show_all_, &QCheckBox::toggled,
+              [&data](bool) {
                 reset_history_query(data);
               });
   app.connect(data.mw_.history_action_filter_,
