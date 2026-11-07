@@ -5,7 +5,10 @@
 @tableofcontents
 
 The end-user documentation is the tutorial in `doc/tutorial/<lang>/`
-(German and English, target `tutorial_<lang>`).
+(German and English, target `tutorial_<lang>`), published on GitHub Pages
+at https://pesch-1.github.io/colman/ by `.github/workflows/tutorial.yml`.
+Configuring with `-DCOLMAN_DOCS_ONLY=ON` provides only the `doc` and
+`tutorial*` targets and needs no Qt or other build dependency.
 
 Colman is a Qt 6/SQLite application for managing school libraries and
 other collections. Its core functionality covers the management of

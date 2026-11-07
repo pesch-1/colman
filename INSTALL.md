@@ -151,7 +151,21 @@ cmake --build bld --target tutorial_en
 ```
 
 Output is written to `bld/tutorial/<lang>/html/index.html` (HTML) and
-`bld/tutorial/<lang>/latex/colman_tutorial.pdf` (PDF).
+`bld/tutorial/<lang>/latex/colman_tutorial.pdf` (PDF).  The PDF needs
+`pdflatex` (TeX Live with the `latex-extra` and German language packages).
+
+To build only the documentation without installing Qt or any other build
+dependency, configure with `COLMAN_DOCS_ONLY` (only the `doc` and
+`tutorial*` targets are available then):
+
+```bash
+cmake -B bld-docs -DCOLMAN_DOCS_ONLY=ON
+cmake --build bld-docs --target tutorial
+```
+
+The published tutorial at <https://pesch-1.github.io/colman/> is built
+this way by `.github/workflows/tutorial.yml` on every push to `main` that
+touches `doc/`; the landing page is `doc/tutorial/index.html`.
 
 ---
 

@@ -78,7 +78,8 @@ colman nach einem Administratorpasswort.  Die Oberfläche richtet sich nach der 
 
 Das Tutorial führt Schritt für Schritt durch alle Funktionen – von der
 ersten Sammlung über Ausleihe und Etikettendruck bis zu Berechtigungen
-und Mehrplatzbetrieb.  Es gibt es auf Deutsch und Englisch; erzeugt
+und Mehrplatzbetrieb.  Es gibt es auf Deutsch und Englisch, online
+unter <https://pesch-1.github.io/colman/> (HTML und PDF).  Lokal erzeugt
 wird es mit [Doxygen](https://www.doxygen.nl/):
 
 ```bash

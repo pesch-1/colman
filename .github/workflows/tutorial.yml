@@ -1,0 +1,90 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) Christoph Pesch 2026
+#
+# Builds the tutorial (HTML + PDF, all languages) and publishes it on
+# GitHub Pages: https://pesch-1.github.io/colman/
+#
+# Requires Settings → Pages → Source: "GitHub Actions" (one-time setup).
+
+name: Tutorial
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'doc/**'
+      - 'cmake/colman_docs.cmake'
+      - 'flutter/assets/icons/**'
+      - '.github/workflows/tutorial.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  # Same Doxygen version as used locally; Ubuntu's package is older.
+  DOXYGEN_VERSION: 1.17.0
+
+jobs:
+  build:
+    name: Build tutorial
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake make \
+            texlive-latex-base texlive-latex-recommended \
+            texlive-latex-extra texlive-fonts-recommended \
+            texlive-lang-german texlive-plain-generic
+
+      - name: Install Doxygen
+        run: |
+          v="${DOXYGEN_VERSION}"
+          tag="Release_${v//./_}"
+          curl -fsSL -o doxygen.tar.gz \
+            "https://github.com/doxygen/doxygen/releases/download/${tag}/doxygen-${v}.linux.bin.tar.gz"
+          tar xzf doxygen.tar.gz
+          echo "$PWD/doxygen-${v}/bin" >> "$GITHUB_PATH"
+
+      - name: Configure (documentation only)
+        run: cmake -B bld -DCOLMAN_DOCS_ONLY=ON
+
+      - name: Build tutorial
+        run: cmake --build bld --target tutorial
+
+      - name: Assemble site
+        run: |
+          mkdir -p site
+          cp doc/tutorial/index.html site/
+          cp flutter/assets/icons/colman_logo.jpeg site/
+          for dir in bld/tutorial/*/; do
+            lang=$(basename "$dir")
+            cp -r "$dir/html" "site/$lang"
+            cp "$dir/latex/colman_tutorial.pdf" "site/$lang/"
+          done
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

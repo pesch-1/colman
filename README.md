@@ -42,7 +42,8 @@ Three authentication schemes are supported:
 **License:** [GNU General Public License v3.0 or later](https://www.gnu.org/licenses/gpl-3.0.txt)
 
 For build and installation instructions see [INSTALL.md](INSTALL.md).
-A step-by-step tutorial (English and German) and the developer
+A step-by-step tutorial (English and German) is available online at
+<https://pesch-1.github.io/colman/> (HTML and PDF).  It and the developer
 documentation are generated with Doxygen
 (`cmake --build bld --target tutorial_en`, `--target doc`; see
 [INSTALL.md](INSTALL.md#generating-documentation)).
