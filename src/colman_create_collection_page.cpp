@@ -85,10 +85,6 @@
 #  include <QSpinBox>
 #  define SYSTEM_QSPINBOX
 #endif
-#ifndef SYSTEM_QSQLDATABASE
-#  include <QSqlDatabase>
-#  define SYSTEM_QSQLDATABASE
-#endif
 #ifndef SYSTEM_QSTACKEDWIDGET
 #  include <QStackedWidget>
 #  define SYSTEM_QSTACKEDWIDGET
@@ -120,13 +116,9 @@ namespace
           on_created_(std::move(on_created))
     {
       return_page_ = data_.mw_.pages_stack_->currentWidget();
-      // The cipher driver name mirrors CipherDriver in colman_sql_queries.cpp.
-      // Checked statically here because supports_encryption() only reports the
-      // driver of an *open* connection, and no collection is open yet; the
-      // value matches what supports_encryption() returns once the new database
-      // has been created (it opens with the same preferred driver).
-      has_encryption_ =
-          QSqlDatabase::isDriverAvailable("SQLITE_MULTIPLE_CIPHERS");
+      // Local SQLite collections always support encryption (built-in
+      // driver); a REST backend does not.
+      has_encryption_ = data_.queries_ && data_.queries_->supports_encryption();
       build_pages();
     }
 

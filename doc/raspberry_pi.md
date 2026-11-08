@@ -10,7 +10,8 @@ start automatically on every boot.
 
 - Raspberry Pi 4 (4 GB RAM recommended)
 - Raspberry Pi OS, Debian Bookworm (Raspberry Pi OS 12), 32-bit (armhf) or 64-bit (arm64)
-- Internet access during initial setup (cmake downloads jwt-cpp)
+- Internet access during initial setup (cmake downloads jwt-cpp and
+  SQLite3MultipleCiphers)
 
 ---
 
@@ -19,8 +20,8 @@ start automatically on every boot.
 ```bash
 sudo apt update
 sudo apt install -y build-essential cmake git libssl-dev libargon2-dev \
-  libsqlite3-dev qt6-base-dev qt6-base-private-dev qt6-httpserver-dev \
-  libqt6sql6-sqlite qt6-websockets-dev qt6-svg-dev linguist-qt6
+  qt6-base-dev qt6-httpserver-dev qt6-websockets-dev qt6-svg-dev \
+  linguist-qt6
 ```
 
 | Package | Purpose |
@@ -30,124 +31,15 @@ sudo apt install -y build-essential cmake git libssl-dev libargon2-dev \
 | `git` | Version control |
 | `libssl-dev` | OpenSSL (JWT signature verification) |
 | `libargon2-dev` | Argon2 password hashing |
-| `libsqlite3-dev` | SQLite library |
 | `qt6-base-dev` | Qt 6 (Core, Network, Sql, Widgets, …) |
-| `qt6-base-private-dev` | Qt 6 private headers (needed for SQLite plugin) |
 | `qt6-httpserver-dev` | Qt 6 HTTP server module |
-| `libqt6sql6-sqlite` | Qt 6 SQLite driver (runtime) |
 | `qt6-websockets-dev` | Qt 6 WebSockets (required by HttpServer) |
 | `qt6-svg-dev` | Qt 6 SVG support |
 | `linguist-qt6` | Qt 6 Linguist tools (translation support) |
 
 ---
 
-## Step 1b – Fix missing Qt CMake configs (armhf only)
-
-On Raspberry Pi OS **32-bit (armhf)**, Raspbian's Qt6 package omits the
-CMake integration files for the private modules required by the SQLite
-plugin. Create them manually:
-
-```bash
-sudo mkdir -p /usr/lib/arm-linux-gnueabihf/cmake/Qt6CorePrivate
-sudo tee /usr/lib/arm-linux-gnueabihf/cmake/Qt6CorePrivate/Qt6CorePrivateConfig.cmake << 'EOF'
-include(CMakeFindDependencyMacro)
-find_dependency(Qt6Core)
-if(NOT TARGET Qt6::CorePrivate)
-  add_library(Qt6::CorePrivate INTERFACE IMPORTED)
-  target_include_directories(Qt6::CorePrivate INTERFACE
-    "/usr/include/arm-linux-gnueabihf/qt6/QtCore/6.4.2"
-    "/usr/include/arm-linux-gnueabihf/qt6/QtCore/6.4.2/QtCore"
-  )
-endif()
-set(Qt6CorePrivate_FOUND TRUE)
-EOF
-
-sudo mkdir -p /usr/lib/arm-linux-gnueabihf/cmake/Qt6SqlPrivate
-sudo tee /usr/lib/arm-linux-gnueabihf/cmake/Qt6SqlPrivate/Qt6SqlPrivateConfig.cmake << 'EOF'
-include(CMakeFindDependencyMacro)
-find_dependency(Qt6Sql)
-if(NOT TARGET Qt6::SqlPrivate)
-  add_library(Qt6::SqlPrivate INTERFACE IMPORTED)
-  target_include_directories(Qt6::SqlPrivate INTERFACE
-    "/usr/include/arm-linux-gnueabihf/qt6/QtSql/6.4.2"
-    "/usr/include/arm-linux-gnueabihf/qt6/QtSql/6.4.2/QtSql"
-  )
-endif()
-set(Qt6SqlPrivate_FOUND TRUE)
-EOF
-```
-
-Skip this step on 64-bit (arm64) installations.
-
----
-
-## Step 2 – Build and install the encrypted SQLite driver
-
-Colman uses [QSQLite3MultipleCiphers](https://github.com/FalsinSoft/QSQLite3MultipleCiphers)
-as a Qt SQL plugin for encrypted `.col` database files.
-The plugin is not available as a Raspbian package and must be built from source.
-
-The plugin's build files target newer Qt versions; with Bookworm's Qt 6.4.2
-they need three adjustments, which the commands below apply:
-
-- Qt 6.4 has no separate `CorePrivate`/`SqlPrivate` CMake packages; their
-  targets are part of `Core` and `Sql`.  (On armhf, step 1b provides the
-  separate packages instead, so this change is skipped there.)
-- Qt 6.4's `qt_add_plugin()` ignores the source files passed to it, which
-  silently produces an empty plugin; the sources are added explicitly.
-- The bundled SQLite3MultipleCiphers library is linked into the plugin and
-  must be built as position-independent code.
-
-The commit below is the one the release workflow
-(`.github/workflows/release.yml`) builds and tests.
-
-```bash
-git clone https://github.com/FalsinSoft/QSQLite3MultipleCiphers
-cd QSQLite3MultipleCiphers
-git checkout 65accf531f33952c3431d914fcdf7f6c6cd02c35
-cd QSQLite3MultipleCiphers
-
-qt_libs=$(/usr/lib/qt6/bin/qmake -query QT_INSTALL_LIBS)
-if [ ! -d "$qt_libs/cmake/Qt6CorePrivate" ]; then
-  sed -i 's/COMPONENTS CorePrivate SqlPrivate/COMPONENTS Core Sql/' \
-    CMakeLists.txt
-fi
-cat >> CMakeLists.txt << 'EOF'
-target_sources(${PROJECT_NAME} PRIVATE
-  qsql_sqlite.cpp qsql_sqlite_p.h
-  qsql_sqlite_vfs.cpp qsql_sqlite_vfs_p.h
-  qsql_sqlite_multiple_ciphers.cpp qsql_sqlite_multiple_ciphers_p.h
-  smain.cpp)
-EOF
-
-cmake -B build -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-cmake --build build -j4
-```
-
-Check that the plugin really contains the driver — an empty plugin is only a
-few kilobytes and lacks these symbols:
-
-```bash
-nm -D --defined-only build/sqldrivers/libQSQLite3MultipleCiphers.so \
-  | grep -wE 'qt_plugin_instance|sqlite3mc_version|sqlite3_rekey'
-```
-
-All three symbols must be listed.  Then install the plugin:
-
-```bash
-sudo cp build/sqldrivers/libQSQLite3MultipleCiphers.so \
-  "$(/usr/lib/qt6/bin/qmake -query QT_INSTALL_PLUGINS)/sqldrivers/"
-cd ../..
-```
-
-The plugin uses Qt's private headers, so CMake warns that it is tied to the
-installed Qt version.  Rebuild and reinstall it whenever an update changes
-the Qt 6 packages.
-
----
-
-## Step 4 – Get the source code
+## Step 2 – Get the source code
 
 ```bash
 git clone <repo-url> colman
@@ -158,21 +50,28 @@ Replace `<repo-url>` with the actual repository URL.
 
 ---
 
-## Step 5 – Build the REST server
+## Step 3 – Build the REST server
 
 ```bash
 cmake -B bld
-cmake --build bld --target server -j4
+cmake --build bld --target server -j1
 ```
 
-The cmake configuration step downloads `jwt-cpp` automatically
-(FetchContent, one-time, requires internet access). The `server` target
+The cmake configuration step downloads `jwt-cpp` and SQLite3MultipleCiphers
+(SQLite with encryption, linked into colman) automatically (FetchContent,
+one-time, requires internet access). The `server` target
 builds only `colman_rest_server` and its dependencies, without compiling
 the desktop application.
 
+Building needs a lot of main memory on the Raspberry Pi; compiling the
+SQLite3MultipleCiphers amalgamation and the large colman sources in
+parallel can exhaust the RAM and make the build fail or the system stall.
+It is therefore recommended to build serially with a single process
+(`-j1`, as above), even though this takes longer.
+
 ---
 
-## Step 6 – Install the binary
+## Step 4 – Install the binary
 
 ```bash
 sudo install -m 755 bld/colman_rest_server /usr/local/bin/
@@ -180,7 +79,7 @@ sudo install -m 755 bld/colman_rest_server /usr/local/bin/
 
 ---
 
-## Step 7 – Create system user and database directory
+## Step 5 – Create system user and database directory
 
 ```bash
 sudo useradd -r -s /usr/sbin/nologin colman
@@ -193,7 +92,7 @@ exists solely to run the server.
 
 ---
 
-## Step 8a – Set up an unencrypted database
+## Step 6a – Set up an unencrypted database
 
 On the first start with a new database file the server prompts for a
 server display name (shown to clients on the LAN) and an administrator
@@ -212,7 +111,7 @@ The REST login is then: username `admin`, the password chosen above.
 
 ---
 
-## Step 8b – Set up an encrypted database (recommended)
+## Step 6b – Set up an encrypted database (recommended)
 
 An encrypted database guards against accidental use of the wrong collection
 file and protects data when a backup is stolen.
@@ -245,7 +144,7 @@ so a mismatch is detected immediately at startup — not silently.
 
 ---
 
-## Step 8c – Set up TLS/HTTPS (optional)
+## Step 6c – Set up TLS/HTTPS (optional)
 
 By default the server listens on plain HTTP.  Passing `--cert` and `--key`
 switches it to HTTPS.  Both flags must be specified together.
@@ -296,7 +195,7 @@ sudo chgrp colman /etc/letsencrypt/live /etc/letsencrypt/archive
 ```
 
 Use `fullchain.pem` and `privkey.pem` as the values for `--cert` and `--key`
-in Step 9 below.  Remember to reload the service after every renewal
+in Step 7 below.  Remember to reload the service after every renewal
 (`ExecStartPost` or a renewal hook in `/etc/letsencrypt/renewal-hooks/deploy/`
 calling `systemctl restart colman-rest`).
 
@@ -322,7 +221,7 @@ curl -k https://<pi-ip>:8443/api/version
 
 ---
 
-## Step 9 – Set up the systemd service
+## Step 7 – Set up the systemd service
 
 Create `/etc/systemd/system/colman-rest.service`:
 
@@ -361,7 +260,7 @@ ExecStart=/usr/local/bin/colman_rest_server \
     --thumbnail-dir /var/lib/colman/thumbnails
 ```
 
-For **TLS/HTTPS** (see Step 8c), add `--cert` and `--key` and use a different
+For **TLS/HTTPS** (see Step 6c), add `--cert` and `--key` and use a different
 port (conventionally 443 or 8443):
 
 ```ini
@@ -423,7 +322,7 @@ sudo systemctl stop colman-rest      # stop
 ```bash
 cd colman
 git pull
-cmake --build bld --target server -j4
+cmake --build bld --target server -j1
 sudo install -m 755 bld/colman_rest_server /usr/local/bin/
 sudo systemctl restart colman-rest
 ```

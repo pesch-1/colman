@@ -61,10 +61,10 @@ Ausführliche Anleitungen für Debian/Ubuntu, openSUSE, macOS und Windows
 stehen in [INSTALL.md](INSTALL.md).  Kurzfassung für Debian/Ubuntu:
 
 ```bash
-sudo apt install cmake pkg-config libsqlite3-dev libargon2-dev libssl-dev \
+sudo apt install cmake pkg-config libargon2-dev libssl-dev \
   libzxing-dev qt6-base-dev qt6-svg-dev qt6-tools-dev qt6-l10n-tools \
   qt6-httpserver-dev qt6-websockets-dev qt6-multimedia-dev \
-  qt6-webengine-dev qt6-webchannel-dev libqt6sql6-sqlite
+  qt6-webengine-dev qt6-webchannel-dev
 
 cmake -B bld && cmake --build bld -j4
 ./bld/colman

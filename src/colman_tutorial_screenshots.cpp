@@ -712,7 +712,7 @@ namespace
       }
       else {
         skip("007_new_collection_encryption",
-             "SQLITE_MULTIPLE_CIPHERS driver not available");
+             "encryption not available");
       }
 
       step("new collection: admin password");

@@ -3616,7 +3616,7 @@ Reservierungen</translation>
     </message>
     <message>
         <source>This collection is encrypted, but the SQLite cipher plugin is not installed. Please install the SQLITE_MULTIPLE_CIPHERS Qt SQL driver.</source>
-        <translation>Diese Sammlung ist verschlüsselt, aber das SQLite-Cipher-Plugin ist nicht installiert. Bitte installieren Sie den Qt-SQL-Treiber SQLITE_MULTIPLE_CIPHERS.</translation>
+        <translation type="vanished">Diese Sammlung ist verschlüsselt, aber das SQLite-Cipher-Plugin ist nicht installiert. Bitte installieren Sie den Qt-SQL-Treiber SQLITE_MULTIPLE_CIPHERS.</translation>
     </message>
     <message>
         <source>none</source>
@@ -4047,6 +4047,10 @@ Reservierungen</translation>
             <numerusform>auch das Löschen von %n abhängiger Aktion:</numerusform>
             <numerusform>auch das Löschen von %n abhängigen Aktionen:</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>This collection is encrypted, but encrypted collections cannot be opened here.</source>
+        <translation>Diese Sammlung ist verschlüsselt, aber verschlüsselte Sammlungen können hier nicht geöffnet werden.</translation>
     </message>
 </context>
 <context>

@@ -6,17 +6,17 @@
 |---|---|---|
 | CMake | ≥ 3.21 | |
 | Qt 6 | Core, Concurrent, Gui, HttpServer, Svg, SvgWidgets, Widgets, PrintSupport, Sql, Network, Multimedia, WebChannel, WebEngineWidgets, Xml, WebSockets, Test, LinguistTools | ≥ 6.4.2. HttpServer and WebSockets required for REST mode; Multimedia, WebChannel and WebEngineWidgets required for the desktop app and REST client (camera scanning, Amazon cover-image browser) |
-| SQLite | libsqlite3 | |
 | Argon2 | libargon2 | |
 | ZXing-C++ | libzxing | Barcode decoding for camera scanning; desktop app and REST client only |
 | OpenSSL | ≥ 1.0.1 | Required by jwt-cpp |
 | pkg-config | any | |
 | jwt-cpp | 0.7.2 | Fetched automatically by CMake via FetchContent |
+| SQLite3MultipleCiphers | 2.6.1 | SQLite with encryption; fetched automatically by CMake via FetchContent and linked statically |
 
 ### OpenSUSE
 
 ```bash
-sudo zypper install cmake pkg-config sqlite3-devel argon2-devel openssl-devel \
+sudo zypper install cmake pkg-config argon2-devel openssl-devel \
   qt6-base-devel qt6-svg-devel qt6-tools-devel \
   qt6-webengine-devel qt6-webchannel-devel
 ```
@@ -24,10 +24,10 @@ sudo zypper install cmake pkg-config sqlite3-devel argon2-devel openssl-devel \
 ### Debian / Ubuntu
 
 ```bash
-sudo apt install cmake pkg-config libsqlite3-dev libargon2-dev libssl-dev \
+sudo apt install cmake pkg-config libargon2-dev libssl-dev \
   libzxing-dev qt6-base-dev qt6-svg-dev qt6-tools-dev qt6-l10n-tools \
   qt6-httpserver-dev qt6-websockets-dev qt6-multimedia-dev \
-  qt6-webengine-dev qt6-webchannel-dev libqt6sql6-sqlite
+  qt6-webengine-dev qt6-webchannel-dev
 ```
 
 The CI workflow (`.github/workflows/ci.yml`) builds with exactly these
@@ -41,7 +41,7 @@ Install [Homebrew](https://brew.sh) if it is not already present, then:
 
 ```bash
 xcode-select --install   # Xcode Command Line Tools (compiler + git)
-brew install cmake pkg-config sqlite argon2 openssl@3 qt6
+brew install cmake pkg-config argon2 openssl@3 qt6
 ```
 
 Make OpenSSL visible to pkg-config (add to `~/.zprofile` to persist):
@@ -64,7 +64,6 @@ pacman -S --needed \
   mingw-w64-x86_64-cmake \
   mingw-w64-x86_64-ninja \
   mingw-w64-x86_64-pkgconf \
-  mingw-w64-x86_64-sqlite3 \
   mingw-w64-x86_64-argon2 \
   mingw-w64-x86_64-openssl \
   mingw-w64-x86_64-qt6-base \
@@ -203,12 +202,9 @@ cmake -B bld && cmake --build bld -j4 --target deploy
 ```
 
 This produces `bld/colman-2.0.0-linux-x86_64.tar.gz`.  The desktop entry
-and icon for the bundle are taken from `packaging/linux/`.  Support for
-encrypted collections is bundled only if the
-[QSQLite3MultipleCiphers](https://github.com/FalsinSoft/QSQLite3MultipleCiphers)
-Qt SQL plugin is installed in Qt's `sqldrivers` plugin directory (see
-[doc/raspberry_pi.md](doc/raspberry_pi.md), step 2); the release workflow
-builds it automatically.
+and icon for the bundle are taken from `packaging/linux/`.  `LICENSE`,
+`NOTICE` and the license texts from `packaging/licenses/` are copied to
+`usr/share/doc/colman/` in the bundle.
 
 ### Run on the target machine
 

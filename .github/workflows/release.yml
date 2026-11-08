@@ -6,8 +6,6 @@
 #
 #   - colman-<version>.tar.gz               source distribution
 #   - colman-<version>-linux-x86_64.tar.gz  self-contained Linux bundle
-#                                           (with the SQLite cipher plugin
-#                                           for encrypted collections)
 #   - colman-<version>.apk                  Flutter client for Android
 #                                           (only if the signing secrets
 #                                           are configured)
@@ -98,10 +96,6 @@ jobs:
       # The linuxdeploy AppImages cannot use FUSE on the runner.
       APPIMAGE_EXTRACT_AND_RUN: 1
       VERSION: ${{ needs.check.outputs.version }}
-      # Encrypted SQLite driver, pinned to a known commit
-      # (SQLite3MultipleCiphers 2.3.6).
-      QSQLITE3MC_REPO: FalsinSoft/QSQLite3MultipleCiphers
-      QSQLITE3MC_COMMIT: 65accf531f33952c3431d914fcdf7f6c6cd02c35
     steps:
       - uses: actions/checkout@v7
         with:
@@ -112,51 +106,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             cmake pkg-config file \
-            libsqlite3-dev libargon2-dev libssl-dev libzxing-dev \
+            libargon2-dev libssl-dev libzxing-dev \
             libgl-dev libvulkan-dev libxkbcommon-dev \
-            qt6-base-dev qt6-base-dev-tools qt6-base-private-dev \
+            qt6-base-dev qt6-base-dev-tools \
             qt6-svg-dev qt6-tools-dev qt6-l10n-tools \
             qt6-httpserver-dev qt6-websockets-dev qt6-multimedia-dev \
-            qt6-webengine-dev qt6-webchannel-dev libqt6sql6-sqlite
-
-      - name: Build SQLite cipher plugin
-        # Qt SQL driver for encrypted .col files.  Installed into Qt's plugin
-        # directory so that linuxdeploy bundles it.
-        run: |
-          git clone -q "https://github.com/$QSQLITE3MC_REPO" qsqlite3mc
-          git -C qsqlite3mc checkout -q "$QSQLITE3MC_COMMIT"
-          # Before Qt 6.9 the private targets are part of the Core and Sql
-          # packages instead of separate CorePrivate/SqlPrivate packages.
-          # Qt 6.4's qt_add_plugin() ignores the source files passed to it,
-          # so add them explicitly.
-          src=qsqlite3mc/QSQLite3MultipleCiphers
-          sed -i 's/COMPONENTS CorePrivate SqlPrivate/COMPONENTS Core Sql/' \
-            "$src/CMakeLists.txt"
-          {
-            echo 'target_sources(${PROJECT_NAME} PRIVATE'
-            for f in qsql_sqlite qsql_sqlite_vfs qsql_sqlite_multiple_ciphers; do
-              echo "  $f.cpp ${f}_p.h"
-            done
-            echo '  smain.cpp)'
-          } >> "$src/CMakeLists.txt"
-          # The static SQLite3MultipleCiphers library is linked into a shared
-          # plugin and therefore needs position-independent code.
-          cmake -S "$src" -B qsqlite3mc/bld -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-          cmake --build qsqlite3mc/bld -j"$(nproc)"
-          # Make sure the result is a real plugin with SQLite3MultipleCiphers
-          # linked in, not an empty shell.
-          symbols=$(nm -D --defined-only \
-            qsqlite3mc/bld/sqldrivers/libQSQLite3MultipleCiphers.so)
-          for s in qt_plugin_instance sqlite3mc_version sqlite3_rekey; do
-            if ! grep -qw "$s" <<< "$symbols"; then
-              echo "::error::cipher plugin does not export $s"
-              exit 1
-            fi
-          done
-          plugin_dir=$(/usr/lib/qt6/bin/qmake -query QT_INSTALL_PLUGINS)/sqldrivers
-          sudo cp qsqlite3mc/bld/sqldrivers/libQSQLite3MultipleCiphers.so \
-            "$plugin_dir/"
+            qt6-webengine-dev qt6-webchannel-dev
 
       - name: Download linuxdeploy
         run: |
@@ -181,14 +136,11 @@ jobs:
       - name: Linux bundle
         run: |
           cmake --build bld --target deploy
-          files=$(tar tzf "bld/colman-$VERSION-linux-x86_64.tar.gz")
-          for f in ./AppRun \
-            ./usr/plugins/sqldrivers/libQSQLite3MultipleCiphers.so; do
-            if ! grep -qx "$f" <<< "$files"; then
-              echo "::error::$f is missing from the Linux bundle"
-              exit 1
-            fi
-          done
+          if ! tar tzf "bld/colman-$VERSION-linux-x86_64.tar.gz" \
+            | grep -qx './AppRun'; then
+            echo "::error::./AppRun is missing from the Linux bundle"
+            exit 1
+          fi
 
       - uses: actions/upload-artifact@v7
         with:

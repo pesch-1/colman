@@ -1497,9 +1497,8 @@ namespace
             &data.w_,
             QApplication::tr("Collection Manager"),
             QApplication::tr(
-                "This collection is encrypted, but the SQLite "
-                "cipher plugin is not installed. Please install "
-                "the SQLITE_MULTIPLE_CIPHERS Qt SQL driver."));
+                "This collection is encrypted, but encrypted "
+                "collections cannot be opened here."));
         on_done(false);
         return;
       }

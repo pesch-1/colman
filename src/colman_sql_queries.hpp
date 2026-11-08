@@ -32,7 +32,7 @@ namespace colman
     struct FileDb
     {};
 
-    /// Registers the QSQLITE driver; file opened later via load_database().
+    /// Uses the built-in SQLite driver; file opened later via load_database().
     explicit SQLQueries(FileDb,
                         std::function<void()> on_backup_error = {},
                         std::function<bool()> on_old_backups = {});

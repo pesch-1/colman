@@ -21,6 +21,9 @@
 #ifndef COLMAN_DB_UTIL_HPP
 #  include "colman_db_util.hpp"
 #endif
+#ifndef COLMAN_SQLITE_DRIVER_HPP
+#  include "colman_sqlite_driver.hpp"
+#endif
 #ifndef SYSTEM_QDATETIME
 #  include <QDateTime>
 #  define SYSTEM_QDATETIME
@@ -248,22 +251,6 @@ namespace
     }
   }
 
-  /// Name of the Qt SQL driver that supports database encryption.
-  auto constexpr CipherDriver="SQLITE_MULTIPLE_CIPHERS";
-
-  /// Returns the cipher-capable SQLite driver if available, plain
-  /// QSQLITE otherwise.
-  QString preferred_driver()
-  {
-    if(QSqlDatabase::isDriverAvailable(CipherDriver)) {
-      return CipherDriver;
-    }
-    qWarning() << CipherDriver
-               << "driver not available, falling back to QSQLITE;"
-               << "encryption disabled";
-    return "QSQLITE";
-  }
-
 } // namespace
 
 colman::SQLQueries::SQLQueries(FileDb,
@@ -272,13 +259,15 @@ colman::SQLQueries::SQLQueries(FileDb,
     : on_backup_error_{std::move(on_backup_error)}
     , on_old_backups_{std::move(on_old_backups)}
 {
-  db_ = QSqlDatabase::addDatabase(preferred_driver());
+  register_sqlite_driver();
+  db_ = QSqlDatabase::addDatabase(SqliteDriverName);
 }
 
 colman::SQLQueries::SQLQueries(QString const& conn_name)
     : conn_name_{conn_name}
 {
-  db_ = QSqlDatabase::addDatabase(preferred_driver(), conn_name_);
+  register_sqlite_driver();
+  db_ = QSqlDatabase::addDatabase(SqliteDriverName, conn_name_);
   db_.setDatabaseName(":memory:");
   if(db_.open()) {
     QSqlQuery(db_).exec("PRAGMA foreign_keys = ON");
@@ -444,11 +433,6 @@ bool colman::SQLQueries::create_new_database(Collection& collection,
                                              QString const& filename,
                                              QString const& key)
 {
-  if(!key.isEmpty() && !supports_encryption()) {
-    qWarning() << "cannot create encrypted database:" << CipherDriver
-               << "driver not available";
-    return false;
-  }
   if(db_.isValid()) {
     db_.setDatabaseName(filename);
     if(!db_.open()) {
@@ -458,6 +442,7 @@ bool colman::SQLQueries::create_new_database(Collection& collection,
     QSqlQuery(db_).exec("PRAGMA foreign_keys = ON");
     QSqlQuery(db_).exec("PRAGMA busy_timeout = 5000");
     invalidate_collection_cache();
+    encryption_key_.clear();
     create_tables();
     collection.set_data_version(DataVersion);
     collection.set_barcode_prefix(generate_barcode_prefix(
@@ -506,6 +491,7 @@ bool colman::SQLQueries::create_new_database(Collection& collection)
     QSqlQuery(db_).exec("PRAGMA foreign_keys = ON");
     QSqlQuery(db_).exec("PRAGMA busy_timeout = 5000");
     invalidate_collection_cache();
+    encryption_key_.clear();
     create_tables();
     collection.set_data_version(DataVersion);
     collection.set_barcode_prefix(generate_barcode_prefix(
@@ -539,8 +525,8 @@ bool colman::SQLQueries::load_database(QString const& filename)
 
 /**
  * Opens an existing encrypted .col database file.
- * Sets the decryption key via the QSQLITE_MC_KEY connection option so the
- * driver's open() call authenticates and decrypts the database header.
+ * The key is passed to the built-in SQLite driver right after opening and
+ * checked by reading the schema.
  * Returns false if the file cannot be opened or the passphrase is wrong.
  * @param filename  filesystem path of the .col file to load
  * @param key       encryption passphrase; must be non-empty for encrypted files
@@ -549,23 +535,15 @@ bool colman::SQLQueries::load_database(QString const& filename,
                                        QString const& key)
 {
   db_.setDatabaseName(filename);
-  if(!key.isEmpty()) {
-    if(!supports_encryption()) {
-      qWarning() << "cannot open encrypted database:" << CipherDriver
-                 << "driver not available";
-      return false;
-    }
-    db_.setConnectOptions("QSQLITE_MC_KEY=" + key);
-  }
-  else {
-    db_.setConnectOptions({});
-  }
   if(!db_.open()) {
-    db_.setConnectOptions({});
     qWarning() << "could not open database: " << db_.lastError();
     return false;
   }
-  db_.setConnectOptions({});
+  if(!key.isEmpty() && !set_database_key(db_, key)) {
+    qWarning() << "could not open database: wrong key";
+    db_.close();
+    return false;
+  }
   QSqlQuery(db_).exec("PRAGMA foreign_keys = ON");
   QSqlQuery(db_).exec("PRAGMA busy_timeout = 5000");
   invalidate_collection_cache();
@@ -1392,13 +1370,11 @@ QString colman::SQLQueries::read_item_card_label_layout_name()
 // -----------------------------------------------------------------------
 
 /**
- * Returns true if the connection uses the cipher-capable SQLite driver.
- * When the SQLITE_MULTIPLE_CIPHERS plugin is missing, the connection
- * falls back to plain QSQLITE and encryption is unavailable.
+ * Returns true: the built-in SQLite driver always supports encryption.
  */
 bool colman::SQLQueries::supports_encryption() const
 {
-  return db_.driverName() == CipherDriver;
+  return true;
 }
 
 bool colman::SQLQueries::is_encrypted() const
@@ -1407,84 +1383,59 @@ bool colman::SQLQueries::is_encrypted() const
 }
 
 /**
- * Encrypts an unencrypted open database by re-keying it with \a new_key.
- * The connection is briefly closed and reopened with the QSQLITE_MC_UPDATE_KEY
- * option, which calls sqlite3_rekey() on the database file.
+ * Encrypts an unencrypted open database with \a new_key.
  * @param new_key  encryption passphrase; must not be empty
- * @return true on success; false if the operation fails (connection is
- *         restored to its previous state on failure)
+ * @return true on success
  */
 bool colman::SQLQueries::encrypt_database(QString const& new_key)
 {
-  if(new_key.isEmpty() || !supports_encryption()) {
+  if(new_key.isEmpty() || is_encrypted()) {
     return false;
   }
-  db_.close();
-  db_.setConnectOptions("QSQLITE_MC_UPDATE_KEY=" + new_key);
-  if(!db_.open()) {
-    db_.setConnectOptions({});
-    db_.open();
-    qWarning() << "encrypt_database failed:" << db_.lastError();
+  if(!change_database_key(db_, new_key)) {
+    qWarning() << "encrypt_database failed";
     return false;
   }
-  db_.setConnectOptions({});
   encryption_key_ = new_key;
   return true;
 }
 
 /**
  * Changes the encryption key from \a old_key to \a new_key.
- * Closes and reopens the connection with QSQLITE_MC_KEY (to unlock the
- * existing cipher) and QSQLITE_MC_UPDATE_KEY (to re-encrypt with the new key).
- * @param old_key  current passphrase
+ * @param old_key  current passphrase; must match the key the database was
+ *                 opened (or last encrypted) with
  * @param new_key  replacement passphrase; must not be empty
  * @return true on success
  */
 bool colman::SQLQueries::change_encryption_key(QString const& old_key,
                                                QString const& new_key)
 {
-  if(old_key.isEmpty() || new_key.isEmpty() || !supports_encryption()) {
+  if(!is_encrypted() || old_key != encryption_key_ || new_key.isEmpty()) {
     return false;
   }
-  QString const opts =
-      "QSQLITE_MC_KEY=" + old_key + ";QSQLITE_MC_UPDATE_KEY=" + new_key;
-  db_.close();
-  db_.setConnectOptions(opts);
-  if(!db_.open()) {
-    db_.setConnectOptions("QSQLITE_MC_KEY=" + old_key);
-    db_.open();
-    db_.setConnectOptions({});
-    qWarning() << "change_encryption_key failed:" << db_.lastError();
+  if(!change_database_key(db_, new_key)) {
+    qWarning() << "change_encryption_key failed";
     return false;
   }
-  db_.setConnectOptions({});
   encryption_key_ = new_key;
   return true;
 }
 
 /**
  * Removes encryption from the database.
- * Closes and reopens the connection with QSQLITE_MC_REMOVE_KEY which calls
- * sqlite3_key() (to unlock) followed by sqlite3_rekey(NULL,0) (to strip the
- * cipher from the database file).
- * @param current_key  current passphrase
+ * @param current_key  current passphrase; must match the key the database
+ *                     was opened (or last encrypted) with
  * @return true on success
  */
 bool colman::SQLQueries::remove_encryption(QString const& current_key)
 {
-  if(current_key.isEmpty() || !supports_encryption()) {
+  if(!is_encrypted() || current_key != encryption_key_) {
     return false;
   }
-  db_.close();
-  db_.setConnectOptions("QSQLITE_MC_REMOVE_KEY=" + current_key);
-  if(!db_.open()) {
-    db_.setConnectOptions("QSQLITE_MC_KEY=" + current_key);
-    db_.open();
-    db_.setConnectOptions({});
-    qWarning() << "remove_encryption failed:" << db_.lastError();
+  if(!change_database_key(db_, {})) {
+    qWarning() << "remove_encryption failed";
     return false;
   }
-  db_.setConnectOptions({});
   encryption_key_.clear();
   return true;
 }

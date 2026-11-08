@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) Christoph Pesch 2026
 cmake_minimum_required(VERSION 3.21)
-project(colman VERSION 2.0.0 LANGUAGES CXX)
+project(colman VERSION 2.0.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -84,6 +84,43 @@ set(JWT_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(JWT_BUILD_TESTS    OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(jwt-cpp)
 
+# SQLite3MultipleCiphers: SQLite with encryption, used by colman's built-in
+# Qt SQL driver (colman_sqlite_driver.cpp).  Linked statically with hidden
+# symbols, so it cannot clash with a system libsqlite3 in the same process.
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+FetchContent_Declare(
+  sqlite3mc
+  URL      https://github.com/utelle/SQLite3MultipleCiphers/releases/download/v2.6.1/sqlite3mc-2.6.1-sqlite-3.54.0-amalgamation.zip
+  URL_HASH SHA256=3f25af603566a23c821d8e581778b5ece2a541d2435776de57b8d845c176815a
+)
+FetchContent_MakeAvailable(sqlite3mc)
+find_package(Threads REQUIRED)
+add_library(colman_sqlite3mc STATIC
+  ${sqlite3mc_SOURCE_DIR}/sqlite3mc_amalgamation.c
+)
+target_include_directories(colman_sqlite3mc SYSTEM PUBLIC
+  ${sqlite3mc_SOURCE_DIR}
+)
+target_compile_definitions(colman_sqlite3mc PRIVATE
+  CODEC_TYPE=CODEC_TYPE_CHACHA20
+  SQLITE_THREADSAFE=1
+  SQLITE_ENABLE_FTS5=1
+  SQLITE_TEMP_STORE=2
+  SQLITE_SECURE_DELETE=1
+  SQLITE_OMIT_LOAD_EXTENSION=1
+)
+# Third-party code: do not report its warnings.
+target_compile_options(colman_sqlite3mc PRIVATE
+  $<IF:$<C_COMPILER_ID:MSVC>,/w,-w>
+)
+set_target_properties(colman_sqlite3mc PROPERTIES C_VISIBILITY_PRESET hidden)
+target_link_libraries(colman_sqlite3mc PUBLIC Threads::Threads)
+if(UNIX)
+  target_link_libraries(colman_sqlite3mc PUBLIC m)
+endif()
+
 enable_testing()
 
 # Headers live in src/; tests in tests/ include them by plain file name.
@@ -154,6 +191,8 @@ set(COLMAN_CORE_SOURCES
   src/colman_marc21.hpp
   src/colman_permission_deps.cpp
   src/colman_permission_deps.hpp
+  src/colman_sqlite_driver.cpp
+  src/colman_sqlite_driver.hpp
 )
 
 add_library(colman_core STATIC ${COLMAN_CORE_SOURCES})
@@ -170,6 +209,7 @@ target_link_libraries(colman_core
   Qt6::Widgets
   Qt6::Xml
   ${Argon2_LIBRARIES}
+  colman_sqlite3mc
 )
 
 # Owl icon set — shared by all GUI applications.
@@ -549,6 +589,17 @@ add_test(NAME colman_actions_test COMMAND colman_actions_test)
 set_tests_properties(colman_actions_test PROPERTIES
   ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 )
+
+# Built-in SQLite driver tests (only colman_core, no UI needed).
+add_executable(colman_sqlite_driver_test
+  tests/colman_sqlite_driver_test.cpp
+)
+target_link_libraries(colman_sqlite_driver_test
+  colman_core
+  Qt6::Test
+)
+
+add_test(NAME colman_sqlite_driver_test COMMAND colman_sqlite_driver_test)
 
 # Database utility unit tests (only colman_core, no UI needed).
 add_executable(colman_db_util_test
@@ -1261,6 +1312,7 @@ set(COLMAN_DIST_FILES
   doc/release_notes/2.0.0.md
   packaging/linux/colman.desktop
   packaging/linux/colman.png
+  packaging/licenses/SQLite3MultipleCiphers.txt
   # Core library sources
   ${COLMAN_CORE_SOURCES}
   src/colman_iqueries.hpp
@@ -1319,6 +1371,7 @@ set(COLMAN_DIST_FILES
   tests/colman_rest_queries_test.cpp
   tests/colman_rest_stress_test.cpp
   tests/colman_db_util_test.cpp
+  tests/colman_sqlite_driver_test.cpp
   tests/colman_permission_deps_test.cpp
   tests/colman_test_helpers.hpp
   src/colman_test_label_printer.cpp
@@ -1374,6 +1427,15 @@ if(LINUXDEPLOY AND LINUXDEPLOY_PLUGIN_QT)
         --desktop-file "${CMAKE_SOURCE_DIR}/packaging/linux/colman.desktop"
         --icon-file "${CMAKE_SOURCE_DIR}/packaging/linux/colman.png"
         --plugin qt
+    # License texts of colman and of the statically linked libraries.
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+      "${_deploy_dir}/usr/share/doc/colman/licenses"
+    COMMAND ${CMAKE_COMMAND} -E copy
+      "${CMAKE_SOURCE_DIR}/LICENSE" "${CMAKE_SOURCE_DIR}/NOTICE"
+      "${_deploy_dir}/usr/share/doc/colman/"
+    COMMAND ${CMAKE_COMMAND} -E copy
+      "${CMAKE_SOURCE_DIR}/packaging/licenses/SQLite3MultipleCiphers.txt"
+      "${_deploy_dir}/usr/share/doc/colman/licenses/"
     COMMAND tar czf "${_deploy_tarball}" -C "${_deploy_dir}" .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     VERBATIM

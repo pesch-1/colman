@@ -30,8 +30,11 @@ application and the REST client additionally need `Multimedia`,
 `WebChannel`, `WebEngineWidgets` and ZXing-C++ (camera barcode
 scanning, Amazon cover browser); without them only the headless
 targets (REST server, tools, tests) are built (`COLMAN_BUILD_GUI`).
-Further system dependencies: `libsqlite3`, `libargon2` (password
-hashing), OpenSSL (jwt-cpp, fetched via CMake FetchContent).
+Further system dependencies: `libargon2` (password hashing), OpenSSL
+(jwt-cpp, fetched via CMake FetchContent).  SQLite comes with
+SQLite3MultipleCiphers, which CMake fetches as a pinned release
+(FetchContent, checked by SHA-256) and links statically; see
+@ref sec_sqlite_driver.
 The minimum supported Qt version is 6.4.2; newer Qt APIs must be
 guarded with `QT_VERSION_CHECK`. Database files have the extension
 `.col`.
@@ -97,6 +100,7 @@ file names (`#include "colman_item.hpp"`).
 |---|---|
 | `colman_actions_test` | Barcode action classification |
 | `colman_db_util_test` | Database utilities (encryption detection, thumbnail paths, column names) |
+| `colman_sqlite_driver_test` | Built-in SQLite driver: value conversion, navigation, transactions, schema, encryption |
 | `colman_queries_test` | SQL layer and view queries |
 | `colman_reservations_test` | Reservations |
 | `colman_permission_deps_test` | Permission dependencies and delegation |
@@ -607,6 +611,27 @@ All data access goes through the abstract interface `colman::IQueries`
 
 There are no SQL queries outside `colman_sql_queries*.cpp`.
 
+@section sec_sqlite_driver Built-in SQLite driver
+
+`SQLQueries` does not use Qt's `QSQLITE` plugin but colman's own Qt SQL
+driver (`colman_sqlite_driver.hpp`), registered as `COLMAN_SQLITE` by
+`register_sqlite_driver()`.  It is built on SQLite3MultipleCiphers
+(linked statically with hidden symbols) and uses only the public QtSql
+API (`QSqlDriver`, `QSqlResult`), so encryption is always available and
+no plugin or private Qt header is involved.
+
+- Values are bound and converted like in Qt's `QSQLITE` driver (e.g.
+  `QDateTime` as ISO 8601 text with milliseconds, NULL as a null
+  `QString` variant).  Named placeholders are converted to positional
+  ones by `QSqlResult`.
+- Rows are read as the query advances; moving backwards re-executes the
+  statement.  `QSqlQuery::size()` is not supported (-1), as with
+  `QSQLITE`.
+- Encrypted files use ChaCha20-Poly1305; keys are passed as UTF-8.
+  `set_database_key()` unlocks a database right after opening,
+  `change_database_key()` encrypts, re-encrypts or (with an empty key)
+  decrypts the open database in place.
+
 @section sec_sql_patterns Function patterns
 
 The functions of `IQueries` follow the scheme:
@@ -627,9 +652,10 @@ The functions of `IQueries` follow the scheme:
 `create_tables()`; on opening, `load_database()` applies schema
 migrations (see @ref page_database)
 
-**Encryption:** `supports_encryption()`, `is_encrypted()`,
-`encrypt_database()`, `change_encryption_key()`,
-`remove_encryption()`
+**Encryption:** `supports_encryption()` (always true for
+`SQLQueries`), `is_encrypted()`, `encrypt_database()`,
+`change_encryption_key()`, `remove_encryption()`; implemented with the
+built-in driver (see @ref sec_sqlite_driver)
 
 **Collection:** `create_collection()`, `change_collection()`,
 `read_collection()`; signature categories:
