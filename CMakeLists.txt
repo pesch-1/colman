@@ -1424,56 +1424,115 @@ add_custom_target(dist
   COMMENT "Creating ${COLMAN_DIST_NAME}.tar.gz"
 )
 
-# Self-contained deployment tarball via linuxdeploy + linuxdeploy-plugin-qt.
-# Place both AppImages (executable) in tools/ then run:
+# Self-contained deployment package:
 #   cmake --build bld --target deploy
-find_program(LINUXDEPLOY
-  NAMES linuxdeploy linuxdeploy-x86_64.AppImage
-  HINTS "${CMAKE_SOURCE_DIR}/tools"
-)
-find_program(LINUXDEPLOY_PLUGIN_QT
-  NAMES linuxdeploy-plugin-qt linuxdeploy-plugin-qt-x86_64.AppImage
-  HINTS "${CMAKE_SOURCE_DIR}/tools"
-)
-
-if(LINUXDEPLOY AND LINUXDEPLOY_PLUGIN_QT)
-  get_target_property(_colman_qmake Qt6::qmake IMPORTED_LOCATION)
-  set(_deploy_dir "${CMAKE_BINARY_DIR}/AppDir")
-  set(_deploy_tarball
-    "${CMAKE_BINARY_DIR}/${COLMAN_DIST_NAME}-linux-x86_64.tar.gz"
-  )
-  add_custom_target(deploy
-    DEPENDS colman
-    COMMAND ${CMAKE_COMMAND} -E remove_directory "${_deploy_dir}"
-    COMMAND ${CMAKE_COMMAND} -E env
-      QMAKE=${_colman_qmake}
-      ${LINUXDEPLOY}
-        --appdir "${_deploy_dir}"
-        --executable $<TARGET_FILE:colman>
-        --desktop-file "${CMAKE_SOURCE_DIR}/packaging/linux/colman.desktop"
-        --icon-file "${CMAKE_SOURCE_DIR}/packaging/linux/colman.png"
-        --plugin qt
-    # GStreamer and GLib must come from the target system.
-    COMMAND ${CMAKE_COMMAND} -DAPPDIR=${_deploy_dir}
-      -P "${CMAKE_SOURCE_DIR}/cmake/deploy_prune.cmake"
-    # License texts of colman and of the statically linked libraries.
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-      "${_deploy_dir}/usr/share/doc/colman/licenses"
-    COMMAND ${CMAKE_COMMAND} -E copy
-      "${CMAKE_SOURCE_DIR}/LICENSE" "${CMAKE_SOURCE_DIR}/NOTICE"
-      "${_deploy_dir}/usr/share/doc/colman/"
-    COMMAND ${CMAKE_COMMAND} -E copy
-      "${CMAKE_SOURCE_DIR}/packaging/licenses/SQLite3MultipleCiphers.txt"
-      "${_deploy_dir}/usr/share/doc/colman/licenses/"
-    COMMAND tar czf "${_deploy_tarball}" -C "${_deploy_dir}" .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-    VERBATIM
-    COMMENT "Creating ${COLMAN_DIST_NAME}-linux-x86_64.tar.gz"
-  )
-  message(STATUS "linuxdeploy found — 'deploy' target available")
+# Windows: a zip with colman.exe, the Qt DLLs and plugins (windeployqt), the
+# other runtime DLLs and the Visual C++ runtime.  Linux: a tarball made with
+# linuxdeploy (see below).
+if(WIN32)
+  if(TARGET Qt6::windeployqt AND COLMAN_BUILD_GUI)
+    set(_win_package "${COLMAN_DIST_NAME}-windows-x64")
+    set(_win_stage "${CMAKE_BINARY_DIR}/windows-deploy")
+    set(_win_dir "${_win_stage}/${_win_package}")
+    # argon2 comes from pkg-config, which reports the import library only.
+    find_file(COLMAN_ARGON2_DLL NAMES argon2.dll libargon2.dll
+      HINTS "${Argon2_LIBDIR}/../bin" NO_DEFAULT_PATH)
+    if(NOT COLMAN_ARGON2_DLL)
+      message(FATAL_ERROR "argon2.dll not found next to ${Argon2_LIBDIR}")
+    endif()
+    # Visual C++ runtime DLLs, deployed next to colman.exe (app-local).
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+    set(CMAKE_INSTALL_UCRT_LIBRARIES FALSE)
+    include(InstallRequiredSystemLibraries)
+    if(NOT CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
+      message(FATAL_ERROR "Visual C++ runtime DLLs not found")
+    endif()
+    add_custom_target(deploy
+      DEPENDS colman
+      COMMAND ${CMAKE_COMMAND} -E rm -rf "${_win_stage}"
+      COMMAND ${CMAKE_COMMAND} -E make_directory "${_win_dir}/licenses"
+      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:colman> "${_win_dir}"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_RUNTIME_DLLS:colman> "${_win_dir}"
+      COMMAND ${CMAKE_COMMAND} -E copy
+        "${COLMAN_ARGON2_DLL}" ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+        "${_win_dir}"
+      # Positioning plugins (NMEA needs Qt SerialPort) are not used.
+      COMMAND Qt6::windeployqt --release --no-compiler-runtime
+        --translations de,en --skip-plugin-types position
+        "${_win_dir}/colman.exe"
+      # License texts of colman and of the statically linked libraries.
+      COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_SOURCE_DIR}/LICENSE" "${CMAKE_SOURCE_DIR}/NOTICE"
+        "${_win_dir}"
+      COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_SOURCE_DIR}/packaging/licenses/SQLite3MultipleCiphers.txt"
+        "${_win_dir}/licenses"
+      COMMAND ${CMAKE_COMMAND} -E chdir "${_win_stage}"
+        ${CMAKE_COMMAND} -E tar cf
+        "${CMAKE_BINARY_DIR}/${_win_package}.zip" --format=zip
+        "${_win_package}"
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+      COMMAND_EXPAND_LISTS
+      VERBATIM
+      COMMENT "Creating ${_win_package}.zip"
+    )
+    message(STATUS "windeployqt found — 'deploy' target available")
+  else()
+    message(STATUS "windeployqt or GUI not available — 'deploy' target unavailable")
+  endif()
 else()
-  message(STATUS "linuxdeploy not found — 'deploy' target unavailable")
-  message(STATUS "  Download to tools/ and make executable:")
-  message(STATUS "  tools/linuxdeploy-x86_64.AppImage")
-  message(STATUS "  tools/linuxdeploy-plugin-qt-x86_64.AppImage")
+  # Self-contained deployment tarball via linuxdeploy + linuxdeploy-plugin-qt.
+  # Place both AppImages (executable) in tools/ then run:
+  #   cmake --build bld --target deploy
+  find_program(LINUXDEPLOY
+    NAMES linuxdeploy linuxdeploy-x86_64.AppImage
+    HINTS "${CMAKE_SOURCE_DIR}/tools"
+  )
+  find_program(LINUXDEPLOY_PLUGIN_QT
+    NAMES linuxdeploy-plugin-qt linuxdeploy-plugin-qt-x86_64.AppImage
+    HINTS "${CMAKE_SOURCE_DIR}/tools"
+  )
+
+  if(LINUXDEPLOY AND LINUXDEPLOY_PLUGIN_QT)
+    get_target_property(_colman_qmake Qt6::qmake IMPORTED_LOCATION)
+    set(_deploy_dir "${CMAKE_BINARY_DIR}/AppDir")
+    set(_deploy_tarball
+      "${CMAKE_BINARY_DIR}/${COLMAN_DIST_NAME}-linux-x86_64.tar.gz"
+    )
+    add_custom_target(deploy
+      DEPENDS colman
+      COMMAND ${CMAKE_COMMAND} -E remove_directory "${_deploy_dir}"
+      COMMAND ${CMAKE_COMMAND} -E env
+        QMAKE=${_colman_qmake}
+        ${LINUXDEPLOY}
+          --appdir "${_deploy_dir}"
+          --executable $<TARGET_FILE:colman>
+          --desktop-file "${CMAKE_SOURCE_DIR}/packaging/linux/colman.desktop"
+          --icon-file "${CMAKE_SOURCE_DIR}/packaging/linux/colman.png"
+          --plugin qt
+      # GStreamer and GLib must come from the target system.
+      COMMAND ${CMAKE_COMMAND} -DAPPDIR=${_deploy_dir}
+        -P "${CMAKE_SOURCE_DIR}/cmake/deploy_prune.cmake"
+      # License texts of colman and of the statically linked libraries.
+      COMMAND ${CMAKE_COMMAND} -E make_directory
+        "${_deploy_dir}/usr/share/doc/colman/licenses"
+      COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_SOURCE_DIR}/LICENSE" "${CMAKE_SOURCE_DIR}/NOTICE"
+        "${_deploy_dir}/usr/share/doc/colman/"
+      COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_SOURCE_DIR}/packaging/licenses/SQLite3MultipleCiphers.txt"
+        "${_deploy_dir}/usr/share/doc/colman/licenses/"
+      COMMAND tar czf "${_deploy_tarball}" -C "${_deploy_dir}" .
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+      VERBATIM
+      COMMENT "Creating ${COLMAN_DIST_NAME}-linux-x86_64.tar.gz"
+    )
+    message(STATUS "linuxdeploy found — 'deploy' target available")
+  else()
+    message(STATUS "linuxdeploy not found — 'deploy' target unavailable")
+    message(STATUS "  Download to tools/ and make executable:")
+    message(STATUS "  tools/linuxdeploy-x86_64.AppImage")
+    message(STATUS "  tools/linuxdeploy-plugin-qt-x86_64.AppImage")
+  endif()
 endif()
