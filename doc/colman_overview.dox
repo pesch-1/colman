@@ -127,7 +127,7 @@ file names (`#include "colman_item.hpp"`).
 | `tutorial_<lang>` | Doxygen tutorial for one language (HTML + `tutorial/<lang>/latex/colman_tutorial.pdf`); `tutorial` builds all languages |
 | `tutorial_screenshots_<lang>` | Regenerate the tutorial screenshots (see @ref page_tutorial_screenshots) |
 | `dist` | Source tarball `colman-<version>.tar.gz` (contents: `COLMAN_DIST_FILES`) |
-| `deploy` | Self-contained binary tarball (requires linuxdeploy in `tools/`) |
+| `deploy` | Self-contained packages: application (desktop app + REST client) and REST server, each as its own tarball (Linux, requires linuxdeploy in `tools/`) or zip (Windows, windeployqt) |
 
 @section sec_resources Qt resources
 

@@ -1424,67 +1424,108 @@ add_custom_target(dist
   COMMENT "Creating ${COLMAN_DIST_NAME}.tar.gz"
 )
 
-# Self-contained deployment package:
+# Self-contained deployment packages:
 #   cmake --build bld --target deploy
-# Windows: a zip with colman.exe, the Qt DLLs and plugins (windeployqt), the
-# other runtime DLLs and the Visual C++ runtime.  Linux: a tarball made with
-# linuxdeploy (see below).
+# Two packages per platform: the application package (desktop app and REST
+# client, which share the user interface libraries) and a slim package with
+# the REST server only.  Windows: zips made with windeployqt; Linux:
+# tarballs made with linuxdeploy (see below).
+set(COLMAN_SERVER_DIST_NAME colman-server-${PROJECT_VERSION})
 if(WIN32)
   if(TARGET Qt6::windeployqt AND COLMAN_BUILD_GUI)
-    set(_win_package "${COLMAN_DIST_NAME}-windows-x64")
     set(_win_stage "${CMAKE_BINARY_DIR}/windows-deploy")
-    set(_win_dir "${_win_stage}/${_win_package}")
-    # argon2 comes from pkg-config, which reports the import library only.
+    set(_win_app_package "${COLMAN_DIST_NAME}-windows-x64")
+    set(_win_server_package "${COLMAN_SERVER_DIST_NAME}-windows-x64")
+    set(_win_app_dir "${_win_stage}/${_win_app_package}")
+    set(_win_server_dir "${_win_stage}/${_win_server_package}")
+    # argon2 and OpenSSL are reported with their import libraries only.
     find_file(COLMAN_ARGON2_DLL NAMES argon2.dll libargon2.dll
       HINTS "${Argon2_LIBDIR}/../bin" NO_DEFAULT_PATH)
-    if(NOT COLMAN_ARGON2_DLL)
-      message(FATAL_ERROR "argon2.dll not found next to ${Argon2_LIBDIR}")
+    get_filename_component(_openssl_lib_dir "${OPENSSL_CRYPTO_LIBRARY}"
+      DIRECTORY)
+    find_file(COLMAN_LIBCRYPTO_DLL NAMES libcrypto-3-x64.dll libcrypto-3.dll
+      HINTS "${_openssl_lib_dir}/../bin" NO_DEFAULT_PATH)
+    if(NOT COLMAN_ARGON2_DLL OR NOT COLMAN_LIBCRYPTO_DLL)
+      message(FATAL_ERROR "argon2 or OpenSSL DLL not found")
     endif()
-    # Visual C++ runtime DLLs, deployed next to colman.exe (app-local).
+    # Visual C++ runtime DLLs, deployed next to the programs (app-local).
     set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
     set(CMAKE_INSTALL_UCRT_LIBRARIES FALSE)
     include(InstallRequiredSystemLibraries)
     if(NOT CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
       message(FATAL_ERROR "Visual C++ runtime DLLs not found")
     endif()
+    # Plugin types colman does not use: positioning (the NMEA plugin needs
+    # Qt SerialPort) and the Qt SQL drivers (colman has its own SQLite
+    # driver).  The server is a console program (QCoreApplication): it also
+    # needs no user interface plugins, software OpenGL or shader compilers.
+    # windeployqt insists on the platform plugin for programs using Qt Gui.
+    set(_win_app_skip position,sqldrivers)
+    set(_win_server_skip
+      position,sqldrivers,styles,iconengines,generic,platforminputcontexts)
     add_custom_target(deploy
-      DEPENDS colman
+      DEPENDS colman colman_rest_client colman_rest_server
       COMMAND ${CMAKE_COMMAND} -E rm -rf "${_win_stage}"
-      COMMAND ${CMAKE_COMMAND} -E make_directory "${_win_dir}/licenses"
-      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:colman> "${_win_dir}"
+      # Application package: desktop app and REST client.
+      COMMAND ${CMAKE_COMMAND} -E make_directory "${_win_app_dir}/licenses"
+      COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_FILE:colman> $<TARGET_FILE:colman_rest_client>
+        "${_win_app_dir}"
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_RUNTIME_DLLS:colman> "${_win_dir}"
+        $<TARGET_RUNTIME_DLLS:colman> $<TARGET_RUNTIME_DLLS:colman_rest_client>
+        "${_win_app_dir}"
       COMMAND ${CMAKE_COMMAND} -E copy
         "${COLMAN_ARGON2_DLL}" ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-        "${_win_dir}"
-      # Positioning plugins (NMEA needs Qt SerialPort) are not used.
+        "${_win_app_dir}"
       COMMAND Qt6::windeployqt --release --no-compiler-runtime
-        --translations de,en --skip-plugin-types position
-        "${_win_dir}/colman.exe"
+        --translations de,en --skip-plugin-types ${_win_app_skip}
+        "${_win_app_dir}/colman.exe" "${_win_app_dir}/colman_rest_client.exe"
+      # Server package: REST server only.
+      COMMAND ${CMAKE_COMMAND} -E make_directory
+        "${_win_server_dir}/licenses"
+      COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_FILE:colman_rest_server> "${_win_server_dir}"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_RUNTIME_DLLS:colman_rest_server> "${_win_server_dir}"
+      COMMAND ${CMAKE_COMMAND} -E copy
+        "${COLMAN_ARGON2_DLL}" "${COLMAN_LIBCRYPTO_DLL}"
+        ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} "${_win_server_dir}"
+      COMMAND Qt6::windeployqt --release --no-compiler-runtime
+        --translations de,en --skip-plugin-types ${_win_server_skip}
+        --no-opengl-sw --no-system-d3d-compiler --no-system-dxc-compiler
+        "${_win_server_dir}/colman_rest_server.exe"
       # License texts of colman and of the statically linked libraries.
       COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_SOURCE_DIR}/LICENSE" "${CMAKE_SOURCE_DIR}/NOTICE"
-        "${_win_dir}"
+        "${_win_app_dir}"
+      COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_SOURCE_DIR}/LICENSE" "${CMAKE_SOURCE_DIR}/NOTICE"
+        "${_win_server_dir}"
       COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_SOURCE_DIR}/packaging/licenses/SQLite3MultipleCiphers.txt"
-        "${_win_dir}/licenses"
+        "${_win_app_dir}/licenses"
+      COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_SOURCE_DIR}/packaging/licenses/SQLite3MultipleCiphers.txt"
+        "${_win_server_dir}/licenses"
       COMMAND ${CMAKE_COMMAND} -E chdir "${_win_stage}"
         ${CMAKE_COMMAND} -E tar cf
-        "${CMAKE_BINARY_DIR}/${_win_package}.zip" --format=zip
-        "${_win_package}"
+        "${CMAKE_BINARY_DIR}/${_win_app_package}.zip" --format=zip
+        "${_win_app_package}"
+      COMMAND ${CMAKE_COMMAND} -E chdir "${_win_stage}"
+        ${CMAKE_COMMAND} -E tar cf
+        "${CMAKE_BINARY_DIR}/${_win_server_package}.zip" --format=zip
+        "${_win_server_package}"
       WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
       COMMAND_EXPAND_LISTS
       VERBATIM
-      COMMENT "Creating ${_win_package}.zip"
+      COMMENT "Creating ${_win_app_package}.zip and ${_win_server_package}.zip"
     )
     message(STATUS "windeployqt found — 'deploy' target available")
   else()
     message(STATUS "windeployqt or GUI not available — 'deploy' target unavailable")
   endif()
 else()
-  # Self-contained deployment tarball via linuxdeploy + linuxdeploy-plugin-qt.
-  # Place both AppImages (executable) in tools/ then run:
-  #   cmake --build bld --target deploy
+  # Linux: place both linuxdeploy AppImages (executable) in tools/.
   find_program(LINUXDEPLOY
     NAMES linuxdeploy linuxdeploy-x86_64.AppImage
     HINTS "${CMAKE_SOURCE_DIR}/tools"
@@ -1494,43 +1535,70 @@ else()
     HINTS "${CMAKE_SOURCE_DIR}/tools"
   )
 
-  if(LINUXDEPLOY AND LINUXDEPLOY_PLUGIN_QT)
+  if(LINUXDEPLOY AND LINUXDEPLOY_PLUGIN_QT AND COLMAN_BUILD_GUI)
     get_target_property(_colman_qmake Qt6::qmake IMPORTED_LOCATION)
     set(_deploy_dir "${CMAKE_BINARY_DIR}/AppDir")
+    set(_server_deploy_dir "${CMAKE_BINARY_DIR}/AppDir-server")
     set(_deploy_tarball
       "${CMAKE_BINARY_DIR}/${COLMAN_DIST_NAME}-linux-x86_64.tar.gz"
     )
+    set(_server_deploy_tarball
+      "${CMAKE_BINARY_DIR}/${COLMAN_SERVER_DIST_NAME}-linux-x86_64.tar.gz"
+    )
+    set(_doc_dir "usr/share/doc/colman")
     add_custom_target(deploy
-      DEPENDS colman
+      DEPENDS colman colman_rest_client colman_rest_server
       COMMAND ${CMAKE_COMMAND} -E remove_directory "${_deploy_dir}"
+      COMMAND ${CMAKE_COMMAND} -E remove_directory "${_server_deploy_dir}"
+      # Application bundle: desktop app and REST client; AppRun starts the
+      # desktop app (the desktop entry names colman).
       COMMAND ${CMAKE_COMMAND} -E env
         QMAKE=${_colman_qmake}
         ${LINUXDEPLOY}
           --appdir "${_deploy_dir}"
           --executable $<TARGET_FILE:colman>
+          --executable $<TARGET_FILE:colman_rest_client>
           --desktop-file "${CMAKE_SOURCE_DIR}/packaging/linux/colman.desktop"
           --icon-file "${CMAKE_SOURCE_DIR}/packaging/linux/colman.png"
           --plugin qt
-      # GStreamer and GLib must come from the target system.
+      # Server bundle: REST server only.
+      COMMAND ${CMAKE_COMMAND} -E env
+        QMAKE=${_colman_qmake}
+        ${LINUXDEPLOY}
+          --appdir "${_server_deploy_dir}"
+          --executable $<TARGET_FILE:colman_rest_server>
+          --plugin qt
+      # GStreamer and GLib must come from the target system; unused plugins
+      # (and, for the server, unused libraries) are removed.
       COMMAND ${CMAKE_COMMAND} -DAPPDIR=${_deploy_dir}
+        -P "${CMAKE_SOURCE_DIR}/cmake/deploy_prune.cmake"
+      COMMAND ${CMAKE_COMMAND} -DAPPDIR=${_server_deploy_dir} -DSERVER=ON
         -P "${CMAKE_SOURCE_DIR}/cmake/deploy_prune.cmake"
       # License texts of colman and of the statically linked libraries.
       COMMAND ${CMAKE_COMMAND} -E make_directory
-        "${_deploy_dir}/usr/share/doc/colman/licenses"
+        "${_deploy_dir}/${_doc_dir}/licenses"
+        "${_server_deploy_dir}/${_doc_dir}/licenses"
       COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_SOURCE_DIR}/LICENSE" "${CMAKE_SOURCE_DIR}/NOTICE"
-        "${_deploy_dir}/usr/share/doc/colman/"
+        "${_deploy_dir}/${_doc_dir}/"
+      COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_SOURCE_DIR}/LICENSE" "${CMAKE_SOURCE_DIR}/NOTICE"
+        "${_server_deploy_dir}/${_doc_dir}/"
       COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_SOURCE_DIR}/packaging/licenses/SQLite3MultipleCiphers.txt"
-        "${_deploy_dir}/usr/share/doc/colman/licenses/"
+        "${_deploy_dir}/${_doc_dir}/licenses/"
+      COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_SOURCE_DIR}/packaging/licenses/SQLite3MultipleCiphers.txt"
+        "${_server_deploy_dir}/${_doc_dir}/licenses/"
       COMMAND tar czf "${_deploy_tarball}" -C "${_deploy_dir}" .
+      COMMAND tar czf "${_server_deploy_tarball}" -C "${_server_deploy_dir}" .
       WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
       VERBATIM
-      COMMENT "Creating ${COLMAN_DIST_NAME}-linux-x86_64.tar.gz"
+      COMMENT "Creating ${COLMAN_DIST_NAME}-linux-x86_64.tar.gz and ${COLMAN_SERVER_DIST_NAME}-linux-x86_64.tar.gz"
     )
     message(STATUS "linuxdeploy found — 'deploy' target available")
   else()
-    message(STATUS "linuxdeploy not found — 'deploy' target unavailable")
+    message(STATUS "linuxdeploy or GUI not available — 'deploy' target unavailable")
     message(STATUS "  Download to tools/ and make executable:")
     message(STATUS "  tools/linuxdeploy-x86_64.AppImage")
     message(STATUS "  tools/linuxdeploy-plugin-qt-x86_64.AppImage")

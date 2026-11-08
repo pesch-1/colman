@@ -6,6 +6,9 @@
 #
 #   - colman-<version>.tar.gz               source distribution
 #   - colman-<version>-linux-x86_64.tar.gz  self-contained Linux bundle
+#                                           (desktop app and REST client)
+#   - colman-server-<version>-linux-x86_64.tar.gz
+#                                           REST server bundle
 #   - colman-<version>.apk                  Flutter client for Android
 #                                           (only if the signing secrets
 #                                           are configured)
@@ -133,19 +136,27 @@ jobs:
       - name: Source tarball
         run: cmake --build bld --target dist
 
-      - name: Linux bundle
+      - name: Linux bundles
         run: |
           cmake --build bld --target deploy
-          files=$(tar tzf "bld/colman-$VERSION-linux-x86_64.tar.gz")
-          if ! grep -qx './AppRun' <<< "$files"; then
-            echo "::error::./AppRun is missing from the Linux bundle"
+          app=$(tar tzf "bld/colman-$VERSION-linux-x86_64.tar.gz")
+          server=$(tar tzf "bld/colman-server-$VERSION-linux-x86_64.tar.gz")
+          for f in ./AppRun ./usr/bin/colman ./usr/bin/colman_rest_client; do
+            if ! grep -qx "$f" <<< "$app"; then
+              echo "::error::$f is missing from the application bundle"
+              exit 1
+            fi
+          done
+          if ! grep -qx './usr/bin/colman_rest_server' <<< "$server"; then
+            echo "::error::the server bundle lacks colman_rest_server"
             exit 1
           fi
           # GStreamer and GLib must come from the target system
-          # (cmake/deploy_prune.cmake), otherwise no camera is found.
-          if grep -E '^\./usr/lib/lib(gst|glib-2\.0|gobject-2\.0)' \
-            <<< "$files"; then
-            echo "::error::the Linux bundle contains GStreamer or GLib"
+          # (cmake/deploy_prune.cmake), otherwise no camera is found; Qt SQL
+          # driver plugins are not used.
+          if grep -E '^\./usr/lib/lib(gst|glib-2\.0|gobject-2\.0)|/sqldrivers/' \
+            <<< "$app"$'\n'"$server"; then
+            echo "::error::a Linux bundle contains GStreamer, GLib or SQL drivers"
             exit 1
           fi
 
@@ -155,6 +166,7 @@ jobs:
           path: |
             bld/colman-${{ env.VERSION }}.tar.gz
             bld/colman-${{ env.VERSION }}-linux-x86_64.tar.gz
+            bld/colman-server-${{ env.VERSION }}-linux-x86_64.tar.gz
           if-no-files-found: error
 
   android:

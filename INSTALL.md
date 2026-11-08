@@ -108,11 +108,16 @@ This produces `bld/colman-2.0.1.tar.gz` containing all source files.
 
 ---
 
-## Creating a self-contained binary tarball
+## Creating self-contained binary tarballs
 
-The `deploy` target bundles the application together with all required shared
+The `deploy` target bundles the programs together with all required shared
 libraries (including Qt) so the result runs on other Linux machines without
-any additional installation.
+any additional installation.  It creates two tarballs:
+
+- `colman-<version>-linux-x86_64.tar.gz` — the desktop application and the
+  REST client, which share the user interface libraries;
+- `colman-server-<version>-linux-x86_64.tar.gz` — the REST server only,
+  without user interface libraries (about a seventh of the size).
 
 ### One-time setup — download linuxdeploy
 
@@ -125,32 +130,43 @@ chmod +x tools/linuxdeploy-x86_64.AppImage tools/linuxdeploy-plugin-qt-x86_64.Ap
 
 Both tools are available under the [MIT License](https://opensource.org/licenses/MIT).
 
-### Build the tarball
+### Build the tarballs
 
 ```bash
 cmake -B bld && cmake --build bld -j4 --target deploy
 ```
 
-This produces `bld/colman-2.0.1-linux-x86_64.tar.gz`.  The desktop entry
-and icon for the bundle are taken from `packaging/linux/`.  `LICENSE`,
+This produces `bld/colman-2.0.1-linux-x86_64.tar.gz` and
+`bld/colman-server-2.0.1-linux-x86_64.tar.gz`.  The desktop entry and icon
+of the application bundle are taken from `packaging/linux/`.  `LICENSE`,
 `NOTICE` and the license texts from `packaging/licenses/` are copied to
-`usr/share/doc/colman/` in the bundle.
+`usr/share/doc/colman/` in both bundles.
 
-GStreamer and GLib are not bundled (`cmake/deploy_prune.cmake`): they are
-taken from the target system, whose GStreamer plugins Qt Multimedia needs
-to find the camera.  For camera scanning the target system needs GStreamer
-with the "good" plugins (`v4l2src`), e.g. `gstreamer1.0-plugins-good` on
-Debian/Ubuntu.
+`cmake/deploy_prune.cmake` adjusts the bundles after linuxdeploy:
+
+- GStreamer and GLib are not bundled: they are taken from the target
+  system, whose GStreamer plugins Qt Multimedia needs to find the camera.
+  For camera scanning the target system needs GStreamer with the "good"
+  plugins (`v4l2src`), e.g. `gstreamer1.0-plugins-good` on Debian/Ubuntu.
+- The Qt SQL driver plugins are removed; colman has its own SQLite driver.
+- The server bundle keeps only the plugins and libraries the REST server
+  needs (it has no user interface and decodes no images).
 
 ### Run on the target machine
 
 ```bash
 tar xzf colman-2.0.1-linux-x86_64.tar.gz
-./AppRun
+./AppRun                        # desktop application
+./usr/bin/colman_rest_client    # REST client
+
+tar xzf colman-server-2.0.1-linux-x86_64.tar.gz
+./usr/bin/colman_rest_server --db school.col
 ```
 
 `AppRun` is a link to `usr/bin/colman`; the bundled libraries are found
-via the run path (rpath) and the Qt plugins via `usr/bin/qt.conf`.
+via the run path (rpath) and the Qt plugins via `usr/bin/qt.conf`.  See the
+[README](README.md#rest-mode--server-and-client) for the server and client
+options.
 
 Requirements of the target machine:
 
