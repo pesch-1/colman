@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) Christoph Pesch 2026
 cmake_minimum_required(VERSION 3.21)
-project(colman VERSION 2.0.0 LANGUAGES C CXX)
+project(colman VERSION 2.0.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -1310,6 +1310,7 @@ set(COLMAN_DIST_FILES
   doc/raspberry_pi.md
   doc/sru_servers.md
   doc/release_notes/2.0.0.md
+  doc/release_notes/2.0.1.md
   packaging/linux/colman.desktop
   packaging/linux/colman.png
   packaging/licenses/SQLite3MultipleCiphers.txt

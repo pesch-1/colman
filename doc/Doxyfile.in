@@ -10,7 +10,7 @@
 #---------------------------------------------------------------------------
 
 PROJECT_NAME           = "Colman"
-PROJECT_NUMBER         = 2.0.0
+PROJECT_NUMBER         = @PROJECT_VERSION@
 PROJECT_BRIEF          = "Library and collection manager"
 PROJECT_LOGO           = @CMAKE_CURRENT_SOURCE_DIR@/flutter/assets/icons/colman_logo.jpeg
 OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@/doc

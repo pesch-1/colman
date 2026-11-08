@@ -46,8 +46,8 @@ packages on Ubuntu 24.04.
 ### From a source tarball
 
 ```bash
-tar xzf colman-2.0.0.tar.gz
-cd colman-2.0.0
+tar xzf colman-2.0.1.tar.gz
+cd colman-2.0.1
 cmake -B bld && cmake --build bld -j4
 ./bld/colman
 ```
@@ -104,7 +104,7 @@ touches `doc/`; the landing page is `doc/tutorial/index.html`.
 cmake -B bld && cmake --build bld --target dist
 ```
 
-This produces `bld/colman-2.0.0.tar.gz` containing all source files.
+This produces `bld/colman-2.0.1.tar.gz` containing all source files.
 
 ---
 
@@ -131,7 +131,7 @@ Both tools are available under the [MIT License](https://opensource.org/licenses
 cmake -B bld && cmake --build bld -j4 --target deploy
 ```
 
-This produces `bld/colman-2.0.0-linux-x86_64.tar.gz`.  The desktop entry
+This produces `bld/colman-2.0.1-linux-x86_64.tar.gz`.  The desktop entry
 and icon for the bundle are taken from `packaging/linux/`.  `LICENSE`,
 `NOTICE` and the license texts from `packaging/licenses/` are copied to
 `usr/share/doc/colman/` in the bundle.
@@ -139,7 +139,7 @@ and icon for the bundle are taken from `packaging/linux/`.  `LICENSE`,
 ### Run on the target machine
 
 ```bash
-tar xzf colman-2.0.0-linux-x86_64.tar.gz
+tar xzf colman-2.0.1-linux-x86_64.tar.gz
 ./AppRun
 ```
 
