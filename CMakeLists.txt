@@ -144,6 +144,8 @@ set(COLMAN_CORE_SOURCES
   src/colman_assert_context.hpp
   src/colman_collection.cpp
   src/colman_collection.hpp
+  src/colman_console.cpp
+  src/colman_console.hpp
   src/colman_error.cpp
   src/colman_error.hpp
   src/colman_trace.cpp

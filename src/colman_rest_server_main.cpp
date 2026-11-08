@@ -53,6 +53,9 @@
 #ifndef COLMAN_SQL_QUERIES_HPP
 #  include "colman_sql_queries.hpp"
 #endif
+#ifndef COLMAN_CONSOLE_HPP
+#  include "colman_console.hpp"
+#endif
 #ifndef COLMAN_COLLECTION_HPP
 #  include "colman_collection.hpp"
 #endif
@@ -95,46 +98,9 @@
 #  include <cstring>
 #  define SYSTEM_CSTRING
 #endif
-#include <termios.h>
-#include <unistd.h>
 
 namespace
 {
-
-/// Reads a line from stdin without echoing characters.
-/**
- * Falls back to plain reading if stdin is not a terminal (e.g. piped input).
- * Strips trailing CR/LF.
- * @return the entered line, or std::nullopt on end of input.
- */
-  std::optional<QString> read_password(char const* prompt)
-  {
-    struct termios old_term;
-    bool const is_tty = (tcgetattr(STDIN_FILENO, &old_term) == 0);
-    if(is_tty) {
-      struct termios no_echo = old_term;
-      no_echo.c_lflag &= ~static_cast<tcflag_t>(ECHO);
-      tcsetattr(STDIN_FILENO, TCSANOW, &no_echo);
-    }
-    std::fprintf(stderr, "%s", prompt);
-    std::fflush(stderr);
-    char buf[1024];
-    std::memset(buf, 0, sizeof(buf));
-    bool const got_line =
-        std::fgets(buf, static_cast<int>(sizeof(buf)), stdin) != nullptr;
-    if(is_tty) {
-      tcsetattr(STDIN_FILENO, TCSANOW, &old_term);
-      std::fprintf(stderr, "\n");
-    }
-    if(!got_line) {
-      return std::nullopt;
-    }
-    QString pw = QString::fromUtf8(buf);
-    while(pw.endsWith('\n') || pw.endsWith('\r')) {
-      pw.chop(1);
-    }
-    return pw;
-  }
 
 /// Reads a plain text line from stdin with echo, stripping trailing CR/LF.
 /** @return the entered line, or std::nullopt on end of input. */
@@ -208,7 +174,7 @@ namespace
     col.set_server_name(server_name.trimmed());
     QString hash;
     for(;;) {
-      auto const pw1 = read_password("Enter administrator password: ");
+      auto const pw1 = colman::read_password("Enter administrator password: ");
       if(!pw1) {
         std::fprintf(stderr, "\nEnd of input — aborting setup.\n");
         return false;
@@ -217,7 +183,7 @@ namespace
         std::fprintf(stderr, "Password must not be empty.\n");
         continue;
       }
-      auto const pw2 = read_password("Confirm administrator password: ");
+      auto const pw2 = colman::read_password("Confirm administrator password: ");
       if(!pw2) {
         std::fprintf(stderr, "\nEnd of input — aborting setup.\n");
         return false;

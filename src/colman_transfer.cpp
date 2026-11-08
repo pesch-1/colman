@@ -19,6 +19,9 @@
 #  include "colman_sql_queries.hpp"
 #  define COLMAN_SQL_QUERIES_HPP
 #endif
+#ifndef COLMAN_CONSOLE_HPP
+#  include "colman_console.hpp"
+#endif
 #ifndef SYSTEM_QCOREAPPLICATION
 #  include <QCoreApplication>
 #  define SYSTEM_QCOREAPPLICATION
@@ -66,14 +69,6 @@
 #ifndef SYSTEM_VECTOR
 #  include <vector>
 #  define SYSTEM_VECTOR
-#endif
-#ifndef SYSTEM_TERMIOS
-#  include <termios.h>
-#  define SYSTEM_TERMIOS
-#endif
-#ifndef SYSTEM_UNISTD
-#  include <unistd.h>
-#  define SYSTEM_UNISTD
 #endif
 
 namespace
@@ -194,33 +189,6 @@ namespace
       result.push_back(current_row);
     }
     return result;
-  }
-
-  // -------------------------------------------------------------------------
-  // Password prompt
-  // -------------------------------------------------------------------------
-
-  /// Prompts on stderr and reads a password with terminal echo disabled.
-  QString prompt_password()
-  {
-    QTextStream err(stderr);
-    err << "Password: ";
-    err.flush();
-
-    struct termios old_t;
-    struct termios new_t;
-    tcgetattr(STDIN_FILENO, &old_t);
-    new_t = old_t;
-    new_t.c_lflag &= ~static_cast<tcflag_t>(ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &new_t);
-
-    QTextStream in(stdin);
-    QString const pw = in.readLine();
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &old_t);
-    err << "\n";
-    err.flush();
-    return pw;
   }
 
   // -------------------------------------------------------------------------
@@ -805,7 +773,7 @@ int main(int argc, char* argv[])
     // Try without password first; if that fails, prompt interactively.
     opened = sq.load_database(db_path);
     if(!opened) {
-      key = prompt_password();
+      key = colman::read_password("Password: ").value_or(QString());
       opened = sq.load_database(db_path, key);
     }
   }
