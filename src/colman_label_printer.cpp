@@ -51,10 +51,6 @@
 #  include <cmath>
 #  define SYSTEM_CMATH
 #endif
-#ifndef SYSTEM_QFILE
-#  include <QFile>
-#  define SYSTEM_QFILE
-#endif
 #ifndef SYSTEM_QPRINTERINFO
 #  include <QPrinterInfo>
 #  define SYSTEM_QPRINTERINFO
@@ -83,29 +79,8 @@
 #  include <QTimer>
 #  define SYSTEM_QTIMER
 #endif
-#ifndef SYSTEM_CERRNO
-#  include <cerrno>
-#  define SYSTEM_CERRNO
-#endif
-#ifndef SYSTEM_FCNTL
-#  include <fcntl.h>
-#  define SYSTEM_FCNTL
-#endif
-#ifndef SYSTEM_LINUX_LP
-#  include <linux/lp.h>
-#  define SYSTEM_LINUX_LP
-#endif
-#ifndef SYSTEM_POLL
-#  include <poll.h>
-#  define SYSTEM_POLL
-#endif
-#ifndef SYSTEM_SYS_IOCTL
-#  include <sys/ioctl.h>
-#  define SYSTEM_SYS_IOCTL
-#endif
-#ifndef SYSTEM_UNISTD
-#  include <unistd.h>
-#  define SYSTEM_UNISTD
+#ifndef COLMAN_USB_PRINTER_HPP
+#  include "colman_usb_printer.hpp"
 #endif
 
 
@@ -209,7 +184,7 @@ namespace
 */
   double constexpr LabelGapMm = 2.0;
 
-/// Writes the TSPL status request to @p fd and reads the answer byte.
+/// Writes the TSPL status request to @p device and reads the answer byte.
 /**
    The firmware does not answer at all while the print head is running
    (verified on the Vevor Y486) and delivers late answers only after
@@ -218,40 +193,48 @@ namespace
    discarded before the request is written, and the freshest byte wins
    when more than one arrives.
 
-   @param fd open file descriptor of a @c /dev/usb/lp* device
+   @param device open USB printer device
    @return the status byte (>= 0), or -1 when the printer did not answer
            within TsplStatusTimeoutMs (e.g. a non-TSPL printer, or a
            printer that is busy printing)
 */
-  int tspl_query_status(int fd)
+  int tspl_query_status(colman::UsbPrinterDevice& device)
   {
-    unsigned char stale = 0;
-    while(::read(fd, &stale, 1) == 1) {
-    }
-    if(::write(fd, TsplStatusRequest, sizeof(TsplStatusRequest)) != static_cast<ssize_t>(sizeof(TsplStatusRequest)))
+    device.discard_input();
+    if(!device.write_request(
+           QByteArray(TsplStatusRequest, sizeof(TsplStatusRequest))))
     {
       return -1;
     }
-    struct pollfd pfd = {};
-    pfd.fd = fd;
-    pfd.events = POLLIN;
-    if(::poll(&pfd, 1, TsplStatusTimeoutMs) <= 0 || (pfd.revents & POLLIN) == 0)
-    {
-      return -1;
+    return device.read_last_byte(TsplStatusTimeoutMs);
+  }
+
+/// Performs the TSPL status query on an idle printer, with one retry.
+/**
+   Used before a print, when an idle TSPL printer is expected to answer.
+   On Windows an answer can get lost after an earlier read request had to
+   be cancelled (see colman::UsbPrinterDevice::discard_input()), so a
+   missing answer is requested once more before the printer counts as
+   silent.
+
+   @param device open USB printer device
+   @return the status byte (>= 0), or -1 when the printer did not answer
+*/
+  int tspl_query_idle_status(colman::UsbPrinterDevice& device)
+  {
+    int const answer = tspl_query_status(device);
+    if(answer >= 0) {
+      return answer;
     }
-    int answer = -1;
-    unsigned char byte = 0;
-    while(::read(fd, &byte, 1) == 1) {
-      answer = byte;
-    }
-    return answer;
+    return tspl_query_status(device);
   }
 
 /// Opens @p device_path and performs one TSPL status query.
 /**
    The two failure modes are kept apart because they mean different
    things to the post-print watch: a device that cannot be opened is
-   gone or inaccessible (CUPS detached usblp, missing permission),
+   gone or inaccessible (CUPS detached usblp, missing permission, a
+   Windows print queue holding the port),
    while an open device that stays silent is — on the Vevor Y486 —
    busy printing.
 
@@ -260,14 +243,11 @@ namespace
 */
   int tspl_poll_device(QString const& device_path)
   {
-    int const fd = ::open(QFile::encodeName(device_path).constData(),
-                          O_RDWR | O_NONBLOCK | O_CLOEXEC);
-    if(fd < 0) {
+    colman::UsbPrinterDevice device(device_path);
+    if(!device.is_open()) {
       return -2;
     }
-    int const answer = tspl_query_status(fd);
-    ::close(fd);
-    return answer;
+    return tspl_query_status(device);
   }
 
 /// TSPL @c REFERENCE x coordinate (dots) of the Vevor Y486.
@@ -284,30 +264,6 @@ namespace
    label placement of the Flutter client on the Vevor Y486.
 */
   double constexpr Y486BitmapXOffsetMm = 11.0;
-
-/// Reads one sysfs attribute of the USB device behind @p device_path.
-/**
-   The usblp node @c /dev/usb/lpN is mirrored at
-   @c /sys/class/usbmisc/lpN; its @c device link points to the USB
-   printer interface, whose parent directory holds the device
-   descriptor attributes (@c idVendor, @c idProduct, @c manufacturer,
-   @c product, …).
-
-   @param device_path device node, e.g. @c /dev/usb/lp0
-   @param name        attribute file name, e.g. @c "idVendor"
-   @return the trimmed attribute value, or an empty string
-*/
-  QString usb_device_attribute(QString const& device_path, char const* name)
-  {
-    QString const node = device_path.section('/', -1);
-    QFile file(QString("/sys/class/usbmisc/%1/device/../%2")
-                   .arg(node)
-                   .arg(QLatin1String(name)));
-    if(!file.open(QIODevice::ReadOnly)) {
-      return {};
-    }
-    return QString::fromUtf8(file.readAll()).trimmed();
-  }
 
 /// Placement and capability profile of one TSPL printer model.
 /**
@@ -343,9 +299,7 @@ namespace
 */
   TsplDeviceProfile tspl_device_profile(QString const& device_path)
   {
-    QString const usb_id = usb_device_attribute(device_path, "idVendor") +
-                           ":" +
-                           usb_device_attribute(device_path, "idProduct");
+    QString const usb_id = colman::usb_printer_id(device_path);
     if(usb_id == "5958:0486") {  // Vevor Y486
       return {Y486ReferenceXDots, Y486BitmapXOffsetMm, true, true};
     }
@@ -357,53 +311,6 @@ namespace
 
 /// Milliseconds to wait for the device to accept more raw job data.
   int constexpr TsplWriteTimeoutMs = 5000;
-
-/// Writes @p size bytes to @p fd and waits until the device accepted them.
-/**
-   The usblp kernel driver transfers writes through a single in-flight
-   URB and aborts it when the device is closed (usblp_release() unlinks
-   the URB) — anything the printer has not yet accepted is then lost.
-   Returning right after the final ::write() therefore truncates the
-   tail of any job larger than the driver's 8 kB buffer, observed as
-   "only the first label of a batch is printed".
-
-   usblp reports POLLOUT exactly when no write URB is in flight, i.e.
-   when the printer has accepted all data so far.  This function hence
-   polls for POLLOUT both between chunks (buffer full) and once more
-   after the final chunk, so that a subsequent close() cannot abort
-   anything.
-
-   @return true when the printer accepted all @p size bytes
-*/
-  bool write_all(int fd, char const* data, qsizetype size)
-  {
-    qsizetype remaining = size;
-    while(remaining > 0) {
-      ssize_t const written =
-          ::write(fd, data, static_cast<size_t>(remaining));
-      if(written > 0) {
-        data += written;
-        remaining -= written;
-        continue;
-      }
-      if(written < 0 && (errno == EAGAIN || errno == EINTR)) {
-        struct pollfd pfd = {};
-        pfd.fd = fd;
-        pfd.events = POLLOUT;
-        if(::poll(&pfd, 1, TsplWriteTimeoutMs) > 0) {
-          continue;
-        }
-      }
-      return false;
-    }
-    // Drain: wait for the final write URB to complete before the caller
-    // closes the device.
-    struct pollfd pfd = {};
-    pfd.fd = fd;
-    pfd.events = POLLOUT;
-    return ::poll(&pfd, 1, TsplWriteTimeoutMs) > 0 &&
-           (pfd.revents & POLLOUT) != 0;
-  }
 
 /// Formats a millimetre value for TSPL: integer when whole, else 1 decimal.
   QByteArray tspl_mm(double v)
@@ -520,9 +427,9 @@ namespace
    connected TSPL printer, which is exact for the usual
    single-label-printer setup.
 
-   write_all() waits until the printer has accepted every byte before
-   the device is closed — see there for why closing earlier would
-   truncate the job.
+   UsbPrinterDevice::write_all() waits until the printer has accepted
+   every byte before the device is closed — see there for why closing
+   earlier would truncate the job.
 
    @param images   pre-rendered labels, all the same size
    @param size_mm  physical label size in millimetres
@@ -536,9 +443,8 @@ namespace
                                int darkness)
   {
     for(QString const& dev : colman::list_thermal_printer_devices()) {
-      int const fd = ::open(QFile::encodeName(dev).constData(),
-                            O_RDWR | O_NONBLOCK | O_CLOEXEC);
-      if(fd < 0) {
+      colman::UsbPrinterDevice device(dev);
+      if(!device.is_open()) {
         continue;
       }
       TsplDeviceProfile const profile = tspl_device_profile(dev);
@@ -546,16 +452,13 @@ namespace
       // eligible without probing (the probe would kill the job, see
       // above).  Everything else must answer the probe.
       bool const eligible =
-          !profile.answers_status_ || tspl_query_status(fd) >= 0;
+          !profile.answers_status_ || tspl_query_idle_status(device) >= 0;
       if(!eligible) {
-        ::close(fd);
         continue;
       }
       QByteArray const job =
           build_tspl_job(images, size_mm, dpi, darkness, profile);
-      bool const ok = write_all(fd, job.constData(), job.size());
-      ::close(fd);
-      if(ok) {
+      if(device.write_all(job, TsplWriteTimeoutMs)) {
         return true;
       }
     }
@@ -831,28 +734,20 @@ bool colman::print_label_scene(QGraphicsScene* scene,
 
 
 /**
-   Generic detection: every existing @c /dev/usb/lp* device node is
-   returned, independent of the printer's vendor and model.  The usblp
-   kernel driver creates one node per connected USB printer-class device,
-   so an existing node means a physically connected printer.
+   Generic detection: every connected USB printer-class device is
+   returned, independent of the printer's vendor and model — on Linux the
+   @c /dev/usb/lp* nodes of the usblp kernel driver, on Windows the
+   device interfaces of usbprint.sys (see list_usb_printer_devices()).
 
-   The nodes disappear temporarily while a CUPS job is being printed,
-   because the CUPS usb backend detaches the usblp kernel driver for the
-   duration of the job.
+   On Linux the nodes disappear temporarily while a CUPS job is being
+   printed, because the CUPS usb backend detaches the usblp kernel driver
+   for the duration of the job.
 
-   @return absolute paths of the existing @c /dev/usb/lp* device nodes
+   @return device paths for UsbPrinterDevice
 */
 QList<QString> colman::list_thermal_printer_devices()
 {
-  QList<QString> result;
-  // The usblp kernel driver registers at most 16 device nodes.
-  for(int i = 0; i < 16; ++i) {
-    QString const dev_path = QString("/dev/usb/lp%1").arg(i);
-    if(QFile::exists(dev_path)) {
-      result.append(dev_path);
-    }
-  }
-  return result;
+  return list_usb_printer_devices();
 }
 
 
@@ -863,8 +758,9 @@ QList<QString> colman::list_thermal_printer_devices()
 /**
    Two-stage query:
 
-   1. The USB printer-class port status byte is read via the
-      @c LPGETSTATUS ioctl of the usblp kernel driver.  This is a passive
+   1. The USB printer-class port status byte is read (@c LPGETSTATUS
+      ioctl of usblp on Linux, @c IOCTL_USBPRINT_GET_LPT_STATUS of
+      usbprint.sys on Windows).  This is a passive
       class-level request that does not interfere with the printer's data
       stream, so it is safe on any USB printer regardless of its command
       language.  Unfortunately many label printer firmwares do not answer
@@ -883,26 +779,25 @@ QList<QString> colman::list_thermal_printer_devices()
       stream and make the firmware discard the whole following job.
 
    PaperStatus::Unknown is returned when the device cannot be opened
-   (missing permission, or busy because a CUPS job is being printed) or
+   (missing permission, busy because a CUPS job is being printed, or held
+   by a Windows print queue) or
    when both stages fail.  Note that a firmware that supports neither
    query can never report an empty roll — printing then proceeds as
    before this check existed.
 
-   @param device_path device node, e.g. @c /dev/usb/lp0
+   @param device_path device path from list_thermal_printer_devices()
    @return paper status as reported by the printer
 */
 colman::PaperStatus colman::query_paper_status(QString const& device_path)
 {
-  int const fd = ::open(QFile::encodeName(device_path).constData(),
-                        O_RDWR | O_NONBLOCK | O_CLOEXEC);
-  if(fd < 0) {
+  UsbPrinterDevice device(device_path);
+  if(!device.is_open()) {
     return PaperStatus::Unknown;
   }
 
   // Stage 1: passive USB printer-class port status byte.
-  int port_status = 0;
-  if(::ioctl(fd, LPGETSTATUS, &port_status) == 0) {
-    ::close(fd);
+  int const port_status = device.port_status();
+  if(port_status >= 0) {
     return (port_status & PaperEmptyStatusBit) ? PaperStatus::Empty
                                                : PaperStatus::Ok;
   }
@@ -912,17 +807,13 @@ colman::PaperStatus colman::query_paper_status(QString const& device_path)
   // would enter the printer's command stream and make it discard the
   // whole job that follows.
   if(!tspl_device_profile(device_path).answers_status_) {
-    ::close(fd);
     return PaperStatus::Unknown;
   }
-  PaperStatus result = PaperStatus::Unknown;
-  int const answer = tspl_query_status(fd);
-  if(answer >= 0) {
-    result = (answer & TsplOutOfPaperBit) ? PaperStatus::Empty
-                                          : PaperStatus::Ok;
+  int const answer = tspl_query_idle_status(device);
+  if(answer < 0) {
+    return PaperStatus::Unknown;
   }
-  ::close(fd);
-  return result;
+  return (answer & TsplOutOfPaperBit) ? PaperStatus::Empty : PaperStatus::Ok;
 }
 
 
@@ -1009,16 +900,15 @@ bool colman::prime_thermal_printer_geometry(QSizeF const& size_mm, int dpi)
       // and its CUPS driver transmits the geometry itself.
       continue;
     }
-    int const fd = ::open(QFile::encodeName(dev).constData(),
-                          O_RDWR | O_NONBLOCK | O_CLOEXEC);
-    if(fd < 0) {
+    UsbPrinterDevice device(dev);
+    if(!device.is_open()) {
       continue;
     }
-    if(tspl_query_status(fd) >= 0 && write_all(fd, cmd.constData(), cmd.size()))
+    if(tspl_query_idle_status(device) >= 0 &&
+       device.write_all(cmd, TsplWriteTimeoutMs))
     {
       primed = true;
     }
-    ::close(fd);
   }
   return primed;
 }

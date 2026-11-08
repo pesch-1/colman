@@ -213,9 +213,9 @@ namespace colman
    1. <b>Direct TSPL</b> — every image is thresholded to a 1-bit bitmap
       and the whole batch is written as one raw TSPL job (@c SIZE /
       @c GAP / @c DENSITY, then @c CLS + @c BITMAP + @c PRINT per label)
-      to the connected @c /dev/usb/lp* device that answers the TSPL
-      status probe or whose USB ID names a known TSPL model that never
-      answers it (Munbyn RW403B — such models are not probed at all,
+      to the connected USB printer (see list_thermal_printer_devices())
+      that answers the TSPL status probe or whose USB ID names a known
+      TSPL model that never answers it (Munbyn RW403B — such models are not probed at all,
       because the probe bytes would make the firmware discard the job).
       The job uses a per-model placement profile, so printers with
       different TSPL origin handling all print edge-exact.  This
@@ -274,8 +274,10 @@ namespace colman
                          int darkness = -1);
 
 
-  /// List all USB printer device nodes (@c /dev/usb/lp*) on Linux.
-  /** Intended for direct device access, e.g. TSPL status queries. */
+  /// Lists all connected USB printer-class devices.
+  /** Linux: @c /dev/usb/lp* nodes of usblp; Windows: usbprint.sys device
+      interfaces.  Intended for direct device access (UsbPrinterDevice),
+      e.g. raw TSPL jobs and status queries. */
   QList<QString> list_thermal_printer_devices();
 
 } // namespace colman

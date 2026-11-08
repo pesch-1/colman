@@ -1041,7 +1041,8 @@ exits the program.
 
 `colman_label_printer.hpp/.cpp` – printing on thermal printers
 (Vevor Y486, Brother QL, Dymo, Zebra, TSC, …): preferably as a raw
-TSPL job directly via `/dev/usb/lp*`, otherwise via CUPS.
+TSPL job directly to the USB printer device (see @ref
+sec_usb_printer_access), otherwise via CUPS.
 
 **Scene coordinates:** 1 scene unit = 0.1 mm (10 units/mm) –
 consistent with the rest of colman.
@@ -1061,8 +1062,8 @@ consistent with the rest of colman.
 |---|---|
 | `list_thermal_printers()` | All CUPS printers that meet the thermal criteria |
 | `thermal_printer_ready(cups_name)` | Checks whether the printer is still available |
-| `list_thermal_printer_devices()` | All existing USB printer devices (`/dev/usb/lp*`), vendor-independent |
-| `query_paper_status(device_path)` | Paper status of a USB printer device (`PaperStatus`: `Ok`/`Empty`/`Unknown`); first via the USB status byte (`LPGETSTATUS` ioctl), on failure via the TSPL status query `ESC !?` |
+| `list_thermal_printer_devices()` | All connected USB printer devices (Linux `/dev/usb/lp*`, Windows usbprint.sys interfaces), vendor-independent |
+| `query_paper_status(device_path)` | Paper status of a USB printer device (`PaperStatus`: `Ok`/`Empty`/`Unknown`); first via the USB status byte (`LPGETSTATUS` ioctl / `IOCTL_USBPRINT_GET_LPT_STATUS`), on failure via the TSPL status query `ESC !?` |
 | `thermal_printer_paper_status()` | Combined paper status of all connected USB printers; reports `Empty` only if no device reports paper |
 | `warn_when_out_of_labels(parent)` | Shows a warning dialog when the label roll is empty; `true` = cancel printing |
 | `warn_when_roll_runs_out_while_printing(parent, label_count, size_mm)` | Monitors the printer after a job has been sent and warns if the roll runs out **during** printing |
@@ -1070,7 +1071,7 @@ consistent with the rest of colman.
 | `render_label_scene(scene, size_mm, dpi, cal)` | Renders scene → `QImage` with embedded DPI metadata; the optional `PrinterCalibration cal` (default: identity) shifts/scales the content to correct the print offset |
 | `load_printer_calibration(cups_name)` / `save_printer_calibration(...)` | Loads/saves the printer-specific `PrinterCalibration` (offset/scale) from/to QSettings (`colman_printer_calibration.hpp`) |
 | `send_image_to_thermal_printer(image, cups_name, size_mm, dpi, error)` | Sends a finished image without a dialog (wrapper around the multi-image variant) |
-| `send_images_to_thermal_printer(images, cups_name, size_mm, dpi, error)` | Sends several labels as **one** job: preferably as a raw TSPL job (1-bit threshold, pixel-exact) directly to `/dev/usb/lp*`, otherwise as a CUPS job (pages via `newPage()`); avoids the printer's recalibration/pause between single jobs |
+| `send_images_to_thermal_printer(images, cups_name, size_mm, dpi, error)` | Sends several labels as **one** job: preferably as a raw TSPL job (1-bit threshold, pixel-exact) directly to the USB printer device, otherwise as a CUPS job (pages via `newPage()`); avoids the printer's recalibration/pause between single jobs |
 | `print_label_scene(scene, size_mm, cups_name, dpi, error)` | Convenience wrapper: renders and prints in one step |
 
 **Detection:** the thermal criteria are (OR):
@@ -1136,6 +1137,34 @@ printed). Without an accessible TSPL device (missing permissions,
 network printer, foreign firmware) the function falls back to the
 previous CUPS path.
 
+@subsection sec_usb_printer_access USB printer device access
+
+The operating-system interface of the direct path lives in
+`colman_usb_printer.hpp/.cpp`: `list_usb_printer_devices()`,
+`usb_printer_id()` (vendor/product ID `"vvvv:pppp"` for the placement
+profiles) and the RAII class `UsbPrinterDevice` (`write_all()`,
+`write_request()`, `discard_input()`, `read_last_byte()`,
+`port_status()`).  The TSPL logic in `colman_label_printer.cpp` is
+platform-independent.
+
+- **Linux:** device nodes `/dev/usb/lp*` of the usblp kernel driver,
+  opened non-blocking; IDs from sysfs; `write_all()` waits for
+  `POLLOUT` as described above.
+- **Windows:** device interfaces of usbprint.sys
+  (`GUID_DEVINTERFACE_USBPRINT`, enumerated with SetupAPI), which
+  Windows creates for every USB printer-class device — a print queue is
+  not needed.  The device is opened in overlapped mode so that every
+  transfer has a timeout; `write_all()` writes in 4 kB requests, each
+  of which completes only when the printer has accepted it.  Measured
+  on the Vevor Y486: a read request that has to be cancelled (timeout)
+  often makes the printer's *next* answer get lost.  Therefore
+  `read_last_byte()` issues a single read without follow-up reads,
+  `discard_input()` does nothing, and the pre-print queries
+  (`tspl_query_idle_status()`: eligibility, paper status, form length)
+  repeat a missing answer once.  The post-print monitoring is
+  unaffected — a lost answer only counts as one more "printing"
+  poll.
+
 **Post-print monitoring:** If the roll runs out **in the middle of a
 batch**, the printer pauses with the rest of the job in memory and
 continues printing on its own after a new roll has been inserted
@@ -1163,7 +1192,8 @@ accepts jobs but never sends a byte back) are skipped, since their
 silence would otherwise wrongly mean "printing". The RW403B therefore
 has neither a paper pre-check nor roll-end monitoring. How many labels
 are still missing cannot be queried — TSPL offers no progress query,
-only the binary paper status.
+only the binary paper status.  (Draining the read channel is not
+possible on Windows; see @ref sec_usb_printer_access.)
 
 **Form length priming (CUPS fallback only):** the CUPS driver
 (`rastertolabel`, EPL2) sends only `N`/`q<width>`/`GW…`/`P1` per label,
@@ -1174,7 +1204,7 @@ printer then feeds several blank labels after each label.
 `send_images_to_thermal_printer()` therefore calls
 `prime_thermal_printer_geometry()` before every CUPS job, which
 transfers the label height plus a 2 mm default gap (EPL2
-`Q<height>,<gap>` in dots) directly via `/dev/usb/lp*` — only to devices
+`Q<height>,<gap>` in dots) directly to the USB printer device — only to devices
 that have previously answered the TSPL status query.
 
 **180° rotation:** on request, `render_label_scene()` rotates the
@@ -1193,7 +1223,7 @@ alternative.
 Interactive test program: `colman_test_label_printer` – select a
 printer, enter label dimensions and DPI, enter text and a barcode
 string, show a preview and print on the selected printer. It also shows
-all `/dev/usb/lp*` devices with their paper status (to verify the
+all USB printer devices with their paper status (to verify the
 paper-out detection on the real device).
 
 ---

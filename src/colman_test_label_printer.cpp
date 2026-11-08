@@ -225,9 +225,9 @@ int main(int argc, char** argv)
         status_text = QObject::tr("out of paper");
         break;
       case colman::PaperStatus::Unknown:
-        // The usual cause is a missing read permission on the device
-        // node; name it so that the user does not have to debug it.
-        status_text = QFileInfo(dev).isReadable()
+        // On Linux the usual cause is a missing read permission on the
+        // device node; name it so that the user does not have to debug it.
+        status_text = !dev.startsWith("/dev/") || QFileInfo(dev).isReadable()
                           ? QObject::tr("status unknown")
                           : QObject::tr("no read permission — add your "
                                         "user to the \"lp\" group");

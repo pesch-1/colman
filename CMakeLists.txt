@@ -201,6 +201,8 @@ set(COLMAN_CORE_SOURCES
   src/colman_permission_deps.hpp
   src/colman_sqlite_driver.cpp
   src/colman_sqlite_driver.hpp
+  src/colman_usb_printer.cpp
+  src/colman_usb_printer.hpp
 )
 
 add_library(colman_core STATIC ${COLMAN_CORE_SOURCES})
@@ -219,6 +221,10 @@ target_link_libraries(colman_core
   PkgConfig::Argon2
   colman_sqlite3mc
 )
+if(WIN32)
+  # SetupAPI enumerates the USB printers (colman_usb_printer.cpp).
+  target_link_libraries(colman_core setupapi)
+endif()
 
 # Owl icon set — shared by all GUI applications.
 qt6_add_resources(COLMAN_OWL_RESOURCES src/colman_owls.qrc)
@@ -844,6 +850,8 @@ add_executable(colman_label_layout_app
   src/colman_label_layout_widget.hpp
   src/colman_label_printer.cpp
   src/colman_label_printer.hpp
+  src/colman_usb_printer.cpp
+  src/colman_usb_printer.hpp
   src/colman_printer_calibration.cpp
   src/colman_printer_calibration.hpp
   src/colman_label_layout_app.cpp
@@ -858,6 +866,9 @@ target_link_libraries(colman_label_layout_app
   Qt6::Xml
 )
 target_compile_definitions(colman_label_layout_app PRIVATE QT_NO_KEYWORDS)
+if(WIN32)
+  target_link_libraries(colman_label_layout_app setupapi)
+endif()
 
 
 # Interactive label selection test.
@@ -868,6 +879,8 @@ add_executable(colman_label_selection_app
   src/colman_label_layout_widget.hpp
   src/colman_label_printer.cpp
   src/colman_label_printer.hpp
+  src/colman_usb_printer.cpp
+  src/colman_usb_printer.hpp
   src/colman_printer_calibration.cpp
   src/colman_printer_calibration.hpp
   src/colman_label_selection_widget.cpp
@@ -885,6 +898,9 @@ target_link_libraries(colman_label_selection_app
   Qt6::Xml
 )
 target_compile_definitions(colman_label_selection_app PRIVATE QT_NO_KEYWORDS)
+if(WIN32)
+  target_link_libraries(colman_label_selection_app setupapi)
+endif()
 
 
 # Interactive label printer test.
