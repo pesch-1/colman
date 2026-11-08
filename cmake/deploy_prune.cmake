@@ -32,3 +32,12 @@ endforeach()
 if(_system_libs)
   file(REMOVE ${_system_libs})
 endif()
+
+# Copyright files that linuxdeploy copied for the removed libraries.
+file(GLOB _system_docs LIST_DIRECTORIES true
+  "${APPDIR}/usr/share/doc/libgstreamer*"
+  "${APPDIR}/usr/share/doc/libglib2.0-*"
+)
+if(_system_docs)
+  file(REMOVE_RECURSE ${_system_docs})
+endif()

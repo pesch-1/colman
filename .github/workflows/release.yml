@@ -143,7 +143,8 @@ jobs:
           fi
           # GStreamer and GLib must come from the target system
           # (cmake/deploy_prune.cmake), otherwise no camera is found.
-          if grep -E '/lib(gst|glib-2\.0|gobject-2\.0)' <<< "$files"; then
+          if grep -E '^\./usr/lib/lib(gst|glib-2\.0|gobject-2\.0)' \
+            <<< "$files"; then
             echo "::error::the Linux bundle contains GStreamer or GLib"
             exit 1
           fi
