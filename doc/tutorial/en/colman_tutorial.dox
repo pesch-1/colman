@@ -9,8 +9,9 @@ Colman -- from creating the first database to everyday lending and
 returning. Each section builds on the previous one, so that by the
 end you can run a fully set up school library.
 
-@note Colman currently runs on Linux; the mobile client runs on
-Android devices. Windows and macOS are not supported yet.
+@note Colman runs on Linux; a Windows version is available as a
+preview. The mobile client runs on Android devices. macOS is not
+supported yet.
 
 @note Colman is a Qt application. All button labels in this
 tutorial refer to the English user interface. The program uses the

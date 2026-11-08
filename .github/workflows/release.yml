@@ -9,6 +9,10 @@
 #                                           (desktop app and REST client)
 #   - colman-server-<version>-linux-x86_64.tar.gz
 #                                           REST server bundle
+#   - colman-<version>-windows-x64.zip      Windows package, preview
+#                                           (desktop app and REST client)
+#   - colman-server-<version>-windows-x64.zip
+#                                           Windows REST server, preview
 #   - colman-<version>.apk                  Flutter client for Android
 #                                           (only if the signing secrets
 #                                           are configured)
@@ -234,9 +238,122 @@ jobs:
           path: flutter/colman-${{ env.VERSION }}.apk
           if-no-files-found: error
 
+  windows:
+    name: Windows zips (clang-cl, preview)
+    needs: check
+    # Same toolchain as the Windows CI job (see ci.yml).
+    runs-on: windows-2025
+    env:
+      QT_QPA_PLATFORM: offscreen
+      VERSION: ${{ needs.check.outputs.version }}
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}\vcpkg-cache,readwrite
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Set up the Visual C++ environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.10.3
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+          modules: >-
+            qtwebengine qtwebchannel qtpositioning qtmultimedia
+            qthttpserver qtwebsockets qtimageformats
+          cache: true
+
+      - name: Determine the vcpkg version
+        id: vcpkg
+        shell: pwsh
+        run: |
+          $commit = git -C "$env:VCPKG_INSTALLATION_ROOT" rev-parse HEAD
+          "commit=$commit" >> $env:GITHUB_OUTPUT
+
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v6
+        with:
+          path: vcpkg-cache
+          key: vcpkg-x64-windows-${{ steps.vcpkg.outputs.commit }}
+
+      - name: Install libraries (vcpkg)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force vcpkg-cache | Out-Null
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install `
+            argon2 openssl nu-book-zxing-cpp pkgconf --triplet x64-windows
+
+      - name: Configure
+        shell: pwsh
+        run: |
+          $vcpkg = "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows"
+          $env:PKG_CONFIG = "$vcpkg\tools\pkgconf\pkgconf.exe"
+          $env:PKG_CONFIG_PATH = "$vcpkg\lib\pkgconfig"
+          $clang = "C:/Program Files/LLVM/bin/clang-cl.exe"
+          cmake -B bld -G Ninja -DCMAKE_BUILD_TYPE=Release `
+            "-DCMAKE_C_COMPILER=$clang" "-DCMAKE_CXX_COMPILER=$clang" `
+            "-DCMAKE_PREFIX_PATH=$env:QT_ROOT_DIR;$vcpkg"
+
+      - name: Build
+        run: cmake --build bld
+
+      - name: Test
+        shell: pwsh
+        run: |
+          $env:PATH = "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin;$env:PATH"
+          ctest --test-dir bld --output-on-failure
+
+      - name: Windows packages
+        shell: pwsh
+        run: |
+          cmake --build bld --target deploy
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          function Get-Entries([string] $zip) {
+            $archive = [IO.Compression.ZipFile]::OpenRead((Resolve-Path $zip))
+            try { $archive.Entries | ForEach-Object FullName }
+            finally { $archive.Dispose() }
+          }
+          $app_dir = "colman-$env:VERSION-windows-x64"
+          $server_dir = "colman-server-$env:VERSION-windows-x64"
+          $app = Get-Entries "bld/$app_dir.zip"
+          $server = Get-Entries "bld/$server_dir.zip"
+          $missing = @()
+          foreach($f in 'colman.exe', 'colman_rest_client.exe', 'argon2.dll',
+                       'vcruntime140.dll', 'Qt6WebEngineCore.dll', 'LICENSE') {
+            if($app -notcontains "$app_dir/$f") { $missing += "$app_dir/$f" }
+          }
+          foreach($f in 'colman_rest_server.exe', 'argon2.dll',
+                       'libcrypto-3-x64.dll', 'vcruntime140.dll', 'LICENSE') {
+            if($server -notcontains "$server_dir/$f") { $missing += "$server_dir/$f" }
+          }
+          if($missing) {
+            "::error::missing from the Windows zips: $($missing -join ', ')"
+            exit 1
+          }
+          # colman has its own SQLite driver; the server needs no WebEngine.
+          if(($app + $server) -match '/sqldrivers/' -or
+             $server -match 'Qt6WebEngine') {
+            "::error::the Windows zips contain SQL drivers or WebEngine in the server"
+            exit 1
+          }
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows
+          path: |
+            bld/colman-${{ env.VERSION }}-windows-x64.zip
+            bld/colman-server-${{ env.VERSION }}-windows-x64.zip
+          if-no-files-found: error
+
   publish:
     name: Upload to GitHub release
-    needs: [check, linux, android]
+    needs: [check, linux, windows, android]
     if: github.event_name == 'push' || !inputs.dry_run
     runs-on: ubuntu-24.04
     permissions:

@@ -10,9 +10,9 @@ zur täglichen Ausleihe und Rückgabe. Jeder Abschnitt baut auf
 dem vorherigen auf, so dass du am Ende eine vollständig
 eingerichtete Schulbibliothek verwalten kannst.
 
-@note Colman läuft derzeit unter Linux; der mobile Client läuft
-auf Android-Geräten. Windows und macOS werden noch nicht
-unterstützt.
+@note Colman läuft unter Linux; eine Windows-Version gibt es als
+Vorschau. Der mobile Client läuft auf Android-Geräten. macOS wird
+noch nicht unterstützt.
 
 @note Colman ist ein Qt-Programm mit deutscher Oberfläche.
 Alle Schaltflächenbeschriftungen in diesem Tutorial

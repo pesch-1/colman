@@ -82,7 +82,7 @@ Every push and pull request runs the GitHub Actions workflow
 - Qt build and `ctest` on Windows with clang-cl (Qt 6.10, libraries from
   vcpkg), so that the code stays portable — keep operating-system specific
   code behind `#ifdef _WIN32` (see `colman_usb_printer.cpp`,
-  `colman_console.cpp`); Windows packages are not offered yet,
+  `colman_console.cpp`); the Windows packages are a preview,
 - `flutter analyze` and `flutter test`, plus a check that the generated
   Flutter localizations are up to date.
 

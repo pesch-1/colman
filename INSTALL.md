@@ -1,10 +1,11 @@
 # Building and installing colman
 
-colman currently runs on **Linux** only (desktop application, REST server
-and client, command-line tools; also on the Raspberry Pi, see
-[doc/raspberry_pi.md](doc/raspberry_pi.md)).  The mobile client in
-`flutter/` runs on **Android** devices.  Windows and macOS are not
-supported yet.
+colman runs on **Linux** (desktop application, REST server and client,
+command-line tools; also on the Raspberry Pi, see
+[doc/raspberry_pi.md](doc/raspberry_pi.md)).  **Windows** is available as a
+**preview** (desktop application, REST client and server; see
+[Windows (preview)](#windows-preview) below).  The mobile client in
+`flutter/` runs on **Android** devices.  macOS is not supported yet.
 
 ## Prerequisites
 
@@ -178,3 +179,100 @@ Requirements of the target machine:
   Debian 12 are not supported.
 - GLib (always present on a Linux desktop) and, for camera scanning,
   GStreamer with the "good" plugins, as described above.
+
+---
+
+## Windows (preview)
+
+Windows support is new and has been tested less than Linux; feedback is
+welcome.  Windows 10 (version 1809 or newer) and Windows 11, 64-bit, are
+supported.
+
+### Using the release packages
+
+Each release offers two zips:
+
+- `colman-<version>-windows-x64.zip` — the desktop application
+  (`colman.exe`) and the REST client (`colman_rest_client.exe`);
+- `colman-server-<version>-windows-x64.zip` — the REST server
+  (`colman_rest_server.exe`), a console program.
+
+Unpack the zip anywhere and start the program; no installation is needed,
+the Visual C++ runtime is included.  The programs are not signed yet, so
+Windows SmartScreen warns on the first start ("More info" → "Run anyway").
+
+- **Label printers** (Vevor Y486, Munbyn RW403B) are printed to directly
+  over USB; no Windows printer needs to be set up for them.
+- **LAN discovery** of REST servers needs the Windows firewall to let the
+  REST client receive answers; allow it for private networks when Windows
+  asks on the first start.
+
+### Building from source
+
+colman is built with **clang-cl** (Clang with the Microsoft ABI), the
+official Qt binaries for MSVC and libraries from vcpkg — the same setup as
+the Windows job of the CI (`.github/workflows/ci.yml`).
+
+1. Install the tools (PowerShell as administrator):
+
+   ```powershell
+   winget install --id Git.Git -e
+   winget install --id Kitware.CMake -e
+   winget install --id Ninja-build.Ninja -e
+   winget install --id LLVM.LLVM -e
+   winget install --id Python.Python.3.13 -e
+   winget install --id Microsoft.VisualStudio.2022.BuildTools -e `
+     --override "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+   ```
+
+   The Visual Studio Build Tools provide the C++ standard library, the
+   Windows SDK and the linker that clang-cl uses.
+
+2. Install Qt 6.10 for MSVC with
+   [aqtinstall](https://github.com/miurahr/aqtinstall) (no Qt account
+   needed):
+
+   ```powershell
+   py -m pip install aqtinstall
+   py -m aqt install-qt windows desktop 6.10.3 win64_msvc2022_64 `
+     -m qtwebengine qtwebchannel qtpositioning qtmultimedia `
+        qthttpserver qtwebsockets qtimageformats -O C:\Qt
+   ```
+
+3. Install the libraries with [vcpkg](https://vcpkg.io):
+
+   ```powershell
+   git clone https://github.com/microsoft/vcpkg C:\dev\vcpkg
+   C:\dev\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+   C:\dev\vcpkg\vcpkg.exe install argon2 openssl nu-book-zxing-cpp pkgconf --triplet x64-windows
+   ```
+
+4. Build in a **x64 Native Tools Command Prompt for VS 2022** (or after
+   calling `vcvars64.bat`):
+
+   ```bat
+   set VCPKG=C:\dev\vcpkg\installed\x64-windows
+   set PKG_CONFIG=%VCPKG%\tools\pkgconf\pkgconf.exe
+   set PKG_CONFIG_PATH=%VCPKG%\lib\pkgconfig
+   set PATH=C:\Program Files\LLVM\bin;C:\Qt\6.10.3\msvc2022_64\bin;%VCPKG%\bin;%PATH%
+   git clone https://github.com/pesch-1/colman.git
+   cd colman
+   cmake -B bld -G Ninja -DCMAKE_BUILD_TYPE=Release ^
+     -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl ^
+     -DCMAKE_PREFIX_PATH=C:/Qt/6.10.3/msvc2022_64;%VCPKG%
+   cmake --build bld
+   ctest --test-dir bld
+   ```
+
+5. Create the two zips described above:
+
+   ```bat
+   cmake --build bld --target deploy
+   ```
+
+   The `deploy` target copies the programs, their DLLs (Qt via
+   `windeployqt`, argon2, OpenSSL for the server) and the Visual C++
+   runtime into `bld\windows-deploy\` and zips them as
+   `bld\colman-<version>-windows-x64.zip` and
+   `bld\colman-server-<version>-windows-x64.zip`.
+

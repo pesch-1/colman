@@ -11,9 +11,10 @@ Erfasst werden Medien (Bücher und andere Medien), Ausleiher, Ausleihen,
 Rückgaben, Zugänge und Abgänge.  colman ist mit Qt 6 geschrieben und
 speichert seine Daten in einer SQLite-Datenbank.
 
-**Plattformen:** colman läuft derzeit nur unter **Linux** (auch auf dem
-Raspberry Pi); der mobile Client läuft auf **Android**-Geräten.  Windows
-und macOS werden noch nicht unterstützt.
+**Plattformen:** colman läuft unter **Linux** (auch auf dem Raspberry Pi);
+eine **Windows**-Version gibt es als **Vorschau** (siehe
+[INSTALL.md](INSTALL.md#windows-preview), englisch).  Der mobile Client läuft
+auf **Android**-Geräten.  macOS wird noch nicht unterstützt.
 
 Ursprünglich wurde colman für die Ausleihe von Klassensätzen entwickelt —
 etwa Arbeitshefte, die eine Schule in vielen Exemplaren besitzt.  Mehrere
