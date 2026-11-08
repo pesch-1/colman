@@ -167,6 +167,21 @@ namespace colman
 
   private Q_SLOTS:
 
+    void initTestCase()
+    {
+      // Isolate QSettings from the real user configuration; without an
+      // organization name QSettings cannot store anything on Windows.
+      QCoreApplication::setOrganizationName("colman_name_test");
+      QCoreApplication::setApplicationName("colman_name_test");
+      QSettings().clear();
+    }
+
+    void cleanupTestCase()
+    {
+      QSettings().clear();
+      QSettings().sync();
+    }
+
     // -------------------------------------------------------------------
     // openlibrary_search_to_results
 

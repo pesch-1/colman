@@ -30,14 +30,14 @@
    The format is suitable for use in error messages and assertion output.
    Example output: `my_function()\nat myfile.cpp:42:`
 */
-#  ifdef _MSC_VER
+#  if defined(_MSC_VER) && !defined(__clang__)
 // MS Visual C++ version (output can be used in developer studio)
 #    define COLMAN_HERE __FUNCTION__ "()\nat " __FILE__ "(" COLMAN_LINE "):"
 /// Macro that expands to a string describing the current function, file and line (without newline).
 #    define COLMAN_HERE_NO_NEWLINE __FUNCTION__ "() at " __FILE__ "(" COLMAN_LINE ")"
 #  else
-#    ifdef __GNUC__
-// GCC (output can be used in gdb)
+#    if defined(__GNUC__) || defined(__clang__)
+// GCC and Clang, including clang-cl (output can be used in gdb)
 #      define COLMAN_HERE (std::string(__func__) + "()\nat " + __FILE__ + ":" + COLMAN_LINE).c_str()
 /// Macro that expands to a string describing the current function, file and line (without newline).
 #      define COLMAN_HERE_NO_NEWLINE \

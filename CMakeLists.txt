@@ -69,7 +69,7 @@ else()
 endif()
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(Argon2 REQUIRED libargon2)
+pkg_check_modules(Argon2 REQUIRED IMPORTED_TARGET libargon2)
 
 find_package(OpenSSL REQUIRED)
 
@@ -116,6 +116,12 @@ target_compile_options(colman_sqlite3mc PRIVATE
   $<IF:$<C_COMPILER_ID:MSVC>,/w,-w>
 )
 set_target_properties(colman_sqlite3mc PROPERTIES C_VISIBILITY_PRESET hidden)
+# clang-cl defines both _MSC_VER and __SIZEOF_INT128__; SQLite3MultipleCiphers
+# then picks neither its MSVC nor its GCC Poly1305 helpers.  Make it take the
+# MSVC path, as with the Microsoft compiler itself.
+if(MSVC AND CMAKE_C_COMPILER_ID STREQUAL "Clang")
+  target_compile_options(colman_sqlite3mc PRIVATE /U__SIZEOF_INT128__)
+endif()
 target_link_libraries(colman_sqlite3mc PUBLIC Threads::Threads)
 if(UNIX)
   target_link_libraries(colman_sqlite3mc PUBLIC m)
@@ -208,7 +214,7 @@ target_link_libraries(colman_core
   Qt6::Sql
   Qt6::Widgets
   Qt6::Xml
-  ${Argon2_LIBRARIES}
+  PkgConfig::Argon2
   colman_sqlite3mc
 )
 
