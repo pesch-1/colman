@@ -17,6 +17,11 @@ acquisitions, liquidations and reservations. Besides the desktop
 application there are a REST server, a Qt REST client sharing the
 desktop UI, and a Flutter client for mobile devices (`flutter/`).
 
+Supported platforms: the desktop application, REST server and client and
+the command-line tools currently run on Linux only (including the
+Raspberry Pi); the Flutter client runs on Android.  Windows and macOS
+are not supported yet.
+
 @section sec_build Build & Start
 
 @code

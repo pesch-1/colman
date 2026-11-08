@@ -11,6 +11,10 @@ Erfasst werden Medien (Bücher und andere Medien), Ausleiher, Ausleihen,
 Rückgaben, Zugänge und Abgänge.  colman ist mit Qt 6 geschrieben und
 speichert seine Daten in einer SQLite-Datenbank.
 
+**Plattformen:** colman läuft derzeit nur unter **Linux** (auch auf dem
+Raspberry Pi); der mobile Client läuft auf **Android**-Geräten.  Windows
+und macOS werden noch nicht unterstützt.
+
 Ursprünglich wurde colman für die Ausleihe von Klassensätzen entwickelt —
 etwa Arbeitshefte, die eine Schule in vielen Exemplaren besitzt.  Mehrere
 Exemplare desselben Titels lassen sich in einem Schritt erfassen,
@@ -57,8 +61,8 @@ Barcode-Login) und den Kommandozeilen-Werkzeugen stehen im
 
 ## Installation
 
-Ausführliche Anleitungen für Debian/Ubuntu, openSUSE, macOS und Windows
-stehen in [INSTALL.md](INSTALL.md).  Kurzfassung für Debian/Ubuntu:
+Ausführliche Anleitungen für Debian/Ubuntu und openSUSE stehen in
+[INSTALL.md](INSTALL.md).  Kurzfassung für Debian/Ubuntu:
 
 ```bash
 sudo apt install cmake pkg-config libargon2-dev libssl-dev \

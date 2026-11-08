@@ -11,6 +11,10 @@ It tracks items (books and other media), borrowers, lendings, returns,
 acquisitions, and liquidations.
 The application is built with Qt 6 and stores its data in a SQLite database.
 
+**Platforms:** colman currently runs on **Linux** only (including the
+Raspberry Pi); the mobile client runs on **Android** devices.  Windows and
+macOS are not supported yet.
+
 Colman was originally developed to support the lending of class sets — for
 example, workbooks of which a school owns many copies. Multiple copies of the
 same item can be acquired, lent out, returned, or liquidated in a single step,

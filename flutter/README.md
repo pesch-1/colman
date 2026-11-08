@@ -11,8 +11,8 @@ same Colman REST API server and supports all core workflows.
 
 ## Target Platforms
 
-- Android (smartphones and tablets)
-- iOS (iPhones and iPads)
+- Android (smartphones and tablets) — supported
+- iOS (iPhones and iPads) — planned; not built or tested yet, not offered
 
 ## Planned Features
 
