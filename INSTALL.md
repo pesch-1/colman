@@ -136,6 +136,12 @@ and icon for the bundle are taken from `packaging/linux/`.  `LICENSE`,
 `NOTICE` and the license texts from `packaging/licenses/` are copied to
 `usr/share/doc/colman/` in the bundle.
 
+GStreamer and GLib are not bundled (`cmake/deploy_prune.cmake`): they are
+taken from the target system, whose GStreamer plugins Qt Multimedia needs
+to find the camera.  For camera scanning the target system needs GStreamer
+with the "good" plugins (`v4l2src`), e.g. `gstreamer1.0-plugins-good` on
+Debian/Ubuntu.
+
 ### Run on the target machine
 
 ```bash
@@ -143,7 +149,16 @@ tar xzf colman-2.0.1-linux-x86_64.tar.gz
 ./AppRun
 ```
 
-`AppRun` sets up `LD_LIBRARY_PATH` and `QT_PLUGIN_PATH` automatically.
+`AppRun` is a link to `usr/bin/colman`; the bundled libraries are found
+via the run path (rpath) and the Qt plugins via `usr/bin/qt.conf`.
 
-> **Note:** The target machine's glibc must be at least as new as the one
-> used during the build.
+Requirements of the target machine:
+
+- x86_64 Linux with **glibc 2.38 or newer**, i.e. distributions from 2024
+  on, such as Ubuntu 24.04, Debian 13, Fedora 39 or current openSUSE
+  Tumbleweed / Arch Linux.  The bundle built by the release workflow on
+  Ubuntu 24.04 needs glibc 2.38; a bundle built elsewhere needs at least
+  the glibc of its build machine.  Older systems such as Ubuntu 22.04 or
+  Debian 12 are not supported.
+- GLib (always present on a Linux desktop) and, for camera scanning,
+  GStreamer with the "good" plugins, as described above.

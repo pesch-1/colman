@@ -67,6 +67,14 @@
   "dataTypeIntegerRanges": "Integer ranges",
   "navSettings": "Settings",
   "loginSubtitle": "Library Management",
+  "loginVersion": "Version {version} (build {build})",
+  "@loginVersion": {
+    "description": "App version shown on the login screen",
+    "placeholders": {
+      "version": {"type": "String"},
+      "build": {"type": "String"}
+    }
+  },
   "loginSearching": "Searching...",
   "loginNoServers": "No servers found",
   "loginDiscoveryUnavailable": "Discovery not available",

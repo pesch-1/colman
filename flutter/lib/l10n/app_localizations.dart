@@ -472,6 +472,12 @@ abstract class AppLocalizations {
   /// **'Library Management'**
   String get loginSubtitle;
 
+  /// App version shown on the login screen
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} (build {build})'**
+  String loginVersion(String version, String build);
+
   /// No description provided for @loginSearching.
   ///
   /// In en, this message translates to:

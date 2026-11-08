@@ -201,6 +201,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get loginSubtitle => 'Bibliotheksverwaltung';
 
   @override
+  String loginVersion(String version, String build) {
+    return 'Version $version (Build $build)';
+  }
+
+  @override
   String get loginSearching => 'Suche läuft…';
 
   @override

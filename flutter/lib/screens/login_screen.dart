@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:colman_client/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../api/api_client.dart';
 import '../providers/auth_provider.dart';
@@ -28,6 +29,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  /// Version of the installed app, shown below the subtitle.
+  final Future<PackageInfo> _packageInfo = PackageInfo.fromPlatform();
 
   final List<MdnsServiceInfo> _discoveredServers = [];
   bool _isDiscovering = false;
@@ -183,6 +186,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       l10n.loginSubtitle,
                       style: theme.textTheme.bodyMedium,
                       textAlign: TextAlign.center,
+                    ),
+                    FutureBuilder<PackageInfo>(
+                      future: _packageInfo,
+                      builder: (context, snapshot) {
+                        final info = snapshot.data;
+                        if (info == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            l10n.loginVersion(info.version, info.buildNumber),
+                            style: theme.textTheme.bodySmall,
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 24),
                     if (_page == 0)

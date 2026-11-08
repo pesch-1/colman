@@ -62,6 +62,7 @@
   "dataTypeIntegerRanges": "Zahlenbereiche",
   "navSettings": "Einstellungen",
   "loginSubtitle": "Bibliotheksverwaltung",
+  "loginVersion": "Version {version} (Build {build})",
   "loginSearching": "Suche läuft…",
   "loginNoServers": "Keine Server gefunden",
   "loginDiscoveryUnavailable": "Erkennung nicht verfügbar",

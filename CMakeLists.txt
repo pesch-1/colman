@@ -1008,6 +1008,7 @@ set(COLMAN_DIST_FILES
   colman_create_doc.sh
   tools/ui_check.sh
   cmake/check_lupdate.cmake
+  cmake/deploy_prune.cmake
   cmake/colman_docs.cmake
   doc/patch_tutorial_title.cmake
   # flutter client — root
@@ -1428,6 +1429,9 @@ if(LINUXDEPLOY AND LINUXDEPLOY_PLUGIN_QT)
         --desktop-file "${CMAKE_SOURCE_DIR}/packaging/linux/colman.desktop"
         --icon-file "${CMAKE_SOURCE_DIR}/packaging/linux/colman.png"
         --plugin qt
+    # GStreamer and GLib must come from the target system.
+    COMMAND ${CMAKE_COMMAND} -DAPPDIR=${_deploy_dir}
+      -P "${CMAKE_SOURCE_DIR}/cmake/deploy_prune.cmake"
     # License texts of colman and of the statically linked libraries.
     COMMAND ${CMAKE_COMMAND} -E make_directory
       "${_deploy_dir}/usr/share/doc/colman/licenses"
