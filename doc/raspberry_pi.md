@@ -87,14 +87,63 @@ Colman uses [QSQLite3MultipleCiphers](https://github.com/FalsinSoft/QSQLite3Mult
 as a Qt SQL plugin for encrypted `.col` database files.
 The plugin is not available as a Raspbian package and must be built from source.
 
+The plugin's build files target newer Qt versions; with Bookworm's Qt 6.4.2
+they need three adjustments, which the commands below apply:
+
+- Qt 6.4 has no separate `CorePrivate`/`SqlPrivate` CMake packages; their
+  targets are part of `Core` and `Sql`.  (On armhf, step 1b provides the
+  separate packages instead, so this change is skipped there.)
+- Qt 6.4's `qt_add_plugin()` ignores the source files passed to it, which
+  silently produces an empty plugin; the sources are added explicitly.
+- The bundled SQLite3MultipleCiphers library is linked into the plugin and
+  must be built as position-independent code.
+
+The commit below is the one the release workflow
+(`.github/workflows/release.yml`) builds and tests.
+
 ```bash
 git clone https://github.com/FalsinSoft/QSQLite3MultipleCiphers
-cd QSQLite3MultipleCiphers/QSQLite3MultipleCiphers
-cmake -B build && cmake --build build -j4
+cd QSQLite3MultipleCiphers
+git checkout 65accf531f33952c3431d914fcdf7f6c6cd02c35
+cd QSQLite3MultipleCiphers
+
+qt_libs=$(/usr/lib/qt6/bin/qmake -query QT_INSTALL_LIBS)
+if [ ! -d "$qt_libs/cmake/Qt6CorePrivate" ]; then
+  sed -i 's/COMPONENTS CorePrivate SqlPrivate/COMPONENTS Core Sql/' \
+    CMakeLists.txt
+fi
+cat >> CMakeLists.txt << 'EOF'
+target_sources(${PROJECT_NAME} PRIVATE
+  qsql_sqlite.cpp qsql_sqlite_p.h
+  qsql_sqlite_vfs.cpp qsql_sqlite_vfs_p.h
+  qsql_sqlite_multiple_ciphers.cpp qsql_sqlite_multiple_ciphers_p.h
+  smain.cpp)
+EOF
+
+cmake -B build -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+cmake --build build -j4
+```
+
+Check that the plugin really contains the driver — an empty plugin is only a
+few kilobytes and lacks these symbols:
+
+```bash
+nm -D --defined-only build/sqldrivers/libQSQLite3MultipleCiphers.so \
+  | grep -wE 'qt_plugin_instance|sqlite3mc_version|sqlite3_rekey'
+```
+
+All three symbols must be listed.  Then install the plugin:
+
+```bash
 sudo cp build/sqldrivers/libQSQLite3MultipleCiphers.so \
-  /usr/lib/arm-linux-gnueabihf/qt6/plugins/sqldrivers/
+  "$(/usr/lib/qt6/bin/qmake -query QT_INSTALL_PLUGINS)/sqldrivers/"
 cd ../..
 ```
+
+The plugin uses Qt's private headers, so CMake warns that it is tied to the
+installed Qt version.  Rebuild and reinstall it whenever an update changes
+the Qt 6 packages.
 
 ---
 
