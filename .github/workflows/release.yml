@@ -127,11 +127,33 @@ jobs:
           git -C qsqlite3mc checkout -q "$QSQLITE3MC_COMMIT"
           # Before Qt 6.9 the private targets are part of the Core and Sql
           # packages instead of separate CorePrivate/SqlPrivate packages.
+          # Qt 6.4's qt_add_plugin() ignores the source files passed to it,
+          # so add them explicitly.
+          src=qsqlite3mc/QSQLite3MultipleCiphers
           sed -i 's/COMPONENTS CorePrivate SqlPrivate/COMPONENTS Core Sql/' \
-            qsqlite3mc/QSQLite3MultipleCiphers/CMakeLists.txt
-          cmake -S qsqlite3mc/QSQLite3MultipleCiphers -B qsqlite3mc/bld \
-            -DCMAKE_BUILD_TYPE=Release
+            "$src/CMakeLists.txt"
+          {
+            echo 'target_sources(${PROJECT_NAME} PRIVATE'
+            for f in qsql_sqlite qsql_sqlite_vfs qsql_sqlite_multiple_ciphers; do
+              echo "  $f.cpp ${f}_p.h"
+            done
+            echo '  smain.cpp)'
+          } >> "$src/CMakeLists.txt"
+          # The static SQLite3MultipleCiphers library is linked into a shared
+          # plugin and therefore needs position-independent code.
+          cmake -S "$src" -B qsqlite3mc/bld -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
           cmake --build qsqlite3mc/bld -j"$(nproc)"
+          # Make sure the result is a real plugin with SQLite3MultipleCiphers
+          # linked in, not an empty shell.
+          symbols=$(nm -D --defined-only \
+            qsqlite3mc/bld/sqldrivers/libQSQLite3MultipleCiphers.so)
+          for s in qt_plugin_instance sqlite3mc_version sqlite3_rekey; do
+            if ! grep -qw "$s" <<< "$symbols"; then
+              echo "::error::cipher plugin does not export $s"
+              exit 1
+            fi
+          done
           plugin_dir=$(/usr/lib/qt6/bin/qmake -query QT_INSTALL_PLUGINS)/sqldrivers
           sudo cp qsqlite3mc/bld/sqldrivers/libQSQLite3MultipleCiphers.so \
             "$plugin_dir/"
