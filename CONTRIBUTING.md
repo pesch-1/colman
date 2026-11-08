@@ -79,6 +79,10 @@ Every push and pull request runs the GitHub Actions workflow
   Qt version — guard newer Qt APIs with `QT_VERSION_CHECK`),
 - a check that every file in the repository is listed in
   `COLMAN_DIST_FILES`,
+- Qt build and `ctest` on Windows with clang-cl (Qt 6.10, libraries from
+  vcpkg), so that the code stays portable — keep operating-system specific
+  code behind `#ifdef _WIN32` (see `colman_usb_printer.cpp`,
+  `colman_console.cpp`); Windows packages are not offered yet,
 - `flutter analyze` and `flutter test`, plus a check that the generated
   Flutter localizations are up to date.
 
