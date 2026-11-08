@@ -15,6 +15,32 @@ translations and pull/merge requests are welcome.
 - Security issues must not be reported as public issues — see
   [SECURITY.md](SECURITY.md).
 
+## Thermal label printers
+
+So far colman has been tested with two thermal label printers, the Vevor
+Y486 and the Munbyn RW403B.  Help with further models is very welcome —
+and so is a printer lent to the author for testing (please get in touch
+via an issue).
+
+colman sends labels as raw TSPL jobs directly over USB
+(`colman_label_printer.cpp`, device access in `colman_usb_printer.cpp`).
+A new model is added as a profile in `tspl_device_profile()`, selected by
+its USB vendor/product ID.  To add one, the following has to be found out
+on the real printer:
+
+- the USB ID (`lsusb`) and whether the printer understands TSPL;
+- whether it answers the TSPL status request `ESC !?` — some firmwares do
+  not, and the Munbyn RW403B even discards the following job when the
+  request is sent, so models must never be probed blindly;
+- the placement of the label (TSPL `REFERENCE` and the horizontal bitmap
+  offset) and whether the `BITMAP` command works in mode 0 or only in
+  mode 1;
+- how the print darkness is set (TSPL `DENSITY` or a vendor command).
+
+The interactive program `colman_test_label_printer` prints test labels and
+shows the paper status reported by the connected printers.  Please ask
+before sending any other raw commands to a printer you do not own.
+
 ## Building and testing
 
 C++ sources live in `src/`, unit tests in `tests/`, the Flutter client in

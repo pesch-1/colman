@@ -1110,8 +1110,19 @@ Du kannst beliebig viele Layouts anlegen – etwa für verschiedene Drucker oder
 Etiketten, jedes mit seiner eigenen Element-Anordnung. Für gängige
 Etikettenbögen (z. B. Avery Zweckform, Herma) und für erkannte
 Thermo-Etikettendrucker (in CUPS eingetragen, z. B. Brother QL, Dymo
-LabelWriter) stehen Vorlagen als Ausgangspunkt bereit – allerdings nur in den
-Editoren, nicht im Druckdialog.
+LabelWriter, oder direkt per USB angeschlossen – diese erscheinen mit dem
+Zusatz „(USB)“) stehen Vorlagen als Ausgangspunkt bereit – allerdings nur in
+den Editoren, nicht im Druckdialog.
+
+@note Bislang sind zwei Thermo-Etikettendrucker mit Colman getestet und werden
+automatisch erkannt: der <b>Vevor Y486</b> und der <b>Munbyn RW403B</b>. Nur
+diese beiden werden angeboten, wenn sie direkt per USB angeschlossen sind, ohne
+im Drucksystem eingerichtet zu sein. Andere in CUPS eingetragene
+Etikettendrucker erkennt Colman an ihrem Namen und an etikettengroßen
+Papierformaten und druckt über CUPS – getestet sind sie aber nicht. Hilfe beim
+Einbinden und Testen weiterer Modelle ist hochwillkommen – und wer dem Autor
+dafür ein konkretes Druckermodell zur Verfügung stellen möchte, meldet sich
+gern über ein Issue auf GitHub :-)
 
 @section tutorial_label_layouts_editing Ein Layout anlegen
 

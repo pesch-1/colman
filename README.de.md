@@ -43,6 +43,27 @@ so ausführlich getestet.
   Schülerinnen und Schüler
 - Optional verschlüsselte Datenbankdatei
 
+## Thermo-Etikettendrucker
+
+colman druckt Etiketten und Signaturschilder auf Thermo-Etikettendruckern
+pixelgenau, als TSPL-Druckauftrag direkt über USB.  Bislang sind zwei Modelle
+getestet und werden automatisch erkannt:
+
+| Modell | USB-ID | Warnung bei leerer Rolle |
+|---|---|---|
+| Vevor Y486 | `5958:0486` | ja |
+| Munbyn RW403B | `0d28:ccdd` | nein – die Firmware meldet keinen Status |
+
+Nur diese beiden werden angeboten, wenn sie per USB angeschlossen sind, ohne im
+Drucksystem eingerichtet zu sein.  Andere in CUPS eingetragene
+Etikettendrucker erkennt colman an ihrem Namen und an etikettengroßen
+Papierformaten und druckt über CUPS – getestet sind sie aber nicht.
+
+Hilfe beim Einbinden und Testen weiterer Modelle ist hochwillkommen – siehe
+[CONTRIBUTING.md](CONTRIBUTING.md#thermal-label-printers) (englisch).  Und wer
+dem Autor dafür ein konkretes Druckermodell zur Verfügung stellen möchte,
+meldet sich gern über ein Issue :-)
+
 ## Betriebsarten
 
 - **Einzelplatz:** Alle Daten liegen in einer lokalen `.col`-Datei; es wird

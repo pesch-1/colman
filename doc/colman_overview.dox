@@ -1060,8 +1060,8 @@ consistent with the rest of colman.
 
 | Function | Purpose |
 |---|---|
-| `list_thermal_printers()` | All CUPS printers that meet the thermal criteria |
-| `thermal_printer_ready(cups_name)` | Checks whether the printer is still available |
+| `list_thermal_printers()` | All CUPS/Windows printers that meet the thermal criteria, plus known TSPL models connected directly via USB (`"usb:vvvv:pppp"`, recognized by USB ID without contacting the printer; they need no print queue) |
+| `thermal_printer_ready(cups_name)` | Checks whether the printer is still available (for `"usb:…"`: a device with that USB ID is connected) |
 | `list_thermal_printer_devices()` | All connected USB printer devices (Linux `/dev/usb/lp*`, Windows usbprint.sys interfaces), vendor-independent |
 | `query_paper_status(device_path)` | Paper status of a USB printer device (`PaperStatus`: `Ok`/`Empty`/`Unknown`); first via the USB status byte (`LPGETSTATUS` ioctl / `IOCTL_USBPRINT_GET_LPT_STATUS`), on failure via the TSPL status query `ESC !?` |
 | `thermal_printer_paper_status()` | Combined paper status of all connected USB printers; reports `Empty` only if no device reports paper |

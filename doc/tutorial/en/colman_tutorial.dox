@@ -1008,8 +1008,20 @@ You can create any number of layouts -- for example for different
 printers or labels, each with its own arrangement of elements. For
 common label sheets (e.g. Avery Zweckform, Herma) and for detected
 thermal label printers (registered in CUPS, e.g. Brother QL, Dymo
-LabelWriter), templates are available as a starting point -- but
+LabelWriter, or connected directly via USB -- these appear with the
+suffix "(USB)"), templates are available as a starting point -- but
 only in the editors, not in the print dialog.
+
+@note So far, two thermal label printers have been tested with Colman
+and are recognized automatically: the <b>Vevor Y486</b> and the
+<b>Munbyn RW403B</b>. Only these two are offered when they are
+connected directly via USB without being set up in the print system.
+Other label printers registered in CUPS are detected by their name and
+label-sized paper formats and printed via CUPS, but have not been
+tested. Help with supporting and testing further models is very
+welcome -- and if you would like to lend the author a specific
+printer model for this, please get in touch via an issue on GitHub
+:-)
 
 @section tutorial_label_layouts_editing Creating a Layout
 

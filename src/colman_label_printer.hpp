@@ -72,31 +72,38 @@ namespace colman
   /// Information about one CUPS-registered label or thermal printer.
   struct ThermalPrinterInfo
   {
-    QString cups_name;        ///< CUPS internal name (pass to QPrinter)
+    QString cups_name;        ///< system printer name, or @c "usb:vvvv:pppp" for a printer connected directly via USB
     QString display_name;     ///< human-readable model / description
     QSizeF default_size_mm;  ///< default label dimensions in mm; (0,0) if unknown
     int dpi = 203;          ///< native resolution in dots per inch
   };
 
 
-  /// Returns all CUPS printers that appear to be label or thermal printers.
+  /// Returns all label or thermal printers.
   /**
-     Detection uses two heuristics:
+     System printers (CUPS, Windows) qualify by two heuristics:
      - The printer's make-and-model string or CUPS name contains a keyword
        associated with known label/thermal printer brands (Vevor, Brother QL,
        Dymo, Zebra, TSC, Niimbot, Bixolon, HPRT, Rollo, Munbyn, …).
        - The printer reports at least one supported page size whose shorter
          dimension is between 5 mm and 110 mm (typical for label rolls).
 
+     In addition, known TSPL models connected directly via USB (Vevor
+     Y486, Munbyn RW403B) are listed as @c "usb:vvvv:pppp" — they print
+     over the direct path and need no queue in the printing system.  They
+     are recognized by their USB ID; nothing is sent to the printer.
+
    The returned list may be empty when no such printer is installed.
    */
   QList<ThermalPrinterInfo> list_thermal_printers();
 
 
-  /// Returns true if the CUPS printer @p cups_name is currently available.
+  /// Returns true if the printer @p cups_name is currently available.
   /**
-     Availability means the printer name appears in the CUPS printer list.
-     No attempt is made to contact the physical device.
+     For a system printer, availability means the name appears in the
+     printer list and a USB printer device is connected; for a directly
+     connected printer (@c "usb:…"), a device with its USB ID must be
+     connected.  No attempt is made to contact the physical device.
      @param cups_name  printer name as stored in ThermalPrinterInfo::cups_name
    */
   bool thermal_printer_ready(QString const& cups_name);

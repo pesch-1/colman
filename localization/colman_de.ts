@@ -4052,6 +4052,10 @@ Reservierungen</translation>
         <source>This collection is encrypted, but encrypted collections cannot be opened here.</source>
         <translation>Diese Sammlung ist verschlüsselt, aber verschlüsselte Sammlungen können hier nicht geöffnet werden.</translation>
     </message>
+    <message>
+        <source>The label printer is not connected or does not respond.</source>
+        <translation>Der Etikettendrucker ist nicht angeschlossen oder antwortet nicht.</translation>
+    </message>
 </context>
 <context>
     <name>QCoreApplication</name>

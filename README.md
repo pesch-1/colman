@@ -61,6 +61,29 @@ it, is told in [STORY.md](STORY.md).
 
 ---
 
+## Thermal label printers
+
+colman prints labels and spine signatures on thermal label printers
+pixel-exact, as a raw TSPL job sent directly over USB.  So far two models
+have been tested and are recognized automatically:
+
+| Model | USB ID | Paper-out warning |
+|---|---|---|
+| Vevor Y486 | `5958:0486` | yes |
+| Munbyn RW403B | `0d28:ccdd` | no — the firmware does not report its status |
+
+Only these two are offered when they are connected via USB without a queue
+in the print system.  Other label printers registered in CUPS are detected
+by their name and label-sized paper formats and printed via CUPS, but have
+not been tested.
+
+Help with supporting and testing further models is very welcome — see
+[CONTRIBUTING.md](CONTRIBUTING.md#thermal-label-printers).  And if you
+would like to lend the author a specific printer model for this, please get
+in touch via an issue :-)
+
+---
+
 ## Single-machine mode
 
 In the standard single-machine mode, colman stores everything in a local

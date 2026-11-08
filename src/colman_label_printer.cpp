@@ -250,6 +250,21 @@ namespace
     return tspl_query_status(device);
   }
 
+/// Prefix of the names of directly connected USB label printers.
+/**
+   list_thermal_printers() lists known TSPL models that are connected
+   directly via USB under the name @c "usb:vvvv:pppp" (USB vendor and
+   product ID), because they may have no queue in the system's printing
+   system at all — on Windows the direct path needs none.
+*/
+  char constexpr DirectPrinterPrefix[] = "usb:";
+
+/// Returns true when @p printer_name denotes a directly connected printer.
+  bool is_direct_printer_name(QString const& printer_name)
+  {
+    return printer_name.startsWith(QLatin1String(DirectPrinterPrefix));
+  }
+
 /// TSPL @c REFERENCE x coordinate (dots) of the Vevor Y486.
 /**
    Aligns the print origin with the loaded label roll on the Vevor
@@ -289,6 +304,7 @@ namespace
     double bitmap_x_offset_mm_ = 0.0;  ///< horizontal @c BITMAP position (mm)
     bool answers_status_ = true;       ///< firmware answers @c "ESC !?"
     bool epl2_density_ = false;        ///< darkness needs the EPL2 @c D register
+    char const* model_name_ = nullptr; ///< name of a known model, else null
   };
 
 /// Returns the profile of the printer behind @p device_path.
@@ -300,13 +316,36 @@ namespace
   TsplDeviceProfile tspl_device_profile(QString const& device_path)
   {
     QString const usb_id = colman::usb_printer_id(device_path);
-    if(usb_id == "5958:0486") {  // Vevor Y486
-      return {Y486ReferenceXDots, Y486BitmapXOffsetMm, true, true};
+    if(usb_id == "5958:0486") {
+      return {Y486ReferenceXDots, Y486BitmapXOffsetMm, true, true,
+              "Vevor Y486"};
     }
-    if(usb_id == "0d28:ccdd") {  // Munbyn RW403B
-      return {0, 0.0, false};
+    if(usb_id == "0d28:ccdd") {
+      return {0, 0.0, false, false, "Munbyn RW403B"};
     }
     return {};
+  }
+
+/// Returns the name under which the device @p device_path is listed.
+/** @return @c "usb:vvvv:pppp", or an empty string without USB ID */
+  QString direct_printer_name(QString const& device_path)
+  {
+    QString const usb_id = colman::usb_printer_id(device_path);
+    if(usb_id.isEmpty()) {
+      return {};
+    }
+    return QLatin1String(DirectPrinterPrefix) + usb_id;
+  }
+
+/// Returns true when a device listed as @p printer_name is connected.
+  bool direct_printer_connected(QString const& printer_name)
+  {
+    for(QString const& dev : colman::list_thermal_printer_devices()) {
+      if(direct_printer_name(dev) == printer_name) {
+        return true;
+      }
+    }
+    return false;
   }
 
 /// Milliseconds to wait for the device to accept more raw job data.
@@ -502,6 +541,22 @@ QList<colman::ThermalPrinterInfo> colman::list_thermal_printers()
     }
     result.append(info);
   }
+
+  // Known TSPL models connected directly via USB, which may have no queue
+  // in the printing system (on Windows the direct path needs none).  They
+  // are recognized by their USB ID only: nothing is sent to a printer here.
+  for(QString const& dev : list_thermal_printer_devices()) {
+    TsplDeviceProfile const profile = tspl_device_profile(dev);
+    QString const name = direct_printer_name(dev);
+    if(!profile.model_name_ || name.isEmpty()) {
+      continue;
+    }
+    ThermalPrinterInfo info;
+    info.cups_name = name;
+    info.display_name = QString::fromLatin1(profile.model_name_) + " (USB)";
+    info.dpi = 203;
+    result.append(info);
+  }
   return result;
 }
 
@@ -514,6 +569,9 @@ bool colman::thermal_printer_ready(QString const& cups_name)
 {
   if(cups_name.isEmpty()) {
     return false;
+  }
+  if(is_direct_printer_name(cups_name)) {
+    return direct_printer_connected(cups_name);
   }
   bool in_cups = false;
   for(QPrinterInfo const& pi : QPrinterInfo::availablePrinters()) {
@@ -643,6 +701,12 @@ bool colman::send_images_to_thermal_printer(QList<QImage> const& images,
   // label pixel-exact; the Flutter client prints the same way over USB.
   if(send_tspl_job_to_device(images, size_mm, dpi, darkness)) {
     return true;
+  }
+  if(is_direct_printer_name(cups_name)) {
+    // A directly connected printer has no queue to fall back to.
+    error = QApplication::tr(
+        "The label printer is not connected or does not respond.");
+    return false;
   }
 
   // CUPS fallback for printers without an accessible TSPL device node
