@@ -1692,21 +1692,33 @@ bool colman::SQLQueries::get_thumbnail(int thumbnail_id, QByteArray& png)
 
 /// Registers an already-existing local thumbnail file in the database.
 /**
- * Checks whether the file for \a key already exists on disk.  If it does,
- * returns the id of an existing thumbnails row for that file, or inserts a
- * new row if none is found.  Returns -1 if the file does not exist.
+ * Checks whether the file for \a key already exists on disk, first under
+ * its portable name (key_to_thumbnail_file()), then under the name used
+ * before names were made portable (legacy_key_to_thumbnail_file()).  If it
+ * does, returns the id of an existing thumbnails row for that file, or
+ * inserts a new row if none is found.  Returns -1 if the file does not
+ * exist.
  * @param key the thumbnail key used to derive the filename and path
  * @return the thumbnail database id on success, or -1 if the file is absent
  */
 int colman::SQLQueries::use_local_thumbnail(QString const& key)
 {
-  Collection const col = read_collection();
-  QString const fname = key_to_thumbnail_path(key, thumbnail_dir_);
+  QString file = key_to_thumbnail_file(key);
+  QString fname = filename_to_thumbnail_path(file, thumbnail_dir_);
+  QString const legacy_file = legacy_key_to_thumbnail_file(key);
+  if(!QFileInfo::exists(fname) && legacy_file != file) {
+    QString const legacy_fname =
+        filename_to_thumbnail_path(legacy_file, thumbnail_dir_);
+    if(QFileInfo::exists(legacy_fname)) {
+      file = legacy_file;
+      fname = legacy_fname;
+    }
+  }
   qWarning() << "looking for local thumbnail: " << fname;
   if(QFileInfo::exists(fname)) {
     QSqlQuery query(db_);
     query.prepare("SELECT id FROM thumbnails WHERE local_file = :file");
-    query.bindValue(":file", key_to_thumbnail_file(key));
+    query.bindValue(":file", file);
     if(query.exec() && query.next()) {
       qWarning() << "using already existing thumbnail database entry"
                  << query.value(0).toInt();
@@ -1715,7 +1727,7 @@ int colman::SQLQueries::use_local_thumbnail(QString const& key)
     query.prepare("INSERT INTO thumbnails (url, local_file) "
                   "VALUES (:url, :file)");
     query.bindValue(":url", "");
-    query.bindValue(":file", key_to_thumbnail_file(key));
+    query.bindValue(":file", file);
     if(query.exec()) {
       QUrl const url = QUrl::fromLocalFile(QFileInfo(fname).absoluteFilePath());
       qWarning() << "stored reference to local file: " << url.toString();

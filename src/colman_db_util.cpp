@@ -15,6 +15,38 @@
 #  include <QFile>
 #  define SYSTEM_QFILE
 #endif
+#ifndef SYSTEM_CSTRING
+#  include <cstring>
+#  define SYSTEM_CSTRING
+#endif
+
+namespace
+{
+  /// Characters that must not appear in a file name on Windows; the path
+  /// separators are not allowed in a file name on any system.
+  char constexpr ForbiddenFileNameChars[] = "<>:\"/\\|?*";
+
+  /// Replaces the characters of \a name that are not allowed in file names.
+  /**
+   * Control characters and ForbiddenFileNameChars become '_', so that the
+   * result is a valid file name on Linux and Windows alike.
+   */
+  QString portable_file_name(QString const& name)
+  {
+    QString result = name;
+    for(QChar& c : result) {
+      bool const forbidden =
+          c.unicode() < 0x20 ||
+          (c.unicode() < 0x80 &&
+           std::strchr(ForbiddenFileNameChars, c.toLatin1()) != nullptr);
+      if(forbidden) {
+        c = QChar('_');
+      }
+    }
+    return result;
+  }
+
+} // anonymous namespace
 
 /**
  * Returns the system language reliably.
@@ -71,12 +103,30 @@ QString colman::string_to_column_name(QString const& str)
 }
 
 
-/// Converts a thumbnail key to a relative filename with a .png extension.
+/// Converts a thumbnail key to a portable relative filename (.png).
 /**
+ * Keys may contain item titles; characters that are not allowed in file
+ * names on Windows (e.g. ':' in "Title : Subtitle") or on any system
+ * ('/') are replaced by '_', so that thumbnails can be stored and copied
+ * between Linux and Windows.
  * @param key the thumbnail key (e.g. an ISBN or barcode-derived string)
- * @return the filename string with ".png" appended
+ * @return the portable filename with ".png" appended
  */
 QString colman::key_to_thumbnail_file(QString const& key)
+{
+  return portable_file_name(key) + ".png";
+}
+
+
+/// Returns the filename a thumbnail key had before names were portable.
+/**
+ * Before colman 2.0.2 the key was used unchanged.  Thumbnails stored
+ * under such names keep them (the thumbnails table records the name), and
+ * use_local_thumbnail() still finds files with these names.
+ * @param key the thumbnail key
+ * @return the key with ".png" appended
+ */
+QString colman::legacy_key_to_thumbnail_file(QString const& key)
 {
   return key + ".png";
 }

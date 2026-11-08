@@ -48,8 +48,12 @@ namespace colman
   // Thumbnails
   // -----------------------------------------------------------------------
 
-  /// Converts a thumbnail key to a relative filename with a .png extension.
+  /// Converts a thumbnail key to a portable relative filename (.png).
+  /** Characters not allowed in file names on Windows are replaced by '_'. */
   QString key_to_thumbnail_file(QString const& key);
+
+  /// Returns the filename a thumbnail key had before names were portable.
+  QString legacy_key_to_thumbnail_file(QString const& key);
 
   /// Converts a relative thumbnail filename to its absolute filesystem path.
   QString filename_to_thumbnail_path(QString const& fname,

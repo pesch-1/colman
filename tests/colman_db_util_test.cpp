@@ -79,6 +79,10 @@
 #  include <QScopeGuard>
 #  define SYSTEM_QSCOPEGUARD
 #endif
+#ifndef SYSTEM_QTEMPORARYDIR
+#  include <QTemporaryDir>
+#  define SYSTEM_QTEMPORARYDIR
+#endif
 #ifndef COLMAN_ISBN_QUERIES_HPP
 #  include "colman_isbn_queries.hpp"
 #endif
@@ -2801,6 +2805,68 @@ namespace
       teardown_db();
     }
 
+
+    // ------------------------------------------------------------------
+    // Thumbnail file names
+    // ------------------------------------------------------------------
+
+    void test_thumbnail_file_names_are_portable()
+    {
+      QCOMPARE(colman::key_to_thumbnail_file("isbn_9783791510095"),
+               QString("isbn_9783791510095.png"));
+      QCOMPARE(colman::key_to_thumbnail_file("ean_Raupe : Singspiel"),
+               QString("ean_Raupe _ Singspiel.png"));
+      QCOMPARE(colman::key_to_thumbnail_file("ean_a<b>c\"d/e\\f|g?h*i"),
+               QString("ean_a_b_c_d_e_f_g_h_i.png"));
+      QCOMPARE(colman::key_to_thumbnail_file(QString("ean_x") + QChar(0x01)),
+               QString("ean_x_.png"));
+      QCOMPARE(colman::key_to_thumbnail_file("ean_Grüße & Co."),
+               QString("ean_Grüße & Co..png"));
+      QCOMPARE(colman::legacy_key_to_thumbnail_file("ean_Raupe : Singspiel"),
+               QString("ean_Raupe : Singspiel.png"));
+    }
+
+    /// Writes a small file for \a file (a thumbnail file name) into \a dir.
+    void write_thumbnail(QString const& file, QString const& dir)
+    {
+      QFile out(colman::filename_to_thumbnail_path(file, dir));
+      QVERIFY(out.open(QIODevice::WriteOnly));
+      QVERIFY(out.write("png") == 3);
+    }
+
+    void test_use_local_thumbnail_finds_portable_and_legacy_names()
+    {
+      setup_db();
+      QTemporaryDir dir;
+      QVERIFY(dir.isValid());
+      q_->set_thumbnail_dir(dir.path());
+
+      // A thumbnail stored under its portable name.
+      QString const key = "ean_Raupe : Singspiel";
+      write_thumbnail(colman::key_to_thumbnail_file(key), dir.path());
+      int const id = q_->use_local_thumbnail(key);
+      QVERIFY(id > 0);
+      QByteArray png;
+      QVERIFY(q_->get_thumbnail(id, png));
+      QCOMPARE(png, QByteArray("png"));
+      QCOMPARE(q_->use_local_thumbnail(key), id);
+
+#ifndef _WIN32
+      // A thumbnail stored before names were portable: ':' cannot occur
+      // in Windows file names, so this part runs on Linux only.
+      QString const legacy_key = "ean_Momo : Roman";
+      write_thumbnail(colman::legacy_key_to_thumbnail_file(legacy_key),
+                      dir.path());
+      int const legacy_id = q_->use_local_thumbnail(legacy_key);
+      QVERIFY(legacy_id > 0);
+      QVERIFY(legacy_id != id);
+      QVERIFY(q_->get_thumbnail(legacy_id, png));
+      QVERIFY(q_->have_local_thumbnail(legacy_id));
+#endif
+
+      QCOMPARE(q_->use_local_thumbnail("ean_missing"), -1);
+      teardown_db();
+    }
   }; // class ColmanSqlTest
 
 } // anonymous namespace
