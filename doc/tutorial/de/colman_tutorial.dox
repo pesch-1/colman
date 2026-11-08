@@ -871,6 +871,7 @@ dieselbe Ausgabe kann von mehreren Diensten gemeldet werden.
 <!-- @image latex 037_acquisition_title_search.jpg "anschaffen -- Titelsuche im Internet" -->
 <!-- @note Screenshot einfügen: Seite „Titelsuche“ mit gefülltem Suchfeld und Trefferliste (Titel, Autor, Jahr, Quelle), ein Treffer ausgewählt -->
 
+@anchor tutorial_item_cover
 <b>Titelbild:</b>
 
 - Klicke auf <b>suchen</b> neben dem Feld
@@ -1926,6 +1927,24 @@ bearbeiten:
 3. Auf der Bearbeitungsseite die gewünschten Felder anpassen.
 4. Mit <b>Speichern</b> übernehmen. Die Ergebnisliste wird anschließend
    aktualisiert.
+
+Die Bearbeitungsseite verwendet dasselbe Formular wie eine Anschaffung.
+Alle Felder lassen sich ändern -- Titel, Beschreibung, Schlagwörter,
+Signaturen, Schuldaten und die typabhängigen Angaben wie Autor oder
+ISBN --, nur der Medientyp nicht. Das Titelbild kannst du nachträglich
+mit denselben Schaltflächen wie bei der Anschaffung setzen, ersetzen
+oder entfernen (siehe @ref tutorial_item_cover; beachte
+@ref tutorial_cover_copyright).
+
+<b>Im Internet ergänzen</b> sucht das Medium im Internet -- über seine
+ISBN bzw. EAN, sonst über den Titel (Brettspiele bei BoardGameGeek) --
+und <em>ergänzt</em> es: Aus dem Ergebnis werden nur leere Felder und
+ein fehlendes Titelbild übernommen; alles, was schon ausgefüllt ist,
+bleibt unverändert. Ein Titelbild gilt als fehlend, wenn keines gesetzt
+ist oder seine Bilddatei nicht vorhanden ist. Gesucht wird bei den in
+den Programmeinstellungen aktivierten Diensten
+(siehe @ref tutorial_prefs). Prüfe das Ergebnis und übernimm es mit
+<b>Speichern</b>; <b>Abbrechen</b> verwirft es.
 
 @tip Die Schaltfläche <b>Gegenstand bearbeiten</b> ist nur für Benutzer
 mit der Berechtigung <b>Anschaffungen erfassen</b> sichtbar.

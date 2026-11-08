@@ -654,6 +654,13 @@ namespace
 
       auto* btns = new QDialogButtonBox(
           QDialogButtonBox::Save | QDialogButtonBox::Cancel, this);
+      QPushButton* const complete_btn = btns->addButton(
+          QApplication::tr("Fill in from the internet"),
+          QDialogButtonBox::ActionRole);
+      complete_btn->setToolTip(QApplication::tr(
+          "Searches the internet for this item (by ISBN, EAN or title) and "
+          "fills in only empty fields and a missing cover image; existing "
+          "entries are kept."));
       outer->addWidget(btns);
 
       auto go_back = [this]() {
@@ -665,6 +672,11 @@ namespace
       connect(btns, &QDialogButtonBox::rejected, go_back);
       connect(btns, &QDialogButtonBox::accepted,
               [this]() { save(); });
+      connect(complete_btn, &QPushButton::clicked, [this]() {
+        if(item_widget_) {
+          item_widget_->internet_lookup(QString());
+        }
+      });
     }
 
   /// Sets the callback invoked when the back button is pressed.
@@ -687,6 +699,8 @@ namespace
       item_widget_->setup(data_);
       item_widget_->set_completers();
       item_widget_->set_read_only(false);
+      // Internet lookups complete the item but never overwrite its data.
+      item_widget_->set_lookup_completes_only(true);
       colman::Item item;
       QString type_name;
       if(data_.queries_->get_item(item_id, item, type_name)) {

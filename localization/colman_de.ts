@@ -4056,6 +4056,14 @@ Reservierungen</translation>
         <source>The label printer is not connected or does not respond.</source>
         <translation>Der Etikettendrucker ist nicht angeschlossen oder antwortet nicht.</translation>
     </message>
+    <message>
+        <source>Fill in from the internet</source>
+        <translation>Im Internet ergänzen</translation>
+    </message>
+    <message>
+        <source>Searches the internet for this item (by ISBN, EAN or title) and fills in only empty fields and a missing cover image; existing entries are kept.</source>
+        <translation>Sucht dieses Medium im Internet (über ISBN, EAN oder Titel) und füllt nur leere Felder und ein fehlendes Titelbild aus; vorhandene Einträge bleiben erhalten.</translation>
+    </message>
 </context>
 <context>
     <name>QCoreApplication</name>

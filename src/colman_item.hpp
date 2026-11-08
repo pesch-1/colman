@@ -163,6 +163,20 @@ namespace colman
   QStringList string_to_keywords(QString const& str);
   /// Prints an item's fields to stdout (for debugging).
   void print_item(Item const& item);
+  /// Completes \a current with data from an internet lookup result.
+  /**
+     Keeps every field \a current already has; only blank name, place,
+     description, keywords, type-specific values and repeatable values are
+     taken from \a found.  The cover image of \a found is taken when
+     \a take_thumbnail is true and \a found has one.  All other fields
+     (type, barcode, school data, signatures, reservation settings) stay as
+     in \a current.
+     @param current        the item as it is now
+     @param found          the lookup result
+     @param take_thumbnail true when the current cover is missing
+     @return the completed item
+  */
+  Item complete_item(Item current, Item const& found, bool take_thumbnail);
 
 } // namespace colman
 

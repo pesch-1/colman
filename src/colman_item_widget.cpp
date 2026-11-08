@@ -1221,6 +1221,17 @@ void colman::ItemWidget::set_read_only(bool ro)
 */
 void colman::ItemWidget::lookup_result_to_fields(Item item)
 {
+  if(lookup_completes_only_) {
+    // Editing: keep everything the item already has, take only what is
+    // missing from the lookup result.
+    Item current;
+    if(!fields_to_item(current)) {
+      return;
+    }
+    item_to_fields(
+        complete_item(current, item, thumbnail_download_wanted()), "");
+    return;
+  }
   if(item.get_signature_top().trimmed().isEmpty()) {
     item.set_signature_top(widget_.signature_top_->currentText());
   }
@@ -1231,6 +1242,31 @@ void colman::ItemWidget::lookup_result_to_fields(Item item)
     item.set_is_school_item(true);
   }
   item_to_fields(item, "");
+}
+
+/**
+  In completion mode (used by the item edit page) internet lookups never
+  overwrite data the item already has.
+  @param on true to only fill empty fields
+*/
+void colman::ItemWidget::set_lookup_completes_only(bool on)
+{
+  lookup_completes_only_ = on;
+}
+
+/**
+  In completion mode a cover is wanted when the item has none or its image
+  file is not available (e.g. a collection copied without its thumbnail
+  directory).  Otherwise the "download thumbnails" setting decides.
+  @return true when a lookup should download a cover image
+*/
+bool colman::ItemWidget::thumbnail_download_wanted() const
+{
+  if(lookup_completes_only_) {
+    int const tid = widget_.thumbnail_->property("thumbnail_id").toInt();
+    return tid <= 0 || !data_ || !data_->queries_->have_local_thumbnail(tid);
+  }
+  return QSettings().value("download_thumbnails", false).toBool();
 }
 
 /// Populates all widget fields from an Item object.
@@ -1455,8 +1491,7 @@ namespace
           item.set_type_id(type_id);
         }
         retval = true;
-        QSettings settings;
-        if(settings.value("download_thumbnails", false).toBool() &&
+        if(widget.thumbnail_download_wanted() &&
            (item.get_thumbnail_id() < 0 ||
             !data.queries_->have_local_thumbnail(item.get_thumbnail_id())))
         {
@@ -1581,8 +1616,7 @@ namespace
       item.set_type_id(type_id);
     }
     item.set_value("ean", ean);
-    QSettings settings;
-    if(settings.value("download_thumbnails", false).toBool() &&
+    if(widget.thumbnail_download_wanted() &&
        (item.get_thumbnail_id() < 0 ||
         !data.queries_->have_local_thumbnail(item.get_thumbnail_id())))
     {
@@ -2513,8 +2547,7 @@ void colman::ItemWidget::internet_name_lookup(QString const& name,
     if(!ean.isEmpty()) {
       item.set_value("ean", ean);
     }
-    QSettings settings;
-    if(settings.value("download_thumbnails", false).toBool() &&
+    if(thumbnail_download_wanted() &&
        (item.get_thumbnail_id() < 0 ||
         !data_->queries_->have_local_thumbnail(item.get_thumbnail_id())))
     {

@@ -37,6 +37,23 @@ namespace
     return QString();
   }
 
+  /// Returns @p have, or @p add when @p have is blank.
+  QString fill_blank(QString const& have, QString const& add)
+  {
+    return have.trimmed().isEmpty() ? add : have;
+  }
+
+  /// Returns true when @p values contains no non-blank entry.
+  bool all_blank(QStringList const& values)
+  {
+    for(QString const& v : values) {
+      if(!v.trimmed().isEmpty()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 } // namespace
 
 
@@ -539,5 +556,43 @@ void colman::Item::set_version(int version)
   version_ = version;
 }
 
+
+/**
+   Used by the item edit page ("Fill in from the internet"): a lookup may
+   add what is missing but must never overwrite data the user entered.
+   @param current        the item as it is now
+   @param found          the lookup result
+   @param take_thumbnail true when the current cover is missing
+   @return the completed item
+*/
+colman::Item colman::complete_item(Item current, Item const& found,
+                                   bool take_thumbnail)
+{
+  current.set_name(fill_blank(current.get_name(), found.get_name()));
+  current.set_place(fill_blank(current.get_place(), found.get_place()));
+  current.set_description(
+      fill_blank(current.get_description(), found.get_description()));
+  if(all_blank(current.get_keywords())) {
+    current.set_keywords(found.get_keywords());
+  }
+  for(auto const& value : found.get_values()) {
+    auto const& have = current.get_values();
+    auto const it = have.find(value.first);
+    if(it == have.end() || it->second.trimmed().isEmpty()) {
+      current.set_value(value.first, value.second);
+    }
+  }
+  for(auto const& list : found.get_list_values()) {
+    auto const& have = current.get_list_values();
+    auto const it = have.find(list.first);
+    if(it == have.end() || all_blank(it->second)) {
+      current.set_list_value(list.first, list.second);
+    }
+  }
+  if(take_thumbnail && found.get_thumbnail_id() > 0) {
+    current.set_thumbnail_id(found.get_thumbnail_id());
+  }
+  return current;
+}
 
 /* EOF */

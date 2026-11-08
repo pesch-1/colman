@@ -794,6 +794,7 @@ hits -- the same edition can be reported by several services.
 <!-- @image html 037_acquisition_title_search.jpg "acquire -- internet title search" -->
 <!-- @image latex 037_acquisition_title_search.jpg "acquire -- internet title search" -->
 
+@anchor tutorial_item_cover
 <b>Cover image:</b>
 
 - Click <b>browse</b> next to the field <b>thumbnail</b> to load an
@@ -1772,6 +1773,23 @@ Items can be edited directly from the search page:
 2. Click <b>Edit item</b>.
 3. Adjust the desired fields on the editing page.
 4. Confirm with <b>Save</b>. The list of hits is then updated.
+
+The editing page uses the same form as an acquisition. All fields can
+be changed -- title, description, keywords, signatures, school data
+and the type-specific details such as author or ISBN -- except the
+item type. The cover image can be set, replaced or removed afterwards
+with the same buttons as during an acquisition (see
+@ref tutorial_item_cover; mind @ref tutorial_cover_copyright).
+
+<b>Fill in from the internet</b> searches the internet for the item --
+by its ISBN or EAN, otherwise by its title (board games on
+BoardGameGeek) -- and <em>completes</em> it: only empty fields and a
+missing cover image are taken from the result; everything that is
+already filled in stays as it is. A cover counts as missing when none
+is set or its image file is not available. The search uses the
+services enabled in the program settings (see @ref tutorial_prefs).
+Check the result and confirm with <b>Save</b>; <b>Cancel</b> discards
+it.
 
 @tip The button <b>Edit item</b> is only visible to users with the
 permission <b>Record acquisitions</b>.

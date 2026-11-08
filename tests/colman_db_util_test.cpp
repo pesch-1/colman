@@ -2867,6 +2867,71 @@ namespace
       QCOMPARE(q_->use_local_thumbnail("ean_missing"), -1);
       teardown_db();
     }
+
+    // ------------------------------------------------------------------
+    // Completing an item from an internet lookup
+    // ------------------------------------------------------------------
+
+    void test_complete_item_fills_only_blank_fields()
+    {
+      colman::Item current;
+      current.set_type_id(3);
+      current.set_name("Momo");
+      current.set_description("  ");
+      current.set_place("Regal 2");
+      current.set_signature_top("JUG");
+      current.set_value("author", "Michael Ende");
+      current.set_value("publisher", "");
+      current.set_list_value("ISBN13", {"9783522202107"});
+      current.set_list_value("translator", {""});
+      current.set_thumbnail_id(-1);
+
+      colman::Item found;
+      found.set_type_id(7);
+      found.set_name("Momo oder Die seltsame Geschichte");
+      found.set_description("Ein Maerchen-Roman");
+      found.set_place("Lager");
+      found.set_keywords({"Zeit", "Maerchen"});
+      found.set_value("author", "M. Ende");
+      found.set_value("publisher", "Thienemann");
+      found.set_value("year", "1973");
+      found.set_list_value("ISBN13", {"9783522202107", "9783522177504"});
+      found.set_list_value("translator", {"Niemand"});
+      found.set_thumbnail_id(42);
+
+      colman::Item const done = colman::complete_item(current, found, true);
+      // Existing data is kept ...
+      QCOMPARE(done.get_type_id(), 3);
+      QCOMPARE(done.get_name(), QString("Momo"));
+      QCOMPARE(done.get_place(), QString("Regal 2"));
+      QCOMPARE(done.get_signature_top(), QString("JUG"));
+      QCOMPARE(done.get_values().at("author"), QString("Michael Ende"));
+      QCOMPARE(done.get_list_values().at("ISBN13"),
+               QStringList({"9783522202107"}));
+      // ... blank fields are filled.
+      QCOMPARE(done.get_description(), QString("Ein Maerchen-Roman"));
+      QCOMPARE(done.get_keywords(), QStringList({"Zeit", "Maerchen"}));
+      QCOMPARE(done.get_values().at("publisher"), QString("Thienemann"));
+      QCOMPARE(done.get_values().at("year"), QString("1973"));
+      QCOMPARE(done.get_list_values().at("translator"),
+               QStringList({"Niemand"}));
+      QCOMPARE(done.get_thumbnail_id(), 42);
+    }
+
+    void test_complete_item_keeps_cover_unless_missing()
+    {
+      colman::Item current;
+      current.set_thumbnail_id(5);
+      colman::Item found;
+      found.set_thumbnail_id(42);
+      QCOMPARE(colman::complete_item(current, found, false).get_thumbnail_id(),
+               5);
+      QCOMPARE(colman::complete_item(current, found, true).get_thumbnail_id(),
+               42);
+      found.set_thumbnail_id(-1);
+      QCOMPARE(colman::complete_item(current, found, true).get_thumbnail_id(),
+               5);
+    }
   }; // class ColmanSqlTest
 
 } // anonymous namespace

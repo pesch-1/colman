@@ -133,6 +133,20 @@ namespace colman
        @param item the item retrieved by the lookup
     */
     void lookup_result_to_fields(Item item);
+    /// Lets internet lookups only complete the item (editing mode).
+    /**
+       When on, lookup_result_to_fields() keeps every field that already
+       has a value and takes only empty fields, empty type-specific values
+       and a missing cover image from the lookup result.  A cover counts as
+       missing when none is set or its image file is not available; it is
+       then downloaded regardless of the "download thumbnails" setting.
+       @param on true to only fill empty fields
+    */
+    void set_lookup_completes_only(bool on);
+    /// Returns true when a lookup should download a cover image.
+    /** In completion mode: when the cover is missing; otherwise: when the
+        "download thumbnails" setting is on. */
+    bool thumbnail_download_wanted() const;
     /// Sets the signatures pre-filled whenever the fields are reset.
     /**
        The defaults are applied by clear_fields() and on every item-type
@@ -232,6 +246,7 @@ namespace colman
     colman::AppData* data_ = nullptr; ///< pointer to application data
     colman::ListValueWidget* keywords_lv_ = nullptr; ///< keyword list editor
     bool read_only_ = false; ///< whether fields are read-only
+    bool lookup_completes_only_ = false; ///< lookups only fill empty fields
     QString last_lookup_key_; ///< EAN or ISBN from the last internet lookup
     QString last_lookup_thumbnail_url_; ///< cover URL found for this item
     QString default_signature_top_; ///< top signature pre-filled on reset
