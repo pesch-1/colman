@@ -23,6 +23,10 @@
 #
 # Usage: cmake -DAPPDIR=<AppDir> [-DSERVER=ON] -P deploy_prune.cmake
 
+# Script mode (cmake -P) starts with old policy defaults; this enables, among
+# others, the IN_LIST operator (CMP0057) also on CMake 3.x.
+cmake_minimum_required(VERSION 3.21)
+
 if(NOT APPDIR)
   message(FATAL_ERROR "APPDIR not set")
 endif()
