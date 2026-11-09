@@ -47,8 +47,8 @@ packages on Ubuntu 24.04.
 ### From a source tarball
 
 ```bash
-tar xzf colman-2.0.1.tar.gz
-cd colman-2.0.1
+tar xzf colman-2.0.2.tar.gz
+cd colman-2.0.2
 cmake -B bld && cmake --build bld -j4
 ./bld/colman
 ```
@@ -105,7 +105,7 @@ touches `doc/`; the landing page is `doc/tutorial/index.html`.
 cmake -B bld && cmake --build bld --target dist
 ```
 
-This produces `bld/colman-2.0.1.tar.gz` containing all source files.
+This produces `bld/colman-2.0.2.tar.gz` containing all source files.
 
 ---
 
@@ -137,8 +137,8 @@ Both tools are available under the [MIT License](https://opensource.org/licenses
 cmake -B bld && cmake --build bld -j4 --target deploy
 ```
 
-This produces `bld/colman-2.0.1-linux-x86_64.tar.gz` and
-`bld/colman-server-2.0.1-linux-x86_64.tar.gz`.  The desktop entry and icon
+This produces `bld/colman-2.0.2-linux-x86_64.tar.gz` and
+`bld/colman-server-2.0.2-linux-x86_64.tar.gz`.  The desktop entry and icon
 of the application bundle are taken from `packaging/linux/`.  `LICENSE`,
 `NOTICE` and the license texts from `packaging/licenses/` are copied to
 `usr/share/doc/colman/` in both bundles.
@@ -156,11 +156,11 @@ of the application bundle are taken from `packaging/linux/`.  `LICENSE`,
 ### Run on the target machine
 
 ```bash
-tar xzf colman-2.0.1-linux-x86_64.tar.gz
+tar xzf colman-2.0.2-linux-x86_64.tar.gz
 ./AppRun                        # desktop application
 ./usr/bin/colman_rest_client    # REST client
 
-tar xzf colman-server-2.0.1-linux-x86_64.tar.gz
+tar xzf colman-server-2.0.2-linux-x86_64.tar.gz
 ./usr/bin/colman_rest_server --db school.col
 ```
 

@@ -46,7 +46,7 @@ The minimum supported Qt version is 6.4.2; newer Qt APIs must be
 guarded with `QT_VERSION_CHECK`. Database files have the extension
 `.col`.
 
-The project version (currently 2.0.1) is defined in `CMakeLists.txt`
+The project version (currently 2.0.2) is defined in `CMakeLists.txt`
 and is available in the code via the compiler macro `COLMAN_VERSION`.
 Builds with GCC/Clang use `-Wall -Wextra`; the code base is kept free
 of warnings.
