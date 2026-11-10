@@ -320,6 +320,13 @@ sudo systemctl restart colman-rest   # restart
 sudo systemctl stop colman-rest      # stop
 ```
 
+On `systemctl stop` (SIGTERM) and on Ctrl+C the server shuts down cleanly:
+it closes the database and removes its lock file (`<database>.lock`).
+After an unclean end (power loss, `kill -9`) the lock file stays behind;
+the server ignores it on the next start as long as the host name has not
+changed.  If the host was renamed or the database was moved to another
+machine, delete the stale lock file while the server is stopped.
+
 ---
 
 ## Applying updates

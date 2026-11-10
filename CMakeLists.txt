@@ -416,6 +416,24 @@ target_link_libraries(colman_rest_server
 # Convenience target: build only the REST server (for headless deployments).
 add_custom_target(server DEPENDS colman_rest_server)
 
+# Shutdown test: runs the real server binary and sends it SIGTERM (POSIX).
+if(NOT WIN32)
+  add_executable(colman_rest_server_shutdown_test
+    tests/colman_rest_server_shutdown_test.cpp
+  )
+  target_link_libraries(colman_rest_server_shutdown_test
+    colman_core
+    Qt6::Network
+    Qt6::Test
+  )
+  target_compile_definitions(colman_rest_server_shutdown_test PRIVATE
+    COLMAN_REST_SERVER_PATH="$<TARGET_FILE:colman_rest_server>"
+  )
+  add_dependencies(colman_rest_server_shutdown_test colman_rest_server)
+  add_test(NAME colman_rest_server_shutdown_test
+    COMMAND colman_rest_server_shutdown_test)
+endif()
+
 # REST client application (shares UI code with colman, uses RestQueries).
 if(COLMAN_BUILD_GUI)
   add_executable(colman_rest_client
@@ -1396,6 +1414,7 @@ set(COLMAN_DIST_FILES
   tests/colman_jwt_validator_test.cpp
   tests/colman_rest_authorization_test.cpp
   tests/colman_rest_queries_test.cpp
+  tests/colman_rest_server_shutdown_test.cpp
   tests/colman_rest_stress_test.cpp
   tests/colman_db_util_test.cpp
   tests/colman_sqlite_driver_test.cpp

@@ -98,9 +98,119 @@
 #  include <cstring>
 #  define SYSTEM_CSTRING
 #endif
+#ifndef Q_OS_WIN
+#  ifndef SYSTEM_ATOMIC
+#    include <atomic>
+#    define SYSTEM_ATOMIC
+#  endif
+#  ifndef SYSTEM_THREAD
+#    include <thread>
+#    define SYSTEM_THREAD
+#  endif
+#  ifndef SYSTEM_PTHREAD_H
+#    include <pthread.h>
+#    define SYSTEM_PTHREAD_H
+#  endif
+#  ifndef SYSTEM_SIGNAL_H
+#    include <signal.h>
+#    define SYSTEM_SIGNAL_H
+#  endif
+#endif
 
 namespace
 {
+
+#ifndef Q_OS_WIN
+/// Turns SIGTERM, SIGINT and SIGHUP into a clean shutdown of the event loop.
+/**
+ * Without this, a SIGTERM (e.g. from systemctl stop) kills the server
+ * immediately: no destructor runs, the database is not closed and the
+ * database lock file stays behind.  A stale lock written under another
+ * host name (after renaming the machine or moving the database) then
+ * prevents the next start.
+ *
+ * POSIX delivers a process-directed signal to any thread that does not
+ * block it.  The constructor therefore blocks the signals in the calling
+ * thread before any other thread exists; all threads started later
+ * inherit that mask.  A dedicated thread receives the signals with
+ * sigwait() and asks the event loop to quit, so main() returns normally.
+ * Until enable_quit() is called (setup phase, including the interactive
+ * bootstrap prompts) a signal still terminates the process with its
+ * default action.
+ */
+  class TerminationSignals
+  {
+  public:
+    TerminationSignals();
+    ~TerminationSignals();
+    TerminationSignals(TerminationSignals const&) = delete;
+    TerminationSignals& operator=(TerminationSignals const&) = delete;
+
+    /// From now on a signal makes QCoreApplication::exec() return.
+    void enable_quit();
+
+  private:
+    void wait_for_signal();
+
+    sigset_t signals_ = {};                 ///< SIGTERM, SIGINT, SIGHUP
+    std::atomic<bool> quit_enabled_{false}; ///< set by enable_quit()
+    std::atomic<bool> stopping_{false};     ///< set by the destructor
+    std::thread waiter_;                    ///< runs wait_for_signal()
+  };
+
+/// Blocks the termination signals and starts the waiting thread.
+  TerminationSignals::TerminationSignals()
+  {
+    sigemptyset(&signals_);
+    sigaddset(&signals_, SIGTERM);
+    sigaddset(&signals_, SIGINT);
+    sigaddset(&signals_, SIGHUP);
+    pthread_sigmask(SIG_BLOCK, &signals_, nullptr);
+    waiter_ = std::thread([this] { wait_for_signal(); });
+  }
+
+/// Wakes up the waiting thread (if still waiting) and joins it.
+  TerminationSignals::~TerminationSignals()
+  {
+    stopping_ = true;
+    // The signal stays blocked everywhere, so it only wakes up sigwait();
+    // after the waiter has returned it is merely left pending.
+    pthread_kill(waiter_.native_handle(), SIGTERM);
+    waiter_.join();
+  }
+
+  void TerminationSignals::enable_quit()
+  {
+    quit_enabled_ = true;
+  }
+
+/// Waits for one termination signal and reacts to it.
+/**
+ * Before enable_quit() the signal is unblocked in this thread and raised
+ * again, which applies its default action (terminating the process).
+ * Afterwards a quit of the event loop is queued; the request is also
+ * honoured if the signal arrives just before exec() starts.
+ */
+  void TerminationSignals::wait_for_signal()
+  {
+    auto sig = 0;
+    if(sigwait(&signals_, &sig) != 0 || stopping_) {
+      return;
+    }
+    if(!quit_enabled_) {
+      pthread_sigmask(SIG_UNBLOCK, &signals_, nullptr);
+      raise(sig);
+      return;
+    }
+    auto* const app = QCoreApplication::instance();
+    if(app == nullptr) {
+      return;
+    }
+    qInfo() << "Received signal" << sig << "— shutting down";
+    QMetaObject::invokeMethod(
+        app, [] { QCoreApplication::quit(); }, Qt::QueuedConnection);
+  }
+#endif
 
 /// Reads a plain text line from stdin with echo, stripping trailing CR/LF.
 /** @return the entered line, or std::nullopt on end of input. */
@@ -215,6 +325,11 @@ namespace
 
 int main(int argc, char* argv[])
 {
+#ifndef Q_OS_WIN
+  // Must precede QCoreApplication and everything else that may start a
+  // thread, so that all threads inherit the blocked signal mask.
+  TerminationSignals termination_signals;
+#endif
   QCoreApplication app(argc, argv);
   // Translations as in the desktop application, so that data the server
   // creates (e.g. the default signature categories of a new collection)
@@ -461,6 +576,9 @@ int main(int argc, char* argv[])
   }
 
   qInfo() << "Listening on port" << port;
+#ifndef Q_OS_WIN
+  termination_signals.enable_quit();
+#endif
   return app.exec();
 }
 
