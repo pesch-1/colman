@@ -63,7 +63,8 @@ jobs:
       - name: Assemble site
         run: |
           mkdir -p site
-          cp doc/tutorial/index.html site/
+          cp doc/tutorial/index.html doc/tutorial/de.html \
+            doc/tutorial/site.css doc/tutorial/sitemap.xml site/
           cp flutter/assets/icons/colman_logo.jpeg site/
           for dir in bld/tutorial/*/; do
             lang=$(basename "$dir")

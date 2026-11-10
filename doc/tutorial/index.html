@@ -1,106 +1,211 @@
 <!DOCTYPE html>
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <!-- Copyright (C) Christoph Pesch 2026 -->
-<!-- Landing page of the tutorial site on GitHub Pages; assembled by
-     .github/workflows/tutorial.yml next to the per-language output. -->
+<!-- English landing page on GitHub Pages (German version: de.html);
+     assembled by .github/workflows/tutorial.yml next to the per-language
+     tutorial output, whose screenshots it uses. -->
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Colman Tutorial</title>
-  <style>
-    :root {
-      --bg: #f7f7f5;
-      --card: #ffffff;
-      --text: #222222;
-      --muted: #666666;
-      --accent: #2a6496;
-      --border: #dddddd;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #1c1c1e;
-        --card: #2a2a2d;
-        --text: #eeeeee;
-        --muted: #aaaaaa;
-        --accent: #7fb3e0;
-        --border: #444444;
-      }
-    }
-    body {
-      margin: 0;
-      padding: 2rem 16px;
-      background: var(--bg);
-      color: var(--text);
-      font-family: system-ui, sans-serif;
-      line-height: 1.5;
-    }
-    main {
-      max-width: 40rem;
-      margin: 0 auto;
-      text-align: center;
-    }
-    img.logo {
-      width: 8rem;
-      height: auto;
-      border-radius: 1rem;
-    }
-    p.lead {
-      color: var(--muted);
-    }
-    .languages {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-    .language {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 0.75rem;
-      padding: 1.25rem;
-    }
-    .language h2 {
-      margin: 0 0 0.75rem;
-      font-size: 1.25rem;
-    }
-    a {
-      color: var(--accent);
-    }
-    .language a {
-      display: block;
-      margin: 0.25rem 0;
-    }
-    footer {
-      margin-top: 2rem;
-      font-size: 0.9rem;
-      color: var(--muted);
-    }
-  </style>
+  <title>colman – free software for school libraries and collections</title>
+  <meta name="description" content="colman is free, open-source software
+    for school libraries and private collections: lending and returns with
+    a barcode scanner, class sets, ID cards, label printing, internet
+    lookup of books, CDs, DVDs and games. Linux, Windows, Raspberry Pi
+    server and Android app.">
+  <link rel="canonical" href="https://pesch-1.github.io/colman/">
+  <link rel="alternate" hreflang="en"
+        href="https://pesch-1.github.io/colman/">
+  <link rel="alternate" hreflang="de"
+        href="https://pesch-1.github.io/colman/de.html">
+  <link rel="alternate" hreflang="x-default"
+        href="https://pesch-1.github.io/colman/">
+  <link rel="icon" href="colman_logo.jpeg">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="colman – library and collection manager">
+  <meta property="og:description" content="Free software for school
+    libraries and private collections: barcode lending, class sets, ID
+    cards, label printing and internet lookup.">
+  <meta property="og:url" content="https://pesch-1.github.io/colman/">
+  <meta property="og:image"
+        content="https://pesch-1.github.io/colman/en/009_central_page.jpg">
+  <meta property="og:locale" content="en">
+  <meta property="og:locale:alternate" content="de_DE">
+  <link rel="stylesheet" href="site.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "colman",
+    "description": "Free software for school libraries and private collections",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Linux, Windows, Android",
+    "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+    "url": "https://pesch-1.github.io/colman/",
+    "downloadUrl": "https://github.com/pesch-1/colman/releases/latest",
+    "image": "https://pesch-1.github.io/colman/en/009_central_page.jpg",
+    "author": { "@type": "Person", "name": "Christoph Pesch" },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
+  }
+  </script>
 </head>
 <body>
-  <main>
-    <img class="logo" src="colman_logo.jpeg" alt="colman logo">
-    <h1>Colman</h1>
-    <p class="lead">
-      Step-by-step guide for the school library management software<br>
-      Schritt-für-Schritt-Anleitung für die Schulbibliotheks-Software
-    </p>
-    <div class="languages">
-      <section class="language" lang="de">
-        <h2>Deutsch</h2>
-        <a href="de/index.html">Online lesen</a>
-        <a href="de/colman_tutorial.pdf">PDF herunterladen</a>
-      </section>
-      <section class="language" lang="en">
-        <h2>English</h2>
-        <a href="en/index.html">Read online</a>
-        <a href="en/colman_tutorial.pdf">Download PDF</a>
-      </section>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="./">
+        <img src="colman_logo.jpeg" alt="">colman
+      </a>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#tutorial">Tutorial</a>
+        <a href="https://github.com/pesch-1/colman">GitHub</a>
+        <a href="de.html" hreflang="de" lang="de">Deutsch</a>
+      </nav>
     </div>
-    <footer>
-      <a href="https://github.com/pesch-1/colman">Source code on GitHub</a>
-    </footer>
+  </header>
+
+  <main class="wrap">
+    <div class="hero">
+      <div>
+        <h1>Free software for your school library</h1>
+        <p class="lead">
+          colman keeps track of books, media and games, of borrowers and
+          lendings – fast with a barcode scanner, for single copies as well
+          as whole class sets. Also suited for private collections.
+        </p>
+        <div class="buttons">
+          <a class="button primary"
+             href="https://github.com/pesch-1/colman/releases/latest">Download</a>
+          <a class="button" href="en/index.html">Read the tutorial</a>
+          <a class="button" href="https://github.com/pesch-1/colman">Source code</a>
+        </div>
+        <small>
+          Free and open source (GPL&nbsp;3) · Linux, Windows (preview),
+          Raspberry Pi server, Android app
+        </small>
+      </div>
+      <figure class="shot">
+        <img src="en/009_central_page.jpg" width="1100" height="800"
+             alt="colman main page with large buttons for lending,
+                  returning, acquiring, printing and more">
+        <figcaption>The main page: every task is one click away.</figcaption>
+      </figure>
+    </div>
+
+    <section id="features">
+      <h2>Features at a glance</h2>
+      <div class="features">
+        <div class="feature">
+          <h3>Fast with a barcode scanner</h3>
+          <p>Scan the ID card, scan the items, done – lending and
+            returning work without typing.</p>
+        </div>
+        <div class="feature">
+          <h3>Class sets in one step</h3>
+          <p>Guided flows for lending, returning, acquisition and
+            liquidation – also for 25 workbooks at once.</p>
+        </div>
+        <div class="feature">
+          <h3>Internet lookup</h3>
+          <p>Books, CDs, DVDs, Blu-rays and board games by ISBN, EAN or
+            title: title data and covers are filled in automatically.</p>
+        </div>
+        <div class="feature">
+          <h3>Label printing</h3>
+          <p>Barcode labels and spine signatures on label sheets or
+            directly on thermal label printers.</p>
+        </div>
+        <div class="feature">
+          <h3>Library ID cards</h3>
+          <p>ID cards with barcode and a freely designable layout; the
+            card can also be used to log in.</p>
+        </div>
+        <div class="feature">
+          <h3>Single machine, server, smartphone</h3>
+          <p>One database file on one PC, a server with several
+            workstations (e.g. on a Raspberry Pi), or the Android app with
+            camera barcode scanning.</p>
+        </div>
+        <div class="feature">
+          <h3>Your own item types</h3>
+          <p>Add new item types with custom fields (optionally mapped to
+            MARC21) – from books and games to equipment.</p>
+        </div>
+        <div class="feature">
+          <h3>Made for schools</h3>
+          <p>Classes and the new school year, reservations, loan periods,
+            fine-grained permissions for staff, teachers and pupils.</p>
+        </div>
+        <div class="feature">
+          <h3>Your data stays with you</h3>
+          <p>No cloud: data stays on your computer or your own server,
+            optionally in an encrypted database file.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="screenshots">
+      <h2>A closer look</h2>
+      <div class="shots">
+        <figure class="shot">
+          <img src="en/033_acquisition_04.jpg" width="1100" height="800"
+               loading="lazy"
+               alt="Acquiring an item: data filled in from the internet">
+          <figcaption>Acquiring an item – scan the ISBN, the data comes
+            from the internet.</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="en/021_id_card_layout.jpg" width="1100" height="800"
+               loading="lazy" alt="Layout editor for library ID cards">
+          <figcaption>Design ID cards, labels and spine signatures
+            yourself.</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="en/140_item_types.jpg" width="1100" height="800"
+               loading="lazy" alt="Managing item types and their fields">
+          <figcaption>Item types with their own fields.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="tutorial">
+      <h2>Tutorial</h2>
+      <p>
+        A step-by-step tutorial with screenshots guides you from the first
+        collection to lending, printing and the new school year.
+      </p>
+      <div class="buttons">
+        <a class="button" href="en/index.html">Read online</a>
+        <a class="button" href="en/colman_tutorial.pdf">Download PDF</a>
+      </div>
+    </section>
+
+    <section id="contribute">
+      <h2>Get involved</h2>
+      <div class="note">
+        <p>
+          colman is developed in the open, and help is very welcome. The
+          internet lookup has so far been geared mainly towards the
+          German-speaking countries – if you would like to help with
+          catalogues and services for other countries and languages, please
+          get in touch. Further label printer models and translations are
+          welcome, too.
+        </p>
+        <p>
+          See <a href="https://github.com/pesch-1/colman/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>
+          or open an <a href="https://github.com/pesch-1/colman/issues">issue</a>.
+        </p>
+      </div>
+    </section>
   </main>
+
+  <footer class="bottom">
+    <div class="wrap">
+      colman · © Christoph Pesch ·
+      <a href="https://www.gnu.org/licenses/gpl-3.0.html">GPL&nbsp;3.0 or later</a> ·
+      <a href="https://github.com/pesch-1/colman">Source code on GitHub</a>
+    </div>
+  </footer>
 </body>
 </html>

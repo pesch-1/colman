@@ -1345,6 +1345,9 @@ set(COLMAN_DIST_FILES
   doc/colman_rest_api.dox
   doc/colman_sql_database.dox
   doc/tutorial/index.html
+  doc/tutorial/de.html
+  doc/tutorial/site.css
+  doc/tutorial/sitemap.xml
   doc/tutorial/de/colman_tutorial.dox
   doc/tutorial/de/sample_data.json
   doc/tutorial/en/colman_tutorial.dox

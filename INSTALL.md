@@ -95,7 +95,10 @@ cmake --build bld-docs --target tutorial
 
 The published tutorial at <https://pesch-1.github.io/colman/> is built
 this way by `.github/workflows/tutorial.yml` on every push to `main` that
-touches `doc/`; the landing page is `doc/tutorial/index.html`.
+touches `doc/`.  The landing pages are `doc/tutorial/index.html`
+(English) and `doc/tutorial/de.html` (German), sharing
+`doc/tutorial/site.css`; they show screenshots from the tutorial output.
+`doc/tutorial/sitemap.xml` lists the pages for search engines.
 
 ---
 

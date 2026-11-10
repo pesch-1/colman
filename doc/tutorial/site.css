@@ -1,0 +1,241 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* Copyright (C) Christoph Pesch 2026 */
+/* Shared style of the landing pages index.html (English) and de.html
+   (German) on GitHub Pages. */
+
+:root {
+  --bg: #faf7f0;
+  --surface: #ffffff;
+  --text: #2a2620;
+  --muted: #6b645a;
+  --accent: #b4650f;
+  --accent-text: #ffffff;
+  --link: #8a4a06;
+  --border: #e6dfd2;
+  --shadow: 0 1px 3px rgba(60, 40, 10, 0.08),
+    0 8px 24px rgba(60, 40, 10, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1916;
+    --surface: #26231f;
+    --text: #eeeae3;
+    --muted: #aaa294;
+    --accent: #e09a3e;
+    --accent-text: #1b1916;
+    --link: #f0b462;
+    --border: #3a3630;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+a {
+  color: var(--link);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.wrap {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Top bar */
+
+header.top {
+  border-bottom: 1px solid var(--border);
+}
+
+header.top .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+header.top .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text);
+  text-decoration: none;
+  margin-right: auto;
+  flex-shrink: 0;
+}
+
+header.top .brand img {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+}
+
+header.top nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  font-size: 0.95rem;
+}
+
+/* Hero */
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: center;
+  padding: 3rem 0 2rem;
+}
+
+@media (min-width: 52rem) {
+  .hero {
+    grid-template-columns: 5fr 6fr;
+  }
+}
+
+.hero h1 {
+  font-size: clamp(1.9rem, 4vw, 2.75rem);
+  line-height: 1.15;
+  margin: 0 0 1rem;
+  text-wrap: balance;
+}
+
+.hero p.lead {
+  font-size: 1.2rem;
+  color: var(--muted);
+  margin: 0 0 1.5rem;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.65rem 1.2rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.hero small {
+  display: block;
+  margin-top: 0.75rem;
+  color: var(--muted);
+}
+
+figure.shot {
+  margin: 0;
+}
+
+figure.shot img {
+  display: block;
+  border-radius: 0.6rem;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+figure.shot figcaption {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-top: 0.5rem;
+}
+
+/* Sections */
+
+section {
+  padding: 2.5rem 0;
+}
+
+section h2 {
+  font-size: 1.6rem;
+  margin: 0 0 1.25rem;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem;
+}
+
+.feature {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1.1rem 1.25rem;
+}
+
+.feature h3 {
+  font-size: 1.05rem;
+  margin: 0 0 0.4rem;
+}
+
+.feature p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.97rem;
+}
+
+.shots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1.5rem;
+}
+
+ul.plain {
+  padding-left: 1.2rem;
+}
+
+ul.plain li {
+  margin: 0.3rem 0;
+}
+
+.note {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+}
+
+footer.bottom {
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+  padding: 1.5rem 0 2.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* EOF */
