@@ -16,6 +16,35 @@ eine **Windows**-Version gibt es als **Vorschau** (siehe
 [INSTALL.md](INSTALL.md#windows-preview), englisch).  Der mobile Client läuft
 auf **Android**-Geräten.  macOS wird noch nicht unterstützt.
 
+## Funktionen im Überblick
+
+- **Schnelle Bedienung per Barcode-Scanner:** Ausweis scannen, Medien
+  scannen, fertig – Ausleihe und Rückgabe gehen ohne Tippen von der Hand
+- **Geführte Abläufe** für Ausleihe, Rückgabe, Zugang und Abgang, auch für
+  ganze Klassensätze in einem Schritt
+- **Internetsuche** nach Büchern, CDs, DVDs, Blu-rays und Gesellschaftsspielen
+  per ISBN, EAN oder Titel – Titeldaten und Cover werden automatisch
+  übernommen (u. a. Deutsche Nationalbibliothek, K10plus, Open Library,
+  MusicBrainz, BoardGameGeek); bisher vor allem auf den deutschsprachigen
+  Raum ausgerichtet, aber nicht darauf beschränkt – wer bei Diensten für
+  andere Länder und Sprachen mitwirken möchte, ist herzlich willkommen
+  (siehe [CONTRIBUTING.md](CONTRIBUTING.md#internet-lookup))
+- **Etikettendruck** von Barcode-Etiketten und Signaturschildern, auch
+  direkt auf Thermo-Etikettendruckern (siehe unten)
+- **Leserausweise** mit Barcode und frei gestaltbarem Layout; der Ausweis
+  dient auch zur Anmeldung
+- **Einzelplatz, Server und Smartphone:** lokal mit einer einzigen
+  Datenbankdatei, im Netzwerk mit Server und mehreren Arbeitsplätzen
+  (z. B. auf einem Raspberry Pi) oder unterwegs mit der Android-App
+  inklusive Barcode-Scan per Kamera
+- **Erweiterbar um neue Medientypen** mit eigenen Feldern (optional mit
+  MARC21-Zuordnung) – von Büchern über Spiele bis zu Geräten
+- Reservierungen, Leihfristen und Verlängerungen, Ausleihhistorie
+- Klassenverwaltung und Wechsel ins neue Schuljahr
+- Fein abgestufte Berechtigungen für Bibliotheksteam, Lehrkräfte und
+  Schülerinnen und Schüler
+- Optional verschlüsselte Datenbankdatei
+
 Ursprünglich wurde colman für die Ausleihe von Klassensätzen entwickelt —
 etwa Arbeitshefte, die eine Schule in vielen Exemplaren besitzt.  Mehrere
 Exemplare desselben Titels lassen sich in einem Schritt erfassen,
@@ -28,21 +57,6 @@ Gegenständen und behält im Blick, was an wen verliehen ist.  Schwerpunkt
 und am gründlichsten getestet ist allerdings der Einsatz in der
 Schulbücherei; private Sammlungen werden unterstützt, sind aber noch nicht
 so ausführlich getestet.
-
-## Funktionen im Überblick
-
-- Geführte Abläufe für Ausleihe, Rückgabe, Zugang und Abgang, auch für
-  viele Exemplare auf einmal
-- Barcodes für Medien und Leserausweise; Druck von Ausweisen, Etiketten
-  und Signaturschildern (auch auf Thermo-Etikettendruckern)
-- Übernahme von Titeldaten und Covern aus dem Internet per ISBN oder EAN
-  (u. a. Deutsche Nationalbibliothek, Open Library, MusicBrainz,
-  BoardGameGeek)
-- Reservierungen, Leihfristen und Verlängerungen, Ausleihhistorie
-- Klassenverwaltung und Wechsel ins neue Schuljahr
-- Fein abgestufte Berechtigungen für Bibliotheksteam, Lehrkräfte und
-  Schülerinnen und Schüler
-- Optional verschlüsselte Datenbankdatei
 
 ## Thermo-Etikettendrucker
 

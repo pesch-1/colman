@@ -41,6 +41,23 @@ The interactive program `colman_test_label_printer` prints test labels and
 shows the paper status reported by the connected printers.  Please ask
 before sending any other raw commands to a printer you do not own.
 
+## Internet lookup
+
+The internet lookup of title data (by ISBN, EAN or title) has so far been
+geared mainly towards the German-speaking countries: the preconfigured
+SRU catalogues are the German National Library (DNB) and K10plus, and the
+other services (Open Library, Google Books, MusicBrainz, BoardGameGeek,
+opengtindb.org) have mainly been tested with German-language media.  The
+lookup is not limited to these, though — any SRU catalogue can be added in
+the settings, and further services can be implemented.
+
+Anyone who would like to help is very welcome: reports on how well the
+lookup works in other countries, suitable catalogues and their search
+indexes (see [doc/sru_servers.md](doc/sru_servers.md)), or new lookup
+services.  The lookup code lives in `colman_isbn_queries.cpp`,
+`colman_ean_queries.cpp`, `colman_name_queries.cpp` (title search) and
+`colman_bgg_queries.cpp`.
+
 ## Building and testing
 
 C++ sources live in `src/`, unit tests in `tests/`, the Flutter client in

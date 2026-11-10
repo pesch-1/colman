@@ -2072,6 +2072,13 @@ Blu-rays as specific releases -- with distributor, running time,
 language versions and age rating.
 @endtip
 
+So far, the internet lookup has been geared mainly towards the
+German-speaking countries, but it is not limited to them: further SRU
+catalogues, such as that of your national library, can be added to
+the table. Anyone who would like to help with services for other
+countries and languages is very welcome -- see the file
+<tt>CONTRIBUTING.md</tt> of the project.
+
 <b>Barcode bar width</b>
 
 The width of the narrowest bar (X dimension) of the printed Code 128

@@ -2247,6 +2247,14 @@ Veröffentlichungen -- mit Vertrieb, Laufzeit, Sprachfassungen
 und FSK-Angabe.
 @endtip
 
+Die Internetsuche hat sich bisher vor allem am
+deutschsprachigen Raum orientiert, ist aber nicht auf ihn
+beschränkt: Weitere SRU-Kataloge, etwa der Nationalbibliothek
+deines Landes, lassen sich in der Tabelle ergänzen. Wer bei
+Diensten für andere Länder und Sprachen mitwirken möchte, ist
+herzlich willkommen -- Hinweise dazu stehen in der Datei
+<tt>CONTRIBUTING.md</tt> des Projekts.
+
 <b>Barcode-Strichbreite</b>
 
 Die Breite des schmalsten Strichs (X-Dimension) der gedruckten

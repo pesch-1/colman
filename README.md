@@ -16,6 +16,34 @@ The application is built with Qt 6 and stores its data in a SQLite database.
 [INSTALL.md](INSTALL.md#windows-preview)).  The mobile client runs on
 **Android** devices.  macOS is not supported yet.
 
+## Features at a glance
+
+- **Fast operation with a barcode scanner:** scan the ID card, scan the
+  items, done — lending and returning work without typing
+- **Guided flows** for lending, returning, acquisition and liquidation,
+  including whole class sets in a single step
+- **Internet lookup** of books, CDs, DVDs, Blu-rays and board games by
+  ISBN, EAN or title — title data and covers are filled in automatically
+  (e.g. German National Library, K10plus, Open Library, MusicBrainz,
+  BoardGameGeek); so far geared mainly towards the German-speaking
+  countries, but not limited to them — anyone who would like to help with
+  services for other countries and languages is very welcome (see
+  [CONTRIBUTING.md](CONTRIBUTING.md#internet-lookup))
+- **Label printing** of barcode labels and spine signatures, also directly
+  on thermal label printers (see below)
+- **Library ID cards** with barcode and a freely designable layout; the
+  card can also be used to log in
+- **Single machine, server and smartphone:** locally with a single
+  database file, on the network with a server and several workstations
+  (e.g. on a Raspberry Pi), or on the go with the Android app, including
+  barcode scanning with the camera
+- **Extensible with new item types** with custom fields (optionally mapped
+  to MARC21) — from books and games to equipment
+- Reservations, loan periods and renewals, lending history
+- Class management and transition to the new school year
+- Fine-grained permissions for library staff, teachers and pupils
+- Optionally encrypted database file
+
 Colman was originally developed to support the lending of class sets — for
 example, workbooks of which a school owns many copies. Multiple copies of the
 same item can be acquired, lent out, returned, or liquidated in a single step,
