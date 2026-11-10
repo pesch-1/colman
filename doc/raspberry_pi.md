@@ -1,7 +1,7 @@
 # Raspberry Pi – REST Server Setup
 
 This guide explains how to install the **colman REST server** on a
-Raspberry Pi 4 (Raspberry Pi OS, Bookworm) and configure it to
+Raspberry Pi 4 or 5 (Raspberry Pi OS, Trixie) and configure it to
 start automatically on every boot.
 
 ---
@@ -9,7 +9,9 @@ start automatically on every boot.
 ## System requirements
 
 - Raspberry Pi 4 (4 GB RAM recommended)
-- Raspberry Pi OS, Debian Bookworm (Raspberry Pi OS 12), 32-bit (armhf) or 64-bit (arm64)
+- Raspberry Pi OS Lite, Debian Trixie (Raspberry Pi OS 13), 64-bit (arm64)
+  recommended; 32-bit (armhf) works as well.  The older Bookworm release
+  (Raspberry Pi OS 12, Qt 6.4) is still supported with the same steps.
 - Internet access during initial setup (cmake downloads jwt-cpp and
   SQLite3MultipleCiphers)
 
@@ -21,7 +23,7 @@ start automatically on every boot.
 sudo apt update
 sudo apt install -y build-essential cmake git libssl-dev libargon2-dev \
   qt6-base-dev qt6-httpserver-dev qt6-websockets-dev qt6-svg-dev \
-  linguist-qt6
+  qt6-tools-dev qt6-l10n-tools
 ```
 
 | Package | Purpose |
@@ -35,18 +37,21 @@ sudo apt install -y build-essential cmake git libssl-dev libargon2-dev \
 | `qt6-httpserver-dev` | Qt 6 HTTP server module |
 | `qt6-websockets-dev` | Qt 6 WebSockets (required by HttpServer) |
 | `qt6-svg-dev` | Qt 6 SVG support |
-| `linguist-qt6` | Qt 6 Linguist tools (translation support) |
+| `qt6-tools-dev` | CMake support for the Qt 6 Linguist tools (translation support) |
+| `qt6-l10n-tools` | `lrelease` / `lupdate` (compiling translations) |
 
 ---
 
 ## Step 2 – Get the source code
 
 ```bash
-git clone <repo-url> colman
+git clone https://github.com/pesch-1/colman.git colman
 cd colman
+git checkout "$(git describe --tags --abbrev=0)"
 ```
 
-Replace `<repo-url>` with the actual repository URL.
+This checks out the latest release tag.  Server and desktop clients should
+run the same release.
 
 ---
 
@@ -321,7 +326,8 @@ sudo systemctl stop colman-rest      # stop
 
 ```bash
 cd colman
-git pull
+git fetch --tags
+git checkout "$(git describe --tags --abbrev=0 origin/main)"
 cmake --build bld --target server -j1
 sudo install -m 755 bld/colman_rest_server /usr/local/bin/
 sudo systemctl restart colman-rest
