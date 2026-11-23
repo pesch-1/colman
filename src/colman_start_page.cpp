@@ -1750,8 +1750,10 @@ void colman::setup_start_page(QApplication& app, colman::AppData& data,
             setup(app, data, data.filename_);
             colman::update_login_status(data);
           },
-          [&data, login_page]() {
+          [&data, login_page, barcode_edit]() {
             data.mw_.pages_stack_->setCurrentWidget(login_page);
+            barcode_edit->clear();
+            barcode_edit->setFocus();
           });
   data.mw_.pages_stack_->addWidget(admin_login_page);
 

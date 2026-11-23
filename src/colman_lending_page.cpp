@@ -346,6 +346,10 @@ namespace
           QApplication::tr("Step 2: Please select item to lend!"));
     }
     data.mw_.pages_stack_->setCurrentWidget(data.mw_.lending_item_);
+    // Focus the barcode field (selecting any old text) so that a scan
+    // replaces the previous search.
+    data.mw_.lending_item_barcode_->setFocus();
+    data.mw_.lending_item_barcode_->selectAll();
   }
 
 

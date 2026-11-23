@@ -259,6 +259,7 @@ namespace
     data.mw_.person_view_person_list_->clear_search_field();
     refresh_person_query(data);
     data.mw_.pages_stack_->setCurrentWidget(data.mw_.person_view_page_);
+    data.mw_.person_view_person_list_->focus_search_field();
   }
 
 } // namespace

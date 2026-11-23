@@ -310,6 +310,10 @@ namespace
     show_item(data, item_id);
     data.mw_.return_item_next_->setEnabled(item_id > 0 && data.queries_->have_lendings(item_id));
     data.mw_.pages_stack_->setCurrentWidget(data.mw_.return_item_);
+    // Focus the barcode field (selecting any old text) so that a scan
+    // replaces the previous search.
+    data.mw_.return_item_barcode_->setFocus();
+    data.mw_.return_item_barcode_->selectAll();
   }
 
 

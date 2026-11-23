@@ -1575,6 +1575,8 @@ namespace
       update_acquire_button();
       update_edit_button();
       do_search();
+      general_edit_->setFocus();
+      general_edit_->selectAll();
     }
 
   private:
