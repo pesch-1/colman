@@ -116,6 +116,16 @@ target_compile_options(colman_sqlite3mc PRIVATE
   $<IF:$<C_COMPILER_ID:MSVC>,/w,-w>
 )
 set_target_properties(colman_sqlite3mc PROPERTIES C_VISIBILITY_PRESET hidden)
+# Workaround for a bug in SQLite3MultipleCiphers: in C23 mode (the default
+# since GCC 15) it calls memset_explicit() without checking that the C
+# library provides it; older ones lack it (glibc only has it from 2.43 on,
+# e.g. not openSUSE Leap 15.6).  Then compile it as C17, where it uses
+# explicit_bzero() (glibc >= 2.25) or the like instead.
+include(CheckSymbolExists)
+check_symbol_exists(memset_explicit "string.h" COLMAN_HAVE_MEMSET_EXPLICIT)
+if(NOT COLMAN_HAVE_MEMSET_EXPLICIT)
+  set_target_properties(colman_sqlite3mc PROPERTIES C_STANDARD 17)
+endif()
 # clang-cl defines both _MSC_VER and __SIZEOF_INT128__; SQLite3MultipleCiphers
 # then picks neither its MSVC nor its GCC Poly1305 helpers.  Make it take the
 # MSVC path, as with the Microsoft compiler itself.
