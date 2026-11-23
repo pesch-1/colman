@@ -273,6 +273,9 @@ void colman::MainWindowUi::setup_ui(QMainWindow& window)
 
   auto* statusbar = new QStatusBar(&window);
   window.setStatusBar(statusbar);
+  stock_label_ = new QLabel(statusbar);
+  stock_label_->setObjectName("stock_label_");
+  statusbar->addPermanentWidget(stock_label_);
 
   pages_stack_->setCurrentIndex(0);
 }

@@ -358,6 +358,10 @@ namespace colman
     std::vector<StartPagePersonListModel::Row>
     query_start_page_persons(QString const& search) override;
     int count_items() override;
+    StockTotals query_stock_totals() override;
+    std::vector<TypeStatistics>
+    query_statistics(QDate const& from, QDate const& to,
+                     QLocale::Language lang = QLocale::AnyLanguage) override;
     std::vector<ItemListModel::Row>
     query_items(int item_id, QString const& search,
                 QLocale::Language lang = QLocale::AnyLanguage) override;

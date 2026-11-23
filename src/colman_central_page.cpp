@@ -2641,6 +2641,9 @@ void colman::setup_central_page(QApplication& app, colman::AppData& data)
   data.history_button_ =
       make_btn(QApplication::tr("view history"),
                QIcon(":/icons/owls/list_history.jpeg"));
+  data.statistics_button_ =
+      make_btn(QApplication::tr("statistics"),
+               QIcon(":/icons/owls/statistics.jpeg"));
   data.new_person_button_ =
       make_btn(QApplication::tr("manage borrowers"),
                QIcon(":/icons/owls/edit_persons.jpeg"));
@@ -2736,6 +2739,7 @@ void colman::setup_central_page(QApplication& app, colman::AppData& data)
         data.group_lend_button_,
         data.return_button_,
         data.history_button_,
+        data.statistics_button_,
         data.new_person_button_,
         data.class_management_button_,
         data.acquisition_button_,
@@ -2772,7 +2776,7 @@ void colman::setup_central_page(QApplication& app, colman::AppData& data)
       // stock
       {data.acquisition_button_, data.liquidation_button_,
        data.print_barcode_button_, data.print_signatures_button_,
-       data.history_button_},
+       data.history_button_, data.statistics_button_},
       // persons and own account
       {data.new_person_button_, data.print_id_button_,
        data.class_management_button_, change_passwords_btn,
@@ -2830,6 +2834,7 @@ void colman::setup_central_page(QApplication& app, colman::AppData& data)
             static_cast<QAbstractButton*>(data.acquisition_button_),
             static_cast<QAbstractButton*>(data.liquidation_button_),
             static_cast<QAbstractButton*>(data.history_button_),
+            static_cast<QAbstractButton*>(data.statistics_button_),
             static_cast<QAbstractButton*>(data.new_person_button_),
             static_cast<QAbstractButton*>(data.search_button_),
             static_cast<QAbstractButton*>(data.item_type_button_),
@@ -2985,6 +2990,7 @@ void colman::setup_central_page(QApplication& app, colman::AppData& data)
           data.print_id_button_->setVisible(true);
           data.print_barcode_button_->setVisible(true);
           data.history_button_->setVisible(true);
+          data.statistics_button_->setVisible(true);
           data.edit_id_button_->setVisible(true);
           data.edit_item_card_button_->setVisible(true);
           data.edit_signature_layout_button_->setVisible(true);
@@ -3029,6 +3035,7 @@ void colman::setup_central_page(QApplication& app, colman::AppData& data)
           data.print_id_button_->setVisible(has("print_ids"));
           data.print_barcode_button_->setVisible(has("print_barcodes"));
           data.history_button_->setVisible(has("view_history"));
+          data.statistics_button_->setVisible(has("collect_acquisitions"));
           data.edit_id_button_->setVisible(has("edit_id_layout"));
           data.edit_item_card_button_->setVisible(has("edit_id_layout"));
           data.edit_signature_layout_button_->setVisible(
@@ -3040,6 +3047,8 @@ void colman::setup_central_page(QApplication& app, colman::AppData& data)
           data.class_management_button_->setVisible(has("manage_classes"));
           data.my_reservations_button_->setVisible(has("reserve"));
         }
+        // Other users may have changed the stock in the meantime.
+        colman::update_stock_status(data);
         // The lend tile's label depends on the permissions.
         equalize_button_sizes(eq_btns);
         update_rows();

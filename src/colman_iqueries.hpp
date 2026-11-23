@@ -644,6 +644,46 @@ namespace colman
 
     /// Returns the total number of items in the database.
     virtual int count_items() = 0;
+
+    /// Number of items in stock and of their copies.
+    struct StockTotals
+    {
+      int items_ = 0;  ///< items with at least one copy in stock
+      int copies_ = 0; ///< copies in stock
+    };
+    /// Returns the number of items in stock and of their copies.
+    /** Items whose copies have all been liquidated are not counted. */
+    virtual StockTotals query_stock_totals() = 0;
+
+    /// Stock, circulation and acquisition figures of one item type.
+    struct TypeStatistics
+    {
+      int type_id_ = 0;           ///< item type
+      QString type_name_;         ///< localized item type name
+      int items_ = 0;             ///< items with at least one copy in stock
+      int copies_ = 0;            ///< copies in stock
+      int lent_ = 0;              ///< copies currently lent
+      int reserved_ = 0;          ///< copies in active reservations
+      int overdue_ = 0;           ///< lent copies past their due date
+      int acquired_items_ = 0;    ///< items acquired in the time span
+      int acquired_copies_ = 0;   ///< copies acquired in the time span
+      int liquidated_items_ = 0;  ///< items liquidated in the time span
+      int liquidated_copies_ = 0; ///< copies liquidated in the time span
+    };
+    /// Returns stock, circulation and acquisition figures per item type.
+    /**
+       The current figures (stock, lent, reserved, overdue) ignore the time
+       span; acquisitions and liquidations are counted if their date lies
+       in the inclusive range [\a from, \a to].  Item types without any
+       non-zero figure are omitted.
+       @param from first day of the time span
+       @param to   last day of the time span
+       @param lang language of the item type names
+       @return one entry per item type, ordered by type name
+    */
+    virtual std::vector<TypeStatistics> query_statistics(
+        QDate const& from, QDate const& to,
+        QLocale::Language lang = QLocale::AnyLanguage) = 0;
     /// Queries items filtered by id and text search.
     virtual std::vector<ItemListModel::Row> query_items(
         int item_id, QString const& search,

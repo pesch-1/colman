@@ -607,6 +607,8 @@ rows without a visible button are omitted entirely.
 - <b>print labels</b> (<b>Print labels</b>)
 - <b>print signatures</b> (<b>Print signature labels</b>)
 - <b>view history</b> (<b>View history</b>)
+- <b>statistics</b> (<b>Record acquisitions</b>, see
+  @ref tutorial_statistics)
 
 <b>Row 3 -- Persons and own account</b>
 - <b>manage borrowers</b> (<b>Edit persons</b>, <b>Create
@@ -624,7 +626,9 @@ rows without a visible button are omitted entirely.
   signature layout</b> (each <b>Edit ID card layout</b>)
 - <b>calibrate printer</b> (administrator only)
 
-The status bar at the bottom shows who is currently logged in.
+The status bar at the bottom shows on the left who is currently logged
+in and on the right how many copies of how many items the collection
+holds (items whose copies have all been liquidated are not counted).
 
 @image html 009_central_page.jpg "Central navigation page (administrator)"
 @image latex 009_central_page.jpg "Central navigation page (administrator)"
@@ -1961,6 +1965,39 @@ page.
 
 ---
 
+@page tutorial_statistics Statistics
+
+The statistics page summarizes the stock of the collection.  It is
+available to the administrator and to users with the permission
+<b>Record acquisitions</b>.
+
+@section tutorial_statistics_navigate Navigation
+
+On the central navigation page, click <b>statistics</b>.
+
+@section tutorial_statistics_stock Current Stock
+
+The upper table shows for each category how many <b>Items</b> and
+<b>Copies</b> are in stock and how many copies are currently
+<b>Lent</b>, <b>Reserved</b> and <b>Overdue</b> (lent copies whose
+due date has passed).  If the collection contains items of several
+categories, a <b>Total</b> row follows.
+
+@image html 180_statistics.jpg "Statistics"
+@image latex 180_statistics.jpg "Statistics"
+
+@section tutorial_statistics_period Acquisitions and Liquidations
+
+The lower table shows for each category how many items and copies
+were acquired and liquidated within a period.  The period is set
+with the fields <b>from</b> and <b>to</b>; it covers the last year
+by default.  The table is updated as soon as a date is changed.
+
+The button <b>back</b> takes you back to the central navigation
+page.
+
+---
+
 @page tutorial_settings Settings
 
 The settings page is divided into four tabs. Which tabs you see
@@ -2531,7 +2568,7 @@ permissions of a person is described in
 | Create data collectors | Create and edit only persons who record acquisitions or liquidations |
 | Record lendings | Lend items |
 | Record returns | Record returns |
-| Record acquisitions | Acquire items |
+| Record acquisitions | Acquire items, view the statistics |
 | Record liquidations | Liquidate items |
 | View history | View the history |
 | View person lists | Person lists and filters, reminder of due returns |
@@ -2561,6 +2598,7 @@ permission:
 |---|---|
 | manage borrowers | Edit persons, Create borrowers or Create data collectors |
 | acquire | Record acquisitions |
+| statistics | Record acquisitions |
 | lend item | Record lendings (persons who may only <b>Reserve media</b> see <b>reserve item</b> instead) |
 | return item | Record returns |
 | liquidate | Record liquidations |

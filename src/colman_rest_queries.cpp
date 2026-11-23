@@ -2315,6 +2315,54 @@ namespace colman
     return obj.value(QStringLiteral("count")).toInt(0);
   }
 
+  IQueries::StockTotals RestQueries::query_stock_totals()
+  {
+    StockTotals totals;
+    auto r = send(QStringLiteral("GET"),
+                  QStringLiteral("/api/items/totals"));
+    if(r.status != 200) {
+      return totals;
+    }
+    auto const obj = QJsonDocument::fromJson(r.body).object();
+    totals.items_ = obj.value(QStringLiteral("items")).toInt(0);
+    totals.copies_ = obj.value(QStringLiteral("copies")).toInt(0);
+    return totals;
+  }
+
+  std::vector<IQueries::TypeStatistics>
+  RestQueries::query_statistics(QDate const& from, QDate const& to,
+                                QLocale::Language /*lang*/)
+  {
+    auto path =
+        QStringLiteral("/api/statistics?from=") + date_str(from) +
+        QStringLiteral("&to=") + date_str(to);
+    auto r = send(QStringLiteral("GET"), path);
+    if(r.status != 200) {
+      return {};
+    }
+    std::vector<TypeStatistics> result;
+    for(auto const& v : parse_arr(r.body)) {
+      auto const o = v.toObject();
+      TypeStatistics s;
+      s.type_id_ = o.value(QStringLiteral("type_id")).toInt();
+      s.type_name_ = o.value(QStringLiteral("type_name")).toString();
+      s.items_ = o.value(QStringLiteral("items")).toInt();
+      s.copies_ = o.value(QStringLiteral("copies")).toInt();
+      s.lent_ = o.value(QStringLiteral("lent")).toInt();
+      s.reserved_ = o.value(QStringLiteral("reserved")).toInt();
+      s.overdue_ = o.value(QStringLiteral("overdue")).toInt();
+      s.acquired_items_ = o.value(QStringLiteral("acquired_items")).toInt();
+      s.acquired_copies_ =
+          o.value(QStringLiteral("acquired_copies")).toInt();
+      s.liquidated_items_ =
+          o.value(QStringLiteral("liquidated_items")).toInt();
+      s.liquidated_copies_ =
+          o.value(QStringLiteral("liquidated_copies")).toInt();
+      result.push_back(std::move(s));
+    }
+    return result;
+  }
+
   std::vector<ItemListModel::Row>
   RestQueries::query_items(int item_id,
                            QString const& search,

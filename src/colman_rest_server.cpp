@@ -1721,6 +1721,65 @@ namespace colman
           return json_resp(obj);
         });
 
+    // Shown in the status bar of every logged-in user, hence no permission.
+    server_.route(
+        QStringLiteral("/api/items/totals"),
+        Method::Get,
+        [this](QHttpServerRequest const& req)
+            -> QHttpServerResponse {
+          auto ar = auth_.authenticate(
+              QString::fromUtf8(req.value("Authorization")),
+              {});
+          if(ar.error != AuthMiddleware::AuthError::Ok) {
+            return auth_error(ar.error);
+          }
+          auto const totals = queries_.query_stock_totals();
+          QJsonObject obj;
+          obj[QStringLiteral("items")] = totals.items_;
+          obj[QStringLiteral("copies")] = totals.copies_;
+          return json_resp(obj);
+        });
+
+    server_.route(
+        QStringLiteral("/api/statistics"),
+        Method::Get,
+        [this](QHttpServerRequest const& req)
+            -> QHttpServerResponse {
+          auto ar = auth_.authenticate(
+              QString::fromUtf8(req.value("Authorization")),
+              QStringLiteral("collect_acquisitions"));
+          if(ar.error != AuthMiddleware::AuthError::Ok) {
+            return auth_error(ar.error);
+          }
+          auto const query = QUrlQuery(req.url().query());
+          auto const from = QDate::fromString(
+              query.queryItemValue(QStringLiteral("from")), Qt::ISODate);
+          auto const to = QDate::fromString(
+              query.queryItemValue(QStringLiteral("to")), Qt::ISODate);
+          if(!from.isValid() || !to.isValid()) {
+            return json_error(
+                QStringLiteral("Bad request"), SC::BadRequest);
+          }
+          QJsonArray arr;
+          for(auto const& s : queries_.query_statistics(
+                  from, to, language_from_request(req))) {
+            QJsonObject o;
+            o[QStringLiteral("type_id")] = s.type_id_;
+            o[QStringLiteral("type_name")] = s.type_name_;
+            o[QStringLiteral("items")] = s.items_;
+            o[QStringLiteral("copies")] = s.copies_;
+            o[QStringLiteral("lent")] = s.lent_;
+            o[QStringLiteral("reserved")] = s.reserved_;
+            o[QStringLiteral("overdue")] = s.overdue_;
+            o[QStringLiteral("acquired_items")] = s.acquired_items_;
+            o[QStringLiteral("acquired_copies")] = s.acquired_copies_;
+            o[QStringLiteral("liquidated_items")] = s.liquidated_items_;
+            o[QStringLiteral("liquidated_copies")] = s.liquidated_copies_;
+            arr.append(o);
+          }
+          return json_resp(arr);
+        });
+
     server_.route(
         QStringLiteral(
             "/api/items/ordered-by-name"),

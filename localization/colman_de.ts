@@ -4064,6 +4064,80 @@ Reservierungen</translation>
         <source>Searches the internet for this item (by ISBN, EAN or title) and fills in only empty fields and a missing cover image; existing entries are kept.</source>
         <translation>Sucht dieses Medium im Internet (über ISBN, EAN oder Titel) und füllt nur leere Felder und ein fehlendes Titelbild aus; vorhandene Einträge bleiben erhalten.</translation>
     </message>
+    <message>
+        <source>statistics</source>
+        <translation>Statistik</translation>
+    </message>
+    <message>
+        <source>Total</source>
+        <translation>Gesamt</translation>
+    </message>
+    <message>
+        <source>Statistics</source>
+        <translation>Statistik</translation>
+    </message>
+    <message>
+        <source>Current stock</source>
+        <translation>Aktueller Bestand</translation>
+    </message>
+    <message>
+        <source>Category</source>
+        <translation>Kategorie</translation>
+    </message>
+    <message>
+        <source>Items</source>
+        <translation>Gegenstände</translation>
+    </message>
+    <message>
+        <source>Copies</source>
+        <translation>Exemplare</translation>
+    </message>
+    <message>
+        <source>Overdue</source>
+        <translation>Überfällig</translation>
+    </message>
+    <message>
+        <source>Acquisitions and liquidations</source>
+        <translation>Anschaffungen und Aussortierungen</translation>
+    </message>
+    <message>
+        <source>from</source>
+        <translation>von</translation>
+    </message>
+    <message>
+        <source>to</source>
+        <translation>bis</translation>
+    </message>
+    <message>
+        <source>Acquired items</source>
+        <translation>Angeschaffte Gegenstände</translation>
+    </message>
+    <message>
+        <source>Acquired copies</source>
+        <translation>Angeschaffte Exemplare</translation>
+    </message>
+    <message>
+        <source>Liquidated items</source>
+        <translation>Aussortierte Gegenstände</translation>
+    </message>
+    <message>
+        <source>Liquidated copies</source>
+        <translation>Aussortierte Exemplare</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n copy(ies)</source>
+        <translation>
+            <numerusform>%n Exemplar</numerusform>
+            <numerusform>%n Exemplare</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>of %n item(s)</source>
+        <translation>
+            <numerusform>von %n Gegenstand</numerusform>
+            <numerusform>von %n Gegenständen</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>QCoreApplication</name>

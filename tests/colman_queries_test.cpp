@@ -925,6 +925,137 @@ private Q_SLOTS:
   }
 
     // ==================================================================
+    // query_stock_totals / query_statistics
+    // ==================================================================
+
+  void test_statistics_empty()
+  {
+    setup_db();
+    auto const totals = queries_->query_stock_totals();
+    QCOMPARE(totals.items_, 0);
+    QCOMPARE(totals.copies_, 0);
+    QDate const today = QDate::currentDate();
+    QVERIFY(queries_->query_statistics(today.addYears(-1), today).empty());
+    teardown_db();
+  }
+
+  void test_statistics_figures()
+  {
+    setup_db();
+    QDate const today = QDate::currentDate();
+    int const book_type = queries_->add_new_type(colman::make_book_type());
+    int const tag_type =
+        queries_->add_new_type(colman::make_repeatable_type());
+    int const person_id =
+        queries_->add_new_person(colman::make_test_person());
+    auto const add_item = [this](int type_id, QString const& name,
+                                 unsigned int count, QDate const& day) {
+      colman::Item item;
+      item.set_type_id(type_id);
+      item.set_name(name);
+      int const id = queries_->add_new_item(item);
+      colman::Acquisition acq;
+      acq.set_item_id(id);
+      acq.set_count(count);
+      acq.set_date_time(QDateTime(day, QTime(12, 0)));
+      if(queries_->add_new_acquisition(acq) < 0) {
+        QTest::qFail("add_new_acquisition failed", __FILE__, __LINE__);
+      }
+      return id;
+    };
+    auto const liquidate = [this](int item_id, unsigned int count,
+                                  QDate const& day) {
+      colman::Liquidation liq;
+      liq.set_item_id(item_id);
+      liq.set_count(count);
+      liq.set_date_time(QDateTime(day, QTime(12, 0)));
+      if(queries_->add_new_liquidation(liq) < 0) {
+        QTest::qFail("add_new_liquidation failed", __FILE__, __LINE__);
+      }
+    };
+    auto const lend = [this, person_id](int item_id, unsigned int count,
+                                        QDate const& due) {
+      colman::Lending l;
+      l.set_item_id(item_id);
+      l.set_person_id(person_id);
+      l.set_count(count);
+      l.set_date_time(QDateTime::currentDateTime());
+      l.set_duedate(due);
+      int const id = queries_->add_new_lending(l);
+      if(id < 0) {
+        QTest::qFail("add_new_lending failed", __FILE__, __LINE__);
+      }
+      return id;
+    };
+
+    // Books: A (10 copies, 1 liquidated), B (2 copies acquired long ago,
+    // all liquidated recently).  Tagged: C (4 copies).
+    int const a = add_item(book_type, "A", 10, today.addDays(-30));
+    int const b = add_item(book_type, "B", 2, today.addDays(-400));
+    int const c = add_item(tag_type, "C", 4, today.addDays(-3));
+    liquidate(a, 1, today.addDays(-10));
+    liquidate(b, 2, today.addDays(-5));
+    // A: 3 copies overdue (1 of them returned), 2 lent until tomorrow.
+    int const overdue_lending = lend(a, 3, today.addDays(-1));
+    colman::Return r;
+    r.set_lending_id(overdue_lending);
+    r.set_count(1);
+    r.set_date_time(QDateTime::currentDateTime());
+    QVERIFY(queries_->add_new_return(r) >= 0);
+    lend(a, 2, today.addDays(1));
+    // C: one copy lent without due date, one reserved.
+    lend(c, 1, QDate());
+    int reservation_id = 0;
+    QCOMPARE(queries_->add_reservation(c, person_id, 1, today.addDays(1), 0,
+                                       reservation_id),
+             colman::IQueries::ReservationResult::Ok);
+
+    auto const totals = queries_->query_stock_totals();
+    QCOMPARE(totals.items_, 2);
+    QCOMPARE(totals.copies_, 13);
+
+    auto const stats =
+        queries_->query_statistics(today.addYears(-1), today);
+    QCOMPARE(static_cast<int>(stats.size()), 2);
+    auto const& book = stats[0];
+    QCOMPARE(book.type_id_, book_type);
+    QCOMPARE(book.items_, 1);
+    QCOMPARE(book.copies_, 9);
+    QCOMPARE(book.lent_, 4);
+    QCOMPARE(book.overdue_, 2);
+    QCOMPARE(book.reserved_, 0);
+    QCOMPARE(book.acquired_items_, 1);
+    QCOMPARE(book.acquired_copies_, 10);
+    QCOMPARE(book.liquidated_items_, 2);
+    QCOMPARE(book.liquidated_copies_, 3);
+    auto const& tagged = stats[1];
+    QCOMPARE(tagged.type_id_, tag_type);
+    QCOMPARE(tagged.items_, 1);
+    QCOMPARE(tagged.copies_, 4);
+    QCOMPARE(tagged.lent_, 1);
+    QCOMPARE(tagged.overdue_, 0);
+    QCOMPARE(tagged.reserved_, 1);
+    QCOMPARE(tagged.acquired_items_, 1);
+    QCOMPARE(tagged.acquired_copies_, 4);
+    QCOMPARE(tagged.liquidated_copies_, 0);
+
+    // A time span without movements keeps the current figures.
+    auto const old = queries_->query_statistics(QDate(2000, 1, 1),
+                                                QDate(2000, 12, 31));
+    QCOMPARE(static_cast<int>(old.size()), 2);
+    QCOMPARE(old[0].copies_, 9);
+    QCOMPARE(old[0].acquired_copies_, 0);
+    QCOMPARE(old[0].liquidated_copies_, 0);
+
+    // Bounds are whole days: a span of the acquisition day of C matches.
+    auto const day = queries_->query_statistics(today.addDays(-3),
+                                                today.addDays(-3));
+    QCOMPARE(day[1].acquired_copies_, 4);
+    QCOMPARE(day[0].acquired_copies_, 0);
+    teardown_db();
+  }
+
+    // ==================================================================
     // get_items_with_type_and_thumbnails
     // ==================================================================
 

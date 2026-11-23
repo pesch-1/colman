@@ -60,6 +60,14 @@
 #  include <algorithm>
 #  define SYSTEM_ALGORITHM
 #endif
+#ifndef SYSTEM_FUNCTIONAL
+#  include <functional>
+#  define SYSTEM_FUNCTIONAL
+#endif
+#ifndef SYSTEM_MAP
+#  include <map>
+#  define SYSTEM_MAP
+#endif
 
 namespace
 {
@@ -274,6 +282,153 @@ int colman::SQLQueries::count_items()
     return 0;
   }
   return query.value(0).toInt();
+}
+
+/// Returns the number of items in stock and of their copies.
+/**
+  Items whose copies have all been liquidated (count 0) are not counted.
+  @return items and copies in stock; zero on error
+*/
+colman::IQueries::StockTotals colman::SQLQueries::query_stock_totals()
+{
+  StockTotals totals;
+  QSqlQuery query(db_);
+  query.prepare("SELECT COUNT(*), COALESCE(SUM(count), 0) FROM items "
+                "WHERE count > 0");
+  if(!query.exec() || !query.next()) {
+    qWarning() << "query_stock_totals failed:" << query.lastError();
+    return totals;
+  }
+  totals.items_ = query.value(0).toInt();
+  totals.copies_ = query.value(1).toInt();
+  return totals;
+}
+
+/// Returns stock, circulation and acquisition figures per item type.
+/**
+  Runs one grouped query per figure and merges the results by item type.
+  Copies are lent as long as their lending has not been returned; they are
+  overdue if the due date of their lending lies before today.  Reservations
+  count if they have not expired.  Acquisitions and liquidations count if
+  their date lies in [\a from, \a to] (whole days).
+  @param from first day of the time span
+  @param to   last day of the time span
+  @param lang language of the item type names
+  @return one entry per item type with a non-zero figure, ordered by name
+*/
+std::vector<colman::IQueries::TypeStatistics>
+colman::SQLQueries::query_statistics(QDate const& from, QDate const& to,
+                                     QLocale::Language lang)
+{
+  if(lang == QLocale::AnyLanguage) {
+    lang = system_language();
+  }
+  std::map<int, TypeStatistics> by_type;
+  QSqlQuery q(db_);
+  q.prepare("SELECT types.id, COALESCE(translations.name, types.name) "
+            "FROM types LEFT JOIN translations "
+            "ON translations.tablename = 'types' "
+            "AND translations.column = types.name "
+            "AND translations.language = :lang");
+  q.bindValue(":lang", static_cast<int>(lang));
+  if(!q.exec()) {
+    qWarning() << "query_statistics (types) failed:" << q.lastError();
+    return {};
+  }
+  while(q.next()) {
+    auto& stats = by_type[q.value(0).toInt()];
+    stats.type_id_ = q.value(0).toInt();
+    stats.type_name_ = q.value(1).toString();
+  }
+  // Runs a grouped query whose first column is the type id and lets
+  // \a fill store the remaining columns.
+  auto const run = [this, &by_type, &from, &to](
+                       QString const& sql,
+                       std::function<void(QSqlQuery const&,
+                                          TypeStatistics&)> const& fill) {
+    QSqlQuery query(db_);
+    query.prepare(sql);
+    if(sql.contains(":from")) {
+      query.bindValue(":from", QDateTime(from, QTime(0, 0)));
+      query.bindValue(":to", QDateTime(to, QTime(23, 59, 59, 999)));
+    }
+    if(!query.exec()) {
+      qWarning() << "query_statistics failed:" << query.lastError()
+                 << "\nwith query" << sql;
+      return false;
+    }
+    while(query.next()) {
+      auto const it = by_type.find(query.value(0).toInt());
+      if(it != by_type.end()) {
+        fill(query, it->second);
+      }
+    }
+    return true;
+  };
+  bool const ok =
+      run("SELECT type, COUNT(*), SUM(count) FROM items "
+          "WHERE count > 0 GROUP BY type",
+          [](QSqlQuery const& query, TypeStatistics& stats) {
+            stats.items_ = query.value(1).toInt();
+            stats.copies_ = query.value(2).toInt();
+          }) &&
+      run("SELECT items.type, SUM(ol.n), "
+          "SUM(CASE WHEN ol.duedate IS NOT NULL AND ol.duedate <> '' "
+          "AND ol.duedate < date('now', 'localtime') "
+          "THEN ol.n ELSE 0 END) "
+          "FROM (SELECT lendings.item AS item, lendings.duedate AS duedate, "
+          "lendings.count - COALESCE(SUM(returns.count), 0) AS n "
+          "FROM lendings LEFT JOIN returns ON lendings.id = returns.lending "
+          "GROUP BY lendings.id) AS ol "
+          "JOIN items ON ol.item = items.id "
+          "WHERE ol.n > 0 GROUP BY items.type",
+          [](QSqlQuery const& query, TypeStatistics& stats) {
+            stats.lent_ = query.value(1).toInt();
+            stats.overdue_ = query.value(2).toInt();
+          }) &&
+      run("SELECT items.type, SUM(reservations.count) FROM reservations "
+          "JOIN items ON reservations.item_id = items.id "
+          "WHERE reservations.expires_at >= date('now', 'localtime') "
+          "GROUP BY items.type",
+          [](QSqlQuery const& query, TypeStatistics& stats) {
+            stats.reserved_ = query.value(1).toInt();
+          }) &&
+      run("SELECT items.type, COUNT(DISTINCT acquisitions.item), "
+          "SUM(acquisitions.count) FROM acquisitions "
+          "JOIN items ON acquisitions.item = items.id "
+          "WHERE acquisitions.datetime >= :from "
+          "AND acquisitions.datetime <= :to GROUP BY items.type",
+          [](QSqlQuery const& query, TypeStatistics& stats) {
+            stats.acquired_items_ = query.value(1).toInt();
+            stats.acquired_copies_ = query.value(2).toInt();
+          }) &&
+      run("SELECT items.type, COUNT(DISTINCT liquidations.item), "
+          "SUM(liquidations.count) FROM liquidations "
+          "JOIN items ON liquidations.item = items.id "
+          "WHERE liquidations.datetime >= :from "
+          "AND liquidations.datetime <= :to GROUP BY items.type",
+          [](QSqlQuery const& query, TypeStatistics& stats) {
+            stats.liquidated_items_ = query.value(1).toInt();
+            stats.liquidated_copies_ = query.value(2).toInt();
+          });
+  if(!ok) {
+    return {};
+  }
+  std::vector<TypeStatistics> result;
+  for(auto const& entry : by_type) {
+    auto const& s = entry.second;
+    if(s.items_ != 0 || s.copies_ != 0 || s.lent_ != 0 || s.reserved_ != 0 ||
+       s.acquired_copies_ != 0 || s.liquidated_copies_ != 0)
+    {
+      result.push_back(s);
+    }
+  }
+  std::sort(result.begin(), result.end(),
+            [](TypeStatistics const& a, TypeStatistics const& b) {
+              return QString::localeAwareCompare(a.type_name_,
+                                                 b.type_name_) < 0;
+            });
+  return result;
 }
 
 

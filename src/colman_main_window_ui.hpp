@@ -168,6 +168,7 @@ namespace colman
     QStackedWidget* pages_stack_ = nullptr;
     QWidget* start_page_ = nullptr;
     QWidget* central_page_ = nullptr;
+    QLabel* stock_label_ = nullptr; ///< status bar: items and copies in stock
     QWidget* item_type_page_ = nullptr;
     QPushButton* item_type_back_ = nullptr;
     QTableView* item_type_type_view_ = nullptr;

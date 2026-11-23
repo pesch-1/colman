@@ -1243,6 +1243,51 @@ c3JQ/TVnll9NydRiGSSpm/CnEJezZwMgmdiFdThT8Tw5tXddAUsQglc85CoUtxUe
       teardown();
     }
 
+  // ==================================================================
+  // Statistics
+  // ==================================================================
+
+    void stock_totals_and_statistics()
+    {
+      setup();
+      int const type_id = add_type();
+      int const item_id = add_item(type_id);
+      QVERIFY(acquire(item_id, 5) > 0);
+      int const person_id = add_person();
+      int const lending_id = lend(item_id, person_id, 3);
+      QVERIFY(ret(lending_id, 1) > 0);
+
+      auto const totals = client_->query_stock_totals();
+      QCOMPARE(totals.items_, 1);
+      QCOMPARE(totals.copies_, 5);
+
+      QDate const today = QDate::currentDate();
+      auto const via_rest =
+          client_->query_statistics(today.addYears(-1), today);
+      auto const direct = sql_->query_statistics(today.addYears(-1), today);
+      QCOMPARE(static_cast<int>(via_rest.size()), 1);
+      QCOMPARE(static_cast<int>(direct.size()), 1);
+      auto const& r = via_rest.front();
+      auto const& d = direct.front();
+      QCOMPARE(r.type_id_, type_id);
+      QCOMPARE(r.type_name_, d.type_name_);
+      QCOMPARE(r.items_, 1);
+      QCOMPARE(r.copies_, 5);
+      QCOMPARE(r.lent_, 2);
+      QCOMPARE(r.reserved_, d.reserved_);
+      QCOMPARE(r.overdue_, d.overdue_);
+      QCOMPARE(r.acquired_items_, 1);
+      QCOMPARE(r.acquired_copies_, 5);
+      QCOMPARE(r.liquidated_items_, 0);
+      QCOMPARE(r.liquidated_copies_, 0);
+
+      // Without collect_acquisitions the statistics are refused.
+      sql_->set_permission(0, "collect_acquisitions", false);
+      QVERIFY(client_->query_statistics(today.addYears(-1), today).empty());
+      QCOMPARE(client_->query_stock_totals().copies_, 5);
+      teardown();
+    }
+
   }; // class RestQueriesTest
 
 } // anonymous namespace

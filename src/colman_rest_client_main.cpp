@@ -63,6 +63,9 @@
 #ifndef COLMAN_CLASS_MANAGEMENT_PAGE_HPP
 #  include "colman_class_management_page.hpp"
 #endif
+#ifndef COLMAN_STATISTICS_PAGE_HPP
+#  include "colman_statistics_page.hpp"
+#endif
 #ifndef SYSTEM_QAPPLICATION
 #  include <QApplication>
 #  define SYSTEM_QAPPLICATION
@@ -359,7 +362,15 @@ namespace
           break;
         }
       }
+      // The stock in the status bar changes with acquisitions and
+      // liquidations of any client, whatever page is shown.
+      bool const items_changed =
+          last_versions_.value(QStringLiteral("items")) !=
+          new_versions.value(QStringLiteral("items"));
       last_versions_ = new_versions;
+      if(items_changed) {
+        colman::update_stock_status(data_);
+      }
       if(changed) {
         refresh_current_page(current);
       }
@@ -974,6 +985,7 @@ int main(int argc, char* argv[])
   colman::setup_settings_page(app, data);
   colman::setup_search_page(app, data);
   colman::setup_class_management_pages(app, data);
+  colman::setup_statistics_page(app, data);
   colman::setup_preferences_page(app, data);
   setup_rest_login_page(
       app, data,

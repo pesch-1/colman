@@ -39,6 +39,9 @@ namespace colman
   */
   void update_login_status(colman::AppData& data);
 
+  /// Shows the number of copies and items in stock in the status bar.
+  void update_stock_status(colman::AppData& data);
+
   /**
      Logs out the current user: resets current_data_collector_ to -1,
      clears the status bar, and switches to the login selection page

@@ -168,8 +168,10 @@ Flutter client carries its own copy of the required version in
 user instead of failing later through missing endpoints or fields.
 
 Minor is incremented for backwards-compatible additions; major is
-incremented for breaking changes.  The current API version is **2.6**
-(see `colman_rest_api_version.hpp`).  Since 2.6, the open copies of an
+incremented for breaking changes.  The current API version is **2.7**
+(see `colman_rest_api_version.hpp`).  Since 2.7, the number of items and
+copies in stock (@ref rest_items_totals) and the statistics per item type
+(@ref rest_statistics) can be queried.  Since 2.6, the open copies of an
 item held by several persons can be returned in a single request
 (@ref rest_returns_batch, group return) and the rows of
 `POST /api/persons/lending-query` carry `school_class`.  Since 2.5, several persons can
@@ -453,6 +455,13 @@ Deletes the item.
 @subsection rest_items_count GET /api/items/{id}/count
 
 Returns `{"value": N}` with the stock count.
+
+@subsection rest_items_totals GET /api/items/totals
+
+Returns `{"items": N, "copies": M}`: the number of items with at least one
+copy in stock and the number of these copies.  Items whose copies have all
+been liquidated are not counted.  Any authenticated user may call it (the
+desktop client shows the figures in its status bar).  Since API 2.7.
 
 @subsection rest_items_available GET /api/items/available?id={id}&search={s}&limit={n}&offset={n}
 
@@ -974,6 +983,33 @@ Updates a liquidation.  Requires `If-Match: {version}`.
 Deletes the liquidation.
 
 ---
+
+@section rest_statistics Statistics
+
+@subsection rest_statistics_get GET /api/statistics?from={date}&to={date}
+
+Returns a JSON array with stock, circulation and acquisition figures per
+item type.  `from` and `to` (ISO 8601 dates, both required) delimit the
+time span, inclusive, in which acquisitions and liquidations are counted;
+the other figures describe the current state.  Item types without any
+non-zero figure are omitted.  Requires `collect_acquisitions`.  Since API
+2.7.
+
+| Field               | Type   | Description                                  |
+|---------------------|--------|----------------------------------------------|
+| `type_id`           | int    | Item type ID                                 |
+| `type_name`         | string | Item type name in the request's language     |
+| `items`             | int    | Items with at least one copy in stock        |
+| `copies`            | int    | Copies in stock                              |
+| `lent`              | int    | Copies currently lent                        |
+| `reserved`          | int    | Copies in active reservations                |
+| `overdue`           | int    | Lent copies whose due date has passed        |
+| `acquired_items`    | int    | Items acquired in the time span              |
+| `acquired_copies`   | int    | Copies acquired in the time span             |
+| `liquidated_items`  | int    | Items liquidated in the time span            |
+| `liquidated_copies` | int    | Copies liquidated in the time span           |
+
+Returns 400 if `from` or `to` is missing or not a valid date.
 
 @section rest_thumbnails Thumbnails
 

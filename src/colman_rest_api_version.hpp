@@ -27,8 +27,9 @@ namespace colman
     and the action filter of GET /api/history.  Minor 4: school_class in
     the rows of GET /api/lendings/due.  Minor 5: POST /api/lendings/batch
     (group lending).  Minor 6: POST /api/returns/batch (group return) and
-    school_class in the rows of POST /api/persons/lending-query. */
-  int constexpr ApiMinorVersion = 6;
+    school_class in the rows of POST /api/persons/lending-query.  Minor 7:
+    GET /api/items/totals and GET /api/statistics. */
+  int constexpr ApiMinorVersion = 7;
 
 /// REST API version as reported by the server or required by the client.
   struct ApiVersion

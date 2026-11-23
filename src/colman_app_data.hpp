@@ -109,6 +109,7 @@ namespace colman
     QToolButton* print_id_button_ = nullptr;      ///< central page: print id
     QToolButton* print_barcode_button_ = nullptr; ///< central page: print barcode
     QToolButton* history_button_ = nullptr;       ///< central page: view history
+    QToolButton* statistics_button_ = nullptr;    ///< central page: statistics
     QToolButton* edit_id_button_ = nullptr;             ///< central page: edit ID layout
     QToolButton* edit_item_card_button_ = nullptr;     ///< central page: edit item card layout
     QToolButton* edit_signature_layout_button_ = nullptr; ///< central page: edit signature label layout

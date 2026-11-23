@@ -291,6 +291,8 @@ set(COLMAN_APP_SOURCES
   src/colman_here.hpp
   src/colman_history_page.cpp
   src/colman_history_page.hpp
+  src/colman_statistics_page.cpp
+  src/colman_statistics_page.hpp
   src/colman_extend_lending_dialog.cpp
   src/colman_extend_lending_dialog.hpp
   src/colman_item_barcode_page.cpp

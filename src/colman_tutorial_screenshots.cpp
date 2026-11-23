@@ -287,6 +287,7 @@ namespace
         scene_history();
         scene_group_lending();
         scene_group_return();
+        scene_statistics();
         scene_settings();
         scene_admin_pages();
         scene_logout();
@@ -1392,6 +1393,15 @@ namespace
                      shot("122_open_lendings_extend", w);
                      w->close();
                    });
+      back_to_central();
+    }
+
+    /// Statistics page (180).
+    void scene_statistics()
+    {
+      step("statistics");
+      click(data_.statistics_button_);
+      shot("180_statistics");
       back_to_central();
     }
 

@@ -661,6 +661,8 @@ sichtbare Schaltfläche entfallen ganz.
 - <b>Etiketten drucken</b> (<b>Etiketten drucken</b>)
 - <b>Signaturen drucken</b> (<b>Signaturschilder drucken</b>)
 - <b>Verlauf</b> (<b>Historie ansehen</b>)
+- <b>Statistik</b> (<b>Anschaffungen erfassen</b>, siehe
+  @ref tutorial_statistics)
 
 <b>Zeile 3 -- Personen und eigenes Konto</b>
 - <b>Ausleihende verwalten</b> (<b>Personen bearbeiten</b>,
@@ -678,8 +680,10 @@ sichtbare Schaltfläche entfallen ganz.
   <b>Signatur-Layout</b> (jeweils <b>Ausweislayout bearbeiten</b>)
 - <b>Drucker kalibrieren</b> (nur Administrator)
 
-In der Statusleiste unten wird angezeigt, wer gerade
-angemeldet ist.
+In der Statusleiste unten wird links angezeigt, wer gerade
+angemeldet ist, und rechts, wie viele Exemplare von wie vielen
+Gegenständen die Sammlung umfasst (Gegenstände, deren Exemplare alle
+aussortiert wurden, zählen nicht mit).
 
 @image html 009_central_page.jpg "Zentrale Navigationsseite (Administrator)"
 @image latex 009_central_page.jpg "Zentrale Navigationsseite (Administrator)"
@@ -2132,6 +2136,41 @@ zentralen Navigationsseite.
 
 ---
 
+@page tutorial_statistics Statistik
+
+Die Statistikseite fasst den Bestand der Sammlung zusammen.  Sie steht
+dem Administrator und Benutzern mit der Berechtigung
+<b>Anschaffungen erfassen</b> zur Verfügung.
+
+@section tutorial_statistics_navigate Navigation
+
+Klicke auf der zentralen Navigationsseite auf <b>Statistik</b>.
+
+@section tutorial_statistics_stock Aktueller Bestand
+
+Die obere Tabelle zeigt für jede Kategorie, wie viele
+<b>Gegenstände</b> und <b>Exemplare</b> vorhanden sind und wie viele
+Exemplare gerade <b>Ausgeliehen</b>, <b>Reserviert</b> und
+<b>Überfällig</b> sind (ausgeliehene Exemplare, deren Rückgabedatum
+überschritten ist).  Enthält die Sammlung Gegenstände mehrerer
+Kategorien, folgt eine Zeile <b>Gesamt</b>.
+
+@image html 180_statistics.jpg "Statistik"
+@image latex 180_statistics.jpg "Statistik"
+
+@section tutorial_statistics_period Anschaffungen und Aussortierungen
+
+Die untere Tabelle zeigt für jede Kategorie, wie viele Gegenstände und
+Exemplare in einem Zeitraum angeschafft und aussortiert wurden.  Den
+Zeitraum legst du mit den Feldern <b>von</b> und <b>bis</b> fest;
+voreingestellt ist das letzte Jahr.  Die Tabelle wird aktualisiert,
+sobald du ein Datum änderst.
+
+Über die Schaltfläche <b>zurück</b> gelangst du zurück zur
+zentralen Navigationsseite.
+
+---
+
 @page tutorial_settings Einstellungen
 
 Die Einstellungsseite ist in vier Reiter unterteilt. Welche
@@ -2733,7 +2772,7 @@ steht in @ref tutorial_persons_permissions.
 | Datenerfasser anlegen | Nur Personen anlegen und bearbeiten, die Anschaffungen oder Aussortierungen erfassen |
 | Ausleihen erfassen | Medien ausleihen |
 | Rückgaben erfassen | Rückgaben erfassen |
-| Anschaffungen erfassen | Medien anschaffen (Zugang) |
+| Anschaffungen erfassen | Medien anschaffen (Zugang), Statistik ansehen |
 | Aussortierungen erfassen | Medien aussortieren (Abgang) |
 | Historie ansehen | Den Verlauf ansehen |
 | Personenlisten ansehen | Personenlisten und Filter, Hinweis auf fällige Rückgaben |
@@ -2763,6 +2802,7 @@ passende Berechtigung besitzt:
 |---|---|
 | Ausleihende verwalten | Personen bearbeiten, Ausleiher anlegen oder Datenerfasser anlegen |
 | anschaffen | Anschaffungen erfassen |
+| Statistik | Anschaffungen erfassen |
 | ausleihen | Ausleihen erfassen (wer nur <b>Medien reservieren</b> darf, sieht stattdessen <b>reservieren</b>) |
 | zurückbringen | Rückgaben erfassen |
 | aussortieren | Aussortierungen erfassen |

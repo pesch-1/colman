@@ -70,6 +70,9 @@
 #ifndef COLMAN_CLASS_MANAGEMENT_PAGE_HPP
 #  include "colman_class_management_page.hpp"
 #endif
+#ifndef COLMAN_STATISTICS_PAGE_HPP
+#  include "colman_statistics_page.hpp"
+#endif
 #ifndef COLMAN_PASSWORDS_HPP
 #  include "colman_passwords.hpp"
 #endif
@@ -227,8 +230,29 @@
 #  define SYSTEM_MEMORY
 #endif
 
+/**
+   Shows the number of copies and items in stock at the right of the
+   status bar, or nothing while nobody is logged in.
+   @param data central application state.
+*/
+void colman::update_stock_status(colman::AppData& data)
+{
+  if(!data.mw_.stock_label_) {
+    return;
+  }
+  if(data.current_data_collector_ < 0 || !data.queries_->is_open()) {
+    data.mw_.stock_label_->clear();
+    return;
+  }
+  auto const totals = data.queries_->query_stock_totals();
+  data.mw_.stock_label_->setText(
+      QApplication::tr("%n copy(ies)", nullptr, totals.copies_) + " " +
+      QApplication::tr("of %n item(s)", nullptr, totals.items_));
+}
+
 void colman::update_login_status(colman::AppData& data)
 {
+  update_stock_status(data);
   if(data.current_data_collector_ < 0) {
     data.w_.statusBar()->clearMessage();
     return;
@@ -1121,6 +1145,7 @@ namespace
       colman::setup_settings_page(app, data);
       colman::setup_search_page(app, data);
       colman::setup_class_management_pages(app, data);
+      colman::setup_statistics_page(app, data);
       app.setProperty("not_first_start", true);
     }
     data.mw_.pages_stack_->setCurrentWidget(data.mw_.central_page_);

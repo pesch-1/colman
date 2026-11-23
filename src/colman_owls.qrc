@@ -36,6 +36,7 @@
     <file alias="icons/owls/question.jpeg">../flutter/assets/icons/question.jpeg</file>
     <file alias="icons/owls/remove_book.jpeg">../flutter/assets/icons/remove_book.jpeg</file>
     <file alias="icons/owls/returns.jpeg">../flutter/assets/icons/returns.jpeg</file>
+    <file alias="icons/owls/statistics.jpeg">../flutter/assets/icons/statistics.jpeg</file>
     <file alias="icons/owls/search.jpeg">../flutter/assets/icons/search.jpeg</file>
     <file alias="icons/owls/reserve2.jpeg">../flutter/assets/icons/reserve2.jpeg</file>
     <file alias="icons/owls/waiting.jpeg">../flutter/assets/icons/waiting.jpeg</file>
