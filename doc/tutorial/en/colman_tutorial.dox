@@ -1722,6 +1722,9 @@ on the permissions:
   item (see @ref tutorial_reservations).
 - <b>Lend</b> -- starts the @ref tutorial_lending "lending" with the
   selected item.
+- <b>Acquire</b> -- acquires further copies of the selected item: the
+  @ref tutorial_items "acquisition" opens directly at
+  @ref tutorial_items_step2 (permission <b>Record acquisitions</b>).
 - <b>Edit item</b> -- see @ref tutorial_search_edit.
 - <b>Delete item</b> -- removes an item of which no copies are left
   in stock (after confirmation).

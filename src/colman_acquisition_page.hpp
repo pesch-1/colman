@@ -49,6 +49,15 @@ namespace colman
   */
   void enter_acquisition_page_for_action(AppData& data,
                                          ActionInfo const& ai);
+  /**
+     Switches to step 2 (count) of the acquisition wizard for more copies
+     of the existing item \a item_id.  The item is selected in step 1, so
+     that "back" returns there.  If the item cannot be selected, step 1 is
+     shown instead.
+     @param data    central application state.
+     @param item_id database id of the item.
+  */
+  void enter_acquisition_count_page_for_item(AppData& data, int item_id);
 
 } // namespace colman
 

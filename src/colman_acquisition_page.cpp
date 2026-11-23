@@ -1061,4 +1061,35 @@ void colman::enter_acquisition_page_for_action(
   }
 }
 
+/**
+   Selects the item in step 1 of the acquisition wizard and advances to
+   step 2.  When the item is not among the items loaded into the list
+   (large collections are loaded page by page), the list is filtered by
+   the item's name first.
+   @param data    central application state.
+   @param item_id database id of the item.
+*/
+void colman::enter_acquisition_count_page_for_item(colman::AppData& data,
+                                                   int item_id)
+{
+  colman::ActionInfo ai;
+  ai.item_id_ = item_id;
+  enter_acquisition_page_for_action(data, ai);
+  auto* view = data.mw_.acquisition_select_items_view_;
+  if(colman::selected_id(view) != item_id) {
+    colman::Item item;
+    QString type_name;
+    if(!data.queries_->get_item(item_id, item, type_name)) {
+      return;
+    }
+    data.mw_.acquisition_select_search_->setText(item.get_name());
+    refresh_item_query(data);
+    colman::select_and_scroll_to(view, 0, item_id);
+    if(colman::selected_id(view) != item_id) {
+      return;
+    }
+  }
+  goto_count_page(data);
+}
+
 /* EOF */

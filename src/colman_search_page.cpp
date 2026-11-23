@@ -169,6 +169,9 @@
 #ifndef COLMAN_LENDING_PAGE_HPP
 #  include "colman_lending_page.hpp"
 #endif
+#ifndef COLMAN_ACQUISITION_PAGE_HPP
+#  include "colman_acquisition_page.hpp"
+#endif
 #ifndef COLMAN_ITEM_WIDGET_HPP
 #  include "colman_item_widget.hpp"
 #endif
@@ -1435,6 +1438,9 @@ namespace
           QApplication::tr("Cancel reservation"), right_panel);
       lend_btn_ = new QPushButton(
           QApplication::tr("Lend"), right_panel);
+      acquire_btn_ = new QPushButton(
+          QApplication::tr("Acquire"), right_panel);
+      acquire_btn_->setObjectName("search_acquire_");
       edit_btn_ = new QPushButton(
           QApplication::tr("Edit item"), right_panel);
       delete_btn_ = new QPushButton(
@@ -1444,6 +1450,8 @@ namespace
       reserve_btn_->setEnabled(false);
       cancel_res_btn_->setEnabled(false);
       lend_btn_->setEnabled(false);
+      acquire_btn_->setEnabled(false);
+      acquire_btn_->hide();
       edit_btn_->setEnabled(false);
       edit_btn_->hide();
       delete_btn_->setEnabled(false);
@@ -1452,6 +1460,7 @@ namespace
       action_flow->addWidget(csv_btn_);
       action_flow->addWidget(reserve_btn_);
       action_flow->addWidget(lend_btn_);
+      action_flow->addWidget(acquire_btn_);
       action_flow->addWidget(cancel_res_btn_);
       action_flow->addWidget(edit_btn_);
       action_flow->addWidget(delete_btn_);
@@ -1503,7 +1512,8 @@ namespace
                 csv_btn_->setEnabled(have);
                 lend_btn_->setEnabled(false);
                 update_reservation_buttons();
-                update_edit_button();
+                update_acquire_button();
+      update_edit_button();
                 update_delete_button();
               });
 
@@ -1513,7 +1523,8 @@ namespace
                 bool const have_one = single_selected_item_id() >= 0;
                 lend_btn_->setEnabled(have_one);
                 update_reservation_buttons();
-                update_edit_button();
+                update_acquire_button();
+      update_edit_button();
                 update_delete_button();
               });
 
@@ -1521,6 +1532,8 @@ namespace
               [this]() { on_reserve_clicked(); });
       connect(lend_btn_, &QPushButton::clicked,
               [this]() { on_lend_clicked(); });
+      connect(acquire_btn_, &QPushButton::clicked,
+              [this]() { on_acquire_clicked(); });
       connect(cancel_res_btn_, &QPushButton::clicked,
               [this]() { on_cancel_reservation_clicked(); });
 
@@ -1559,6 +1572,7 @@ namespace
     {
       rebuild_type_sections();
       cached_item_count_ = data_.queries_->count_items();
+      update_acquire_button();
       update_edit_button();
       do_search();
     }
@@ -2146,6 +2160,20 @@ namespace
       return model_.row_at(src.row()).count;
     }
 
+  /// Updates the visible/enabled state of the acquire button.
+  /**
+   * Shown to users with the collect_acquisitions permission; enabled when
+   * a single item is selected.
+   */
+    void update_acquire_button()
+    {
+      int const uid = data_.current_data_collector_;
+      bool const can_acquire =
+          uid >= 0 && data_.queries_->has_permission(uid, "collect_acquisitions");
+      acquire_btn_->setVisible(can_acquire);
+      acquire_btn_->setEnabled(can_acquire && single_selected_item_id() >= 0);
+    }
+
   /// Updates the visible/enabled state of the edit-item button.
     void update_edit_button()
     {
@@ -2251,6 +2279,17 @@ namespace
       colman::ActionInfo ai;
       ai.item_id_ = item_id;
       colman::enter_lend_page_for_action(data_, ai);
+    }
+
+  /// Handles the Acquire button click: opens the count step of the
+  /// acquisition wizard for the selected item.
+    void on_acquire_clicked()
+    {
+      int const item_id = single_selected_item_id();
+      if(item_id < 0) {
+        return;
+      }
+      colman::enter_acquisition_count_page_for_item(data_, item_id);
     }
 
   /// Handles the Delete item button click.
@@ -2411,6 +2450,7 @@ namespace
     QPushButton* csv_btn_ = nullptr;
     QPushButton* reserve_btn_ = nullptr;
     QPushButton* lend_btn_ = nullptr;
+    QPushButton* acquire_btn_ = nullptr; ///< acquires more copies
     QPushButton* cancel_res_btn_ = nullptr;
     QPushButton* edit_btn_ = nullptr;
     QPushButton* delete_btn_ = nullptr;

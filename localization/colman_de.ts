@@ -4138,6 +4138,10 @@ Reservierungen</translation>
             <numerusform>von %n Gegenständen</numerusform>
         </translation>
     </message>
+    <message>
+        <source>Acquire</source>
+        <translation>Anschaffen</translation>
+    </message>
 </context>
 <context>
     <name>QCoreApplication</name>

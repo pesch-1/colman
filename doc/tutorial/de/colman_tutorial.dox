@@ -1871,6 +1871,10 @@ Schaltflächen zur Verfügung:
   für den markierten Gegenstand (siehe @ref tutorial_reservations).
 - <b>Ausleihen</b> -- startet die @ref tutorial_lending "Ausleihe"
   mit dem markierten Gegenstand.
+- <b>Anschaffen</b> -- schafft weitere Exemplare des markierten
+  Gegenstands an: Die @ref tutorial_items "Anschaffung" öffnet direkt
+  bei @ref tutorial_items_step2 (Berechtigung <b>Anschaffungen
+  erfassen</b>).
 - <b>Gegenstand bearbeiten</b> -- siehe @ref tutorial_search_edit.
 - <b>Gegenstand löschen</b> -- entfernt einen Gegenstand, von dem
   keine Exemplare mehr im Bestand sind (nach Rückfrage).
