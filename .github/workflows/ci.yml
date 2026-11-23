@@ -127,7 +127,10 @@ jobs:
           $vcpkg = "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows"
           $env:PKG_CONFIG = "$vcpkg\tools\pkgconf\pkgconf.exe"
           $env:PKG_CONFIG_PATH = "$vcpkg\lib\pkgconfig"
-          $clang = "C:/Program Files/LLVM/bin/clang-cl.exe"
+          # The clang-cl bundled with Visual Studio, so that it matches the
+          # version of the MSVC STL (STL1000 otherwise).
+          $clang = (Join-Path $env:VCINSTALLDIR Tools\Llvm\x64\bin\clang-cl.exe) `
+            -replace '\\', '/'
           cmake -B bld -G Ninja -DCMAKE_BUILD_TYPE=Release `
             "-DCMAKE_C_COMPILER=$clang" "-DCMAKE_CXX_COMPILER=$clang" `
             "-DCMAKE_PREFIX_PATH=$env:QT_ROOT_DIR;$vcpkg"
