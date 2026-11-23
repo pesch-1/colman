@@ -55,7 +55,8 @@
    @param item_id       If >= 0, filters to this item id.
    @param lending_id    If >= 0, filters to this lending id.
    @param person_search Barcode or name prefix used to search for persons.
-   @param item_search   Barcode, ISBN or name prefix used to search for items.
+   @param item_search   Barcode, ISBN or words of the name used to search
+   for items.
    @param show_returned When false, only open (not fully returned) lendings
    are included; when true all lendings are included.
    @return              An SQL FROM/JOIN fragment string.
@@ -76,24 +77,7 @@ QString colman::SQLQueries::lending_query_base(int person_id, int item_id,
     query += "AND items.id = " + QString().setNum(item_id) + " ";
   }
   else if(!item_search.isEmpty()) {
-    int type_id = -1;
-    if(colman::parse_item_barcode(collection, item_search, type_id, item_id)) {
-      query += "AND items.id = " + QString().setNum(item_id) + " ";
-    }
-    else if(colman::is_isbn10(item_search)) {
-      query += "AND items.id IN (SELECT item_id FROM item_list_values"
-               " WHERE column_name = 'ISBN10' AND value = '" +
-               item_search + "') ";
-    }
-    else if(colman::is_isbn13(item_search)) {
-      query += "AND items.id IN (SELECT item_id FROM item_list_values"
-               " WHERE column_name = 'ISBN13' AND value = '" +
-               item_search + "') ";
-    }
-    else {
-      query += "AND items.name LIKE '" + like_escape(item_search) +
-               "%' ESCAPE '\\' ";
-    }
+    query += item_search_filter(collection, item_search);
   }
   query += "JOIN (SELECT a.*, SUM(b.count) FROM lendings a LEFT JOIN returns b"
            " ON a.id=b.lending GROUP BY a.id ";
@@ -127,7 +111,8 @@ QString colman::SQLQueries::lending_query_base(int person_id, int item_id,
   @param item_id       If >= 0, restricts to persons lending this item.
   @param lending_id    If >= 0, restricts to the person of this lending.
   @param person_search Barcode or name prefix to filter persons.
-  @param item_search   Barcode, ISBN or name prefix to filter items.
+  @param item_search   Barcode, ISBN or words of the name to filter
+                       items.
   @return              Vector of Person objects ordered by lastname.
 */
 std::vector<colman::Person> colman::SQLQueries::query_lending_persons(
@@ -159,7 +144,8 @@ std::vector<colman::Person> colman::SQLQueries::query_lending_persons(
   @param person_id     If >= 0, restricts to items lent by this person.
   @param lending_id    If >= 0, restricts to the item of this lending.
   @param person_search Barcode or name prefix to filter by person.
-  @param item_search   Barcode, ISBN or name prefix to filter by item.
+  @param item_search   Barcode, ISBN or words of the name to filter
+                       by item.
   @return              Vector of ItemListModel::Row ordered by name.
 */
 std::vector<colman::ItemListModel::Row> colman::SQLQueries::query_lent_items(
@@ -177,7 +163,7 @@ std::vector<colman::ItemListModel::Row> colman::SQLQueries::query_lent_items(
       "LEFT JOIN translations ON translations.tablename = 'types'"
       " AND translations.language = " +
       QString().setNum(lang) + " AND types.name = translations.column " +
-      "ORDER BY items.name COLLATE NOCASE";
+      item_search_order(lending_id >= 0 ? QString() : item_search);
   QSqlQuery q(db_);
   q.exec(sql);
   std::vector<ItemListModel::Row> result;

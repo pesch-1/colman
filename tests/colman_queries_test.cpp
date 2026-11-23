@@ -184,7 +184,7 @@ void check_query_items_by_id(colman::IQueries& q, int item_id)
   QCOMPARE(items.front().id, item_id);
 }
 
-/// Verifies that query_items() filters by name prefix.
+/// Verifies that query_items() filters by words of the name.
 void check_query_items_by_name(colman::IQueries& q, QString const& prefix,
                                int expected_count)
 {
@@ -1256,6 +1256,33 @@ private Q_SLOTS:
     auto const no_match =
         queries_->query_items_with_type(s.type_id, "XYZ");
     QVERIFY(no_match.empty());
+    teardown_db();
+  }
+
+  void test_item_search_matches_words_anywhere()
+  {
+    setup_db();
+    auto const type_id = queries_->add_new_type(colman::make_book_type());
+    for(auto const& name :
+        {"Die kleine Hexe", "Kleine Raupe Nimmersatt", "Hexe Lilli"})
+    {
+      colman::Item item;
+      item.set_type_id(type_id);
+      item.set_name(name);
+      QVERIFY(queries_->add_new_item(item) >= 0);
+    }
+    // A word in the middle of the name matches; names starting with the
+    // search string come first.
+    auto const kleine = queries_->query_items_with_type(type_id, "kleine");
+    QCOMPARE(static_cast<int>(kleine.size()), 2);
+    QCOMPARE(kleine[0].name, QString("Kleine Raupe Nimmersatt"));
+    QCOMPARE(kleine[1].name, QString("Die kleine Hexe"));
+    // Every word must occur, in any order.
+    auto const both = queries_->query_items(-1, "hexe  kleine");
+    QCOMPARE(static_cast<int>(both.size()), 1);
+    QCOMPARE(both.front().name, QString("Die kleine Hexe"));
+    // LIKE wildcards are matched literally.
+    QVERIFY(queries_->query_items(-1, "%").empty());
     teardown_db();
   }
 

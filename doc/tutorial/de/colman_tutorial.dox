@@ -763,12 +763,14 @@ neu zu erfassenden Mediums.
 @image latex 030_acquisition_01.jpg "anschaffen -- Schritt 1: Gegenstand auswählen"
 
 <b>Vorhandenes Medium suchen (weitere Exemplare):</b>
-- Gib in das Feld <b>Name/Barcode</b> den Anfang des Namens,
-  den Colman-Barcode oder die ISBN ein, oder scanne den Barcode
-  ein. Die Suche startet, sobald du <b>Eingabe</b> drückst bzw.
-  das Feld verlässt; die Liste zeigt dann nur noch die
-  passenden Medien. Gibt es genau einen Treffer, wird er
-  automatisch ausgewählt.
+- Gib in das Feld <b>Name/Barcode</b> ein oder mehrere Wörter
+  des Namens, den Colman-Barcode oder die ISBN ein, oder scanne
+  den Barcode ein. Die Wörter dürfen irgendwo im Namen stehen:
+  „kleine Hexe“ findet auch „Die kleine Hexe“. Die Suche startet,
+  sobald du <b>Eingabe</b> drückst bzw. das Feld verlässt; die
+  Liste zeigt dann nur noch die passenden Medien, solche, deren
+  Name mit deiner Eingabe beginnt, zuerst. Gibt es genau einen
+  Treffer, wird er automatisch ausgewählt.
 - Wähle das gewünschte Medium in der Liste aus. Seine Daten
   erscheinen rechts (schreibgeschützt). Mit
   <b>Weitere Exemplare anschaffen</b> geht es weiter zu
@@ -1306,8 +1308,8 @@ Auf der zentralen Navigationsseite klicke auf
 
 @section tutorial_liquidation_step1 Schritt 1: Medium auswählen
 
-1. Gib in das Suchfeld den Namen, Barcode oder die ISBN
-   ein.
+1. Gib in das Suchfeld Wörter des Namens, den Barcode oder die
+   ISBN ein.
 2. Die Tabelle zeigt nur Gegenstände mit verfügbarem Bestand
    an.
 3. Wähle den gewünschten Gegenstand aus und klicke
@@ -1463,7 +1465,7 @@ nach dem neuen Fälligkeitsdatum.
 
 @section tutorial_lending_step2 Schritt 2: Medium auswählen
 
-1. Gib im Suchfeld den Namen, Barcode oder die ISBN
+1. Gib im Suchfeld Wörter des Namens, den Barcode oder die ISBN
    ein. Medien, von denen kein Exemplar mehr verfügbar ist,
    sind grau dargestellt und können nicht gewählt werden.
 2. Wähle das Medium aus.
@@ -1544,9 +1546,9 @@ Auf der zentralen Navigationsseite klicke auf
 
 @section tutorial_group_lending_step1 Schritt 1: Gegenstand auswählen
 
-1. Gib im Suchfeld den Namen, Barcode oder die ISBN ein oder
-   scanne das Etikett eines Exemplars. Gegenstände, von denen kein
-   Exemplar mehr verfügbar ist, sind grau dargestellt.
+1. Gib im Suchfeld Wörter des Namens, den Barcode oder die ISBN
+   ein oder scanne das Etikett eines Exemplars. Gegenstände, von
+   denen kein Exemplar mehr verfügbar ist, sind grau dargestellt.
 2. Wähle den Gegenstand aus.
 3. Klicke <b>weiter</b>. Ein gescannter Barcode führt direkt zu
    Schritt 2.
@@ -1716,9 +1718,9 @@ Auf der zentralen Navigationsseite klicke auf
 
 @section tutorial_return_step1 Schritt 1: Medium auswählen
 
-1. Gib im Suchfeld den Barcode, den Namen oder die ISBN
-   des zurückzugebenden Gegenstands ein. Die Tabelle zeigt
-   nur aktuell verliehene Gegenstände an.
+1. Gib im Suchfeld den Barcode, Wörter des Namens oder die
+   ISBN des zurückzugebenden Gegenstands ein. Die Tabelle
+   zeigt nur aktuell verliehene Gegenstände an.
 2. Wähle den Gegenstand aus und klicke
    <b>weiter</b>. Bei Barcode-Scan erfolgt die Auswahl
    automatisch.

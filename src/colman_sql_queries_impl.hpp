@@ -22,6 +22,12 @@
 #  ifndef COLMAN_DB_UTIL_HPP
 #    include "colman_db_util.hpp"
 #  endif
+#  ifndef COLMAN_COLLECTION_HPP
+#    include "colman_collection.hpp"
+#  endif
+#  ifndef COLMAN_ISBN_QUERIES_HPP
+#    include "colman_isbn_queries.hpp"
+#  endif
 #  ifndef SYSTEM_QLOCALE
 #    include <QLocale>
 #    define SYSTEM_QLOCALE
@@ -184,6 +190,62 @@ namespace colman
         .replace("'", "''")
         .replace("%", "\\%")
         .replace("_", "\\_");
+  }
+
+  /// Builds the SQL filter clause for an item search string.
+  /**
+     The collection's own item barcode is checked first: a colman barcode is
+     13 digits long for many item ids and then often carries a valid EAN-13
+     check digit, so testing for an ISBN-13 first would misinterpret it.
+     Any other search string is split into words, and every word must occur
+     somewhere in the item name (so "kleine hexe" finds "Die kleine Hexe").
+     @param collection the collection whose barcode prefix to use.
+     @param search non-empty ISBN, barcode or words of the name.
+     @return SQL fragment starting with " AND ", to append to the JOIN.
+  */
+  inline QString item_search_filter(Collection const& collection,
+                                    QString const& search)
+  {
+    auto type_id = -1;
+    auto item_id = -1;
+    if(parse_item_barcode(collection, search, type_id, item_id)) {
+      return " AND items.id = " + QString().setNum(item_id) + " ";
+    }
+    if(is_isbn13(search)) {
+      return " AND items.id IN (SELECT item_id FROM item_list_values"
+             " WHERE column_name = 'ISBN13' AND value = '" +
+             search + "') ";
+    }
+    if(is_isbn10(search)) {
+      return " AND items.id IN (SELECT item_id FROM item_list_values"
+             " WHERE column_name = 'ISBN10' AND value = '" +
+             search + "') ";
+    }
+    QString result;
+    for(auto const& word : search.split(' ', Qt::SkipEmptyParts)) {
+      result += " AND items.name LIKE '%" + like_escape(word) +
+                "%' ESCAPE '\\' ";
+    }
+    return result;
+  }
+
+  /// Builds the ORDER BY clause matching item_search_filter().
+  /**
+     Items whose name starts with \a search come first, so the item the user
+     most likely means is not buried among names that merely contain a
+     search word.  Within both groups the items are ordered by name.
+     @param search the search string passed to item_search_filter(), may be
+     empty.
+     @return SQL fragment starting with "ORDER BY".
+  */
+  inline QString item_search_order(QString const& search)
+  {
+    auto const prefix = search.simplified();
+    if(prefix.isEmpty()) {
+      return "ORDER BY items.name COLLATE NOCASE";
+    }
+    return "ORDER BY items.name LIKE '" + like_escape(prefix) +
+           "%' ESCAPE '\\' DESC, items.name COLLATE NOCASE";
   }
 
   /// Returns true when the table named \a name exists in the database.

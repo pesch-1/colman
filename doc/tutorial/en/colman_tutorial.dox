@@ -698,11 +698,13 @@ the right the data of the selected or new item.
 @image latex 030_acquisition_01.jpg "acquire -- step 1: selecting the item"
 
 <b>Searching for an existing item (further copies):</b>
-- Enter the beginning of the name, the Colman barcode or the ISBN
-  into the field <b>name/barcode</b>, or scan the barcode. The
-  search starts as soon as you press <b>Enter</b> or leave the
-  field; the list then only shows the matching media. If there is
-  exactly one hit, it is selected automatically.
+- Enter one or more words of the name, the Colman barcode or the
+  ISBN into the field <b>name/barcode</b>, or scan the barcode. The
+  words may appear anywhere in the name: "little witch" also finds
+  "The Little Witch". The search starts as soon as you press
+  <b>Enter</b> or leave the field; the list then only shows the
+  matching media, those whose name starts with your input first. If
+  there is exactly one hit, it is selected automatically.
 - Select the desired item in the list. Its data appears on the
   right (read-only). <b>Acquire more copies</b> takes you to
   @ref tutorial_items_step2 "step 2".
@@ -1196,8 +1198,8 @@ On the central navigation page, click <b>liquidate</b>.
 
 @section tutorial_liquidation_step1 Step 1: Selecting the Item
 
-1. Enter the name, barcode or ISBN into the search field
-   <b>barcode/name</b>.
+1. Enter words of the name, the barcode or the ISBN into the search
+   field <b>barcode/name</b>.
 2. The table only shows items with available stock.
 3. Select the desired item and click <b>next</b>. Alternatively, a
    barcode scanner identifies the item automatically.
@@ -1345,9 +1347,9 @@ the new due date.
 
 @section tutorial_lending_step2 Step 2: Selecting the Item
 
-1. Enter the name, barcode or ISBN into the search field. Media of
-   which no copy is available any more are shown in grey and cannot
-   be selected.
+1. Enter words of the name, the barcode or the ISBN into the search
+   field. Media of which no copy is available any more are shown in
+   grey and cannot be selected.
 2. Select the item.
 3. Click <b>next</b>.
 
@@ -1421,8 +1423,9 @@ On the central navigation page, click <b>group lending</b>.
 
 @section tutorial_group_lending_step1 Step 1: Selecting the Item
 
-1. Type the name, barcode or ISBN in the search field, or scan the
-   label of a copy. Items with no copy left are grayed out.
+1. Type words of the name, the barcode or the ISBN in the search
+   field, or scan the label of a copy. Items with no copy left are
+   grayed out.
 2. Select the item.
 3. Click <b>next</b>. A scanned barcode leads directly to step 2.
 
@@ -1574,9 +1577,9 @@ On the central navigation page, click <b>return item</b>.
 
 @section tutorial_return_step1 Step 1: Selecting the Item
 
-1. Enter the barcode, name or ISBN of the item being returned into
-   the search field. The table only shows items that are currently
-   lent.
+1. Enter the barcode, words of the name or the ISBN of the item
+   being returned into the search field. The table only shows items
+   that are currently lent.
 2. Select the item and click <b>next</b>. When scanning a barcode,
    the item is selected automatically.
 

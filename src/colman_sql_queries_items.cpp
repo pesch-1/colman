@@ -104,37 +104,6 @@ namespace
     return false;
   }
 
-  /// Builds the SQL filter clause for an item search string.
-  /**
-     The collection's own item barcode is checked first: a colman barcode is
-     13 digits long for many item ids and then often carries a valid EAN-13
-     check digit, so testing for an ISBN-13 first would misinterpret it.
-     @param collection the collection whose barcode prefix to use.
-     @param search non-empty ISBN, barcode or name prefix.
-     @return SQL fragment starting with " AND ", to append to the JOIN.
-  */
-  QString item_search_filter(colman::Collection const& collection,
-                             QString const& search)
-  {
-    int type_id = -1;
-    int item_id = -1;
-    if(colman::parse_item_barcode(collection, search, type_id, item_id)) {
-      return " AND items.id = " + QString().setNum(item_id) + " ";
-    }
-    if(colman::is_isbn13(search)) {
-      return " AND items.id IN (SELECT item_id FROM item_list_values"
-             " WHERE column_name = 'ISBN13' AND value = '" +
-             search + "') ";
-    }
-    if(colman::is_isbn10(search)) {
-      return " AND items.id IN (SELECT item_id FROM item_list_values"
-             " WHERE column_name = 'ISBN10' AND value = '" +
-             search + "') ";
-    }
-    return " AND items.name LIKE '" + colman::like_escape(search) +
-           "%' ESCAPE '\\' ";
-  }
-
 } // namespace
 
 // -----------------------------------------------------------------------
@@ -435,8 +404,10 @@ colman::SQLQueries::query_statistics(QDate const& from, QDate const& to,
 /// Queries items filtered by id and text search.
 /**
   @param item_id If greater than zero, filters to this item id.
-  @param search  Optional ISBN, barcode or name prefix to filter items.
-  @return        Vector of ItemListModel::Row ordered by name.
+  @param search  Optional ISBN, barcode or words of the name to filter
+                 items.
+  @return        Vector of ItemListModel::Row ordered by name, names
+                 starting with \a search first.
 */
 std::vector<colman::ItemListModel::Row> colman::SQLQueries::query_items(
     int item_id, QString const& search, QLocale::Language lang)
@@ -456,14 +427,14 @@ std::vector<colman::ItemListModel::Row> colman::SQLQueries::query_items(
     sql += "AND items.id = " + QString().setNum(item_id) + " ";
   }
   else if(!search.isEmpty()) {
-    sql += item_search_filter(read_collection(), search);
+    sql += colman::item_search_filter(read_collection(), search);
   }
   sql += "LEFT JOIN persons ON items.data_collector = persons.id "
          "LEFT JOIN translations ON translations.tablename = 'types'"
          " AND translations.language = " +
          QString().setNum(lang) +
-         " AND types.name = translations.column "
-         "ORDER BY items.name COLLATE NOCASE";
+         " AND types.name = translations.column " +
+         colman::item_search_order(item_id > 0 ? QString() : search);
   QSqlQuery q(db_);
   q.exec(sql);
   std::vector<ItemListModel::Row> result;
@@ -484,8 +455,10 @@ std::vector<colman::ItemListModel::Row> colman::SQLQueries::query_items(
 /// Queries acquired items (count > 0) and returns them as a list of rows.
 /**
   @param item_id If greater than zero, filters to this item id.
-  @param search  Optional ISBN, barcode or name prefix to filter items.
-  @return        Vector of ItemListModel::Row ordered by name.
+  @param search  Optional ISBN, barcode or words of the name to filter
+                 items.
+  @return        Vector of ItemListModel::Row ordered by name, names
+                 starting with \a search first.
 */
 std::vector<colman::ItemListModel::Row> colman::SQLQueries::
     query_acquired_items(int item_id, QString const& search,
@@ -502,13 +475,13 @@ std::vector<colman::ItemListModel::Row> colman::SQLQueries::
     sql += "AND items.id = " + QString().setNum(item_id) + " ";
   }
   else if(!search.isEmpty()) {
-    sql += item_search_filter(read_collection(), search);
+    sql += colman::item_search_filter(read_collection(), search);
   }
   sql += "LEFT JOIN translations ON translations.tablename = 'types'"
          " AND translations.language = " +
          QString().setNum(lang) +
-         " AND types.name = translations.column "
-         "ORDER BY items.name COLLATE NOCASE";
+         " AND types.name = translations.column " +
+         colman::item_search_order(item_id > 0 ? QString() : search);
   if(limit > 0) {
     sql += " LIMIT " + QString::number(limit + 1) +
            " OFFSET " + QString::number(offset);
@@ -532,8 +505,10 @@ std::vector<colman::ItemListModel::Row> colman::SQLQueries::
 /// Queries available items (count > 0, available > 0) as a list of rows.
 /**
   @param item_id If greater than zero, filters to this item id.
-  @param search  Optional ISBN, barcode or name prefix to filter items.
-  @return        Vector of ItemListModel::Row ordered by name.
+  @param search  Optional ISBN, barcode or words of the name to filter
+                 items.
+  @return        Vector of ItemListModel::Row ordered by name, names
+                 starting with \a search first.
 */
 std::vector<colman::ItemListModel::Row> colman::SQLQueries::
     query_available_items(int item_id, QString const& search,
@@ -551,13 +526,13 @@ std::vector<colman::ItemListModel::Row> colman::SQLQueries::
     sql += "AND items.id = " + QString().setNum(item_id) + " ";
   }
   else if(!search.isEmpty()) {
-    sql += item_search_filter(read_collection(), search);
+    sql += colman::item_search_filter(read_collection(), search);
   }
   sql += "LEFT JOIN translations ON translations.tablename = 'types'"
          " AND translations.language = " +
          QString().setNum(lang) +
-         " AND types.name = translations.column "
-         "ORDER BY items.name COLLATE NOCASE";
+         " AND types.name = translations.column " +
+         colman::item_search_order(item_id > 0 ? QString() : search);
   if(limit > 0) {
     sql += " LIMIT " + QString::number(limit + 1) +
            " OFFSET " + QString::number(offset);
@@ -581,8 +556,10 @@ std::vector<colman::ItemListModel::Row> colman::SQLQueries::
 /// Queries items belonging to a specific type as a list of rows.
 /**
   @param type_id The type id to filter items by (required, > 0).
-  @param search  Optional ISBN, barcode or name prefix to further filter items.
-  @return        Vector of ItemListModel::Row ordered by name.
+  @param search  Optional ISBN, barcode or words of the name to further
+                 filter items.
+  @return        Vector of ItemListModel::Row ordered by name, names
+                 starting with \a search first.
 */
 std::vector<colman::ItemListModel::Row> colman::SQLQueries::
     query_items_with_type(int type_id, QString const& search,
@@ -602,14 +579,14 @@ std::vector<colman::ItemListModel::Row> colman::SQLQueries::
               "JOIN types ON items.type = types.id AND types.id = ");
   sql += QString().setNum(type_id) + " ";
   if(!search.isEmpty()) {
-    sql += item_search_filter(read_collection(), search);
+    sql += colman::item_search_filter(read_collection(), search);
   }
   sql += "LEFT JOIN persons ON items.data_collector = persons.id "
          "LEFT JOIN translations ON translations.tablename = 'types'"
          " AND translations.language = " +
          QString().setNum(lang) +
-         " AND types.name = translations.column "
-         "ORDER BY items.name COLLATE NOCASE";
+         " AND types.name = translations.column " +
+         colman::item_search_order(search);
   if(limit > 0) {
     sql += " LIMIT " + QString::number(limit + 1) +
            " OFFSET " + QString::number(offset);

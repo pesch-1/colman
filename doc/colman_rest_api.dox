@@ -171,7 +171,9 @@ Minor is incremented for backwards-compatible additions; major is
 incremented for breaking changes.  The current API version is **2.7**
 (see `colman_rest_api_version.hpp`).  Since 2.7, the number of items and
 copies in stock (@ref rest_items_totals) and the statistics per item type
-(@ref rest_statistics) can be queried.  Since 2.6, the open copies of an
+(@ref rest_statistics) can be queried, and the item search string matches
+words anywhere in the name instead of only its beginning
+(@ref rest_items_name_search).  Since 2.6, the open copies of an
 item held by several persons can be returned in a single request
 (@ref rest_returns_batch, group return) and the rows of
 `POST /api/persons/lending-query` carry `school_class`.  Since 2.5, several persons can
@@ -463,12 +465,23 @@ copy in stock and the number of these copies.  Items whose copies have all
 been liquidated are not counted.  Any authenticated user may call it (the
 desktop client shows the figures in its status bar).  Since API 2.7.
 
+@subsection rest_items_name_search Item search string
+
+The `search` parameter of the item list endpoints below is interpreted
+in this order: an item barcode of the collection selects that item, an
+ISBN-10/ISBN-13 selects the items carrying it, and any other string is
+split into words, each of which must occur somewhere in the item name
+(case-insensitive for ASCII letters).  Items whose name starts with the
+whole search string are listed first, the rest follow by name.  Before
+API 2.7 the string only matched the beginning of the name.
+
 @subsection rest_items_available GET /api/items/available?id={id}&search={s}&limit={n}&offset={n}
 
 Returns a JSON array of item-list rows for available items (same shape
 as `/api/items`).  Optional query parameters:
 - `id=N` — filter by item ID
-- `search=<string>` — filter by search string
+- `search=<string>` — filter by item barcode, ISBN or words of the name
+  (see @ref rest_items_name_search)
 - `limit=N` — maximum number of rows to return (0 = unlimited)
 - `offset=N` — skip the first N matching rows (pagination)
 
@@ -477,7 +490,8 @@ as `/api/items`).  Optional query parameters:
 Returns a JSON array of item-list rows for acquired items (same shape
 as `/api/items`).  Optional query parameters:
 - `id=N` — filter by item ID
-- `search=<string>` — filter by search string
+- `search=<string>` — filter by item barcode, ISBN or words of the name
+  (see @ref rest_items_name_search)
 - `limit=N` — maximum number of rows to return (0 = unlimited)
 - `offset=N` — skip the first N matching rows (pagination)
 
@@ -528,7 +542,8 @@ Returns the lent count for a given item/lending pair.  Request body:
 
 Returns a JSON array of item-list rows for items of the given type.
 Optional query parameters:
-- `search=<string>` — filter by search string
+- `search=<string>` — filter by item barcode, ISBN or words of the name
+  (see @ref rest_items_name_search)
 - `limit=N` — maximum number of rows to return (0 = unlimited)
 - `offset=N` — skip the first N matching rows (pagination)
 
