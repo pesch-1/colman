@@ -15,8 +15,9 @@ Q_LOGGING_CATEGORY(colman_lookup_log, "colman.lookup", QtInfoMsg)
 /**
    Sets the Qt logging filter rules according to the trace level.
    Debug traces of the internet search are enabled only if \a level is at
-   least LookupTraceLevel.  The rules replace all previously set rules, so
-   the suppression of spurious KDE warnings is always included.
+   least LookupTraceLevel.  At level 0 the FFmpeg version banner of Qt
+   Multimedia is suppressed as well.  The rules replace all previously set
+   rules, so the suppression of spurious KDE warnings is always included.
    @param level trace level given on the command line (0 = silent).
 */
 void colman::set_trace_level(int level)
@@ -24,6 +25,9 @@ void colman::set_trace_level(int level)
   // KDE's KDirModel emits this spuriously when inotify fires for files
   // that are no longer in its model (e.g. build artefacts, editor temps).
   QString rules = QStringLiteral("kf.kio.widgets.kdirmodel.warning=false");
+  if(level == 0) {
+    rules += QStringLiteral("\nqt.multimedia.ffmpeg.info=false");
+  }
   if(level >= LookupTraceLevel) {
     rules += QStringLiteral("\ncolman.lookup.debug=true");
   }

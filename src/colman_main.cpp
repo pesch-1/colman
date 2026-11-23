@@ -256,6 +256,17 @@ namespace
 int main(int argc, char* argv[])
 {
   colman::set_trace_level(0);
+  // With its default hardware device lists, Qt's FFmpeg backend makes
+  // libvdpau print "Failed to open VDPAU backend" on systems without a
+  // VDPAU driver.  Explicit lists (without VDPAU) avoid that; variables set
+  // by the user take precedence.
+  for(auto const* name : {"QT_FFMPEG_DECODING_HW_DEVICE_TYPES",
+                          "QT_FFMPEG_ENCODING_HW_DEVICE_TYPES"})
+  {
+    if(!qEnvironmentVariableIsSet(name)) {
+      qputenv(name, "vaapi,cuda,drm");
+    }
+  }
   QCoreApplication::setOrganizationName("cpesch");
   QCoreApplication::setApplicationName("colman");
   QApplication app(argc, argv);
